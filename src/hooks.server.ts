@@ -4,19 +4,10 @@ import { sequence } from '@sveltejs/kit/hooks';
 
 const luciaAuth: Handle = async ({ event, resolve }) => {
 	const nakedPath = nakedPaths.includes(event.url.pathname);
-	if (nakedPath) {
-		const authorizationHeader = event.request.headers.get('Authorization');
-		const sessionId = lucia.readBearerToken(authorizationHeader ?? '');
-		if (!sessionId) {
-			return new Response(null, { status: 401 });
-		}
-		const { session, user } = await lucia.validateSession(sessionId);
-		event.locals.user = user;
-		event.locals.session = session;
-		return resolve(event);
-	}
+	const sessionId = nakedPath
+		? lucia.readBearerToken(event.request.headers.get('Authorization') ?? '') // bearer token
+		: event.cookies.get(lucia.sessionCookieName); // cookies
 
-	const sessionId = event.cookies.get(lucia.sessionCookieName);
 	if (!sessionId) {
 		event.locals.user = null;
 		event.locals.session = null;
@@ -31,6 +22,7 @@ const luciaAuth: Handle = async ({ event, resolve }) => {
 			...sessionCookie.attributes
 		});
 	}
+
 	if (!session) {
 		const sessionCookie = lucia.createBlankSessionCookie();
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
@@ -38,6 +30,7 @@ const luciaAuth: Handle = async ({ event, resolve }) => {
 			...sessionCookie.attributes
 		});
 	}
+
 	event.locals.user = user;
 	event.locals.session = session;
 	return resolve(event);

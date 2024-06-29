@@ -10,7 +10,7 @@ const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 export const lucia = new Lucia(adapter, {
 	sessionCookie: {
 		attributes: {
-			secure: !dev
+			secure: !dev // sets `Secure` flag in HTTPS
 		}
 	},
 	getUserAttributes: (attributes) => {
