@@ -2,11 +2,12 @@ import { generateIdFromEntropySize } from 'lucia';
 import type { Actions } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
-import { lucia } from '$lib/server/auth';
 import { emailSchema, passwordSchema, usernameSchema } from '$lib/schema-validation';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { z } from 'zod';
+import { lucia } from '$lib/server/auth';
+import { generateEmailVerificationCode, sendVerificationCode } from '$lib/server/auth/email';
 
 export const actions: Actions = {
 	signup: async (event) => {
@@ -51,8 +52,15 @@ export const actions: Actions = {
 				lastName: lastName as string,
 				username: username as string,
 				email: email as string,
-				passwordHash: passwordHash
+				passwordHash: passwordHash,
+				isEmailVerified: false
 			});
+
+			const verificationCode = await generateEmailVerificationCode({
+				userId: userId,
+				email: email as string
+			});
+			await sendVerificationCode({ email: email as string, verificationCode: verificationCode });
 
 			const session = await lucia.createSession(userId, {});
 			const sessionCookie = lucia.createSessionCookie(session.id);
