@@ -2,62 +2,58 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { verify } from '@node-rs/argon2';
 import { lucia } from '$lib/server/auth';
+import { emailSchema, passwordSchema, usernameSchema } from '$lib/schema-validation';
+import { db } from '$lib/db';
+import { users, type User } from '$lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const actions: Actions = {
 	login: async (event) => {
 		const formData = await event.request.formData();
-		const username = formData.get('username');
+		const usernameOrEmail = formData.get('username/email');
 		const password = formData.get('password');
 
-		if (
-			typeof username !== 'string' ||
-			username.length < 3 ||
-			username.length > 31 ||
-			!/^[a-z0-9_-]+$/.test(username)
+		let isUsername = true;
+		if (emailSchema.safeParse(usernameOrEmail).success) {
+			isUsername = false;
+		} else if (
+			!usernameSchema.safeParse(usernameOrEmail).success ||
+			!passwordSchema.safeParse(password).success
 		) {
 			return fail(400, {
-				message: 'Invalid username'
-			});
-		}
-		if (typeof password !== 'string' || password.length < 6 || password.length > 255) {
-			return fail(400, {
-				message: 'Invalid password'
+				message: 'Invalid login credentials'
 			});
 		}
 
 		// TODO: get exinsting user
-		const existingUser = await db
-			.table('username')
-			.where('username', '=', username.toLowerCase())
-			.get();
-		if (!existingUser) {
-			// NOTE:
-			// Returning immediately allows malicious actors to figure out valid usernames from response times,
-			// allowing them to only focus on guessing passwords in brute-force attacks.
-			// As a preventive measure, you may want to hash passwords even for invalid usernames.
-			// However, valid usernames can be already be revealed with the signup page among other methods.
-			// It will also be much more resource intensive.
-			// Since protecting against this is non-trivial,
-			// it is crucial your implementation is protected against brute-force attacks with login throttling etc.
-			// If usernames are public, you may outright tell the user that the username is invalid.
-			return fail(400, {
-				message: 'Incorrect username or password'
-			});
+		let user: User | null = null;
+		if (isUsername) {
+			[user] = await db
+				.select()
+				.from(users)
+				.where(eq(users.username, usernameOrEmail as string))
+				.limit(1);
+		} else {
+			[user] = await db
+				.select()
+				.from(users)
+				.where(eq(users.email, usernameOrEmail as string))
+				.limit(1);
 		}
 
-		const validPassword = await verify(existingUser.password_hash, password, {
+		const validPassword = await verify(user.passwordHash, password, {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
 			parallelism: 1
 		});
-		if (!validPassword) {
+		if (!user || !validPassword) {
 			return fail(400, {
-				message: 'Incorrect username or password'
+				message: 'Incorrect login credentials'
 			});
 		}
 
-		const session = await lucia.createSession(existingUser.id, {});
+		const session = await lucia.createSession(user.id, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',

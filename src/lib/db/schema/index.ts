@@ -10,5 +10,6 @@ export const users = pgTable('users', {
 	passwordHash: text('password_hash').notNull()
 });
 
+export type User = typeof users.$inferSelect;
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
