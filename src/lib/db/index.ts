@@ -13,11 +13,13 @@ if (
 	throw new Error('Database credentials is required');
 }
 
-const client = postgres({
+// add {prepare: false} if using "Transaction" pool mode in Supabase (serverless hosting)
+// otherwise nothing needs to be changed for "Session" (long running hosting)
+const queryClient = postgres({
 	username: DB_USERNAME,
 	password: DB_PASSWORD,
 	host: DB_HOST,
 	port: parseInt(DB_PORT),
 	database: DB_DATABASE
 });
-export const db = drizzle(client);
+export const db = drizzle(queryClient);
