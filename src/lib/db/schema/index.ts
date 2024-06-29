@@ -5,8 +5,9 @@ export const users = pgTable('users', {
 	id: text('id').primaryKey(),
 	firstName: text('first_name'),
 	lastName: text('last_name'),
-	username: text('username').unique(),
-	passwordHash: text('password_hash')
+	username: text('username').notNull().unique(),
+	email: text('email').notNull().unique(),
+	passwordHash: text('password_hash').notNull()
 });
 
 export const insertUserSchema = createInsertSchema(users);

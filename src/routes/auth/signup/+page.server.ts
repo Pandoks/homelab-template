@@ -3,6 +3,10 @@ import type { Actions } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
 import { lucia } from '$lib/server/auth';
+import { emailSchema, passwordSchema, usernameSchema } from '$lib/schema-validation';
+import { db } from '$lib/db';
+import { users } from '$lib/db/schema';
+import { z } from 'zod';
 
 export const actions: Actions = {
 	signup: async (event) => {
@@ -12,26 +16,25 @@ export const actions: Actions = {
 		const firstName = formData.get('firstName');
 		const lastName = formData.get('lastName');
 		const password = formData.get('password');
-		// username must be between 4 ~ 31 characters, and only consists of lowercase letters, 0-9, -, and _
-		// keep in mind some database (e.g. mysql) are case insensitive
-		if (
-			// TODO: use zod and drizzle-zod
-			typeof username !== 'string' ||
-			username.length < 3 ||
-			username.length > 31 ||
-			!/^[a-z0-9_-]+$/.test(username)
-		) {
+
+		if (!usernameSchema.safeParse(username).success) {
 			return fail(400, {
 				message: 'Invalid username'
 			});
-		}
-		if (typeof password !== 'string' || password.length < 6 || password.length > 255) {
+		} else if (!passwordSchema.safeParse(password).success) {
 			return fail(400, {
 				message: 'Invalid password'
 			});
+		} else if (!emailSchema.safeParse(email).success) {
+			return fail(400, {
+				message: 'Invalid email'
+			});
+		} else if (!z.string().min(1).safeParse(firstName) || !z.string().min(1).safeParse(lastName)) {
+			return fail(400, {
+				message: 'Invalid first or last name'
+			});
 		}
 
-		const userId = generateIdFromEntropySize(10); // 16 characters long
 		const passwordHash = await hash(password, {
 			// recommended minimum parameters
 			memoryCost: 19456,
@@ -39,15 +42,32 @@ export const actions: Actions = {
 			outputLen: 32,
 			parallelism: 1
 		});
+		const userId = generateIdFromEntropySize(10); // 16 characters long
 
-		// TODO: check if username is already used
+		try {
+			await db.insert(users).values({
+				id: userId,
+				firstName: firstName as string,
+				lastName: lastName as string,
+				username: username as string,
+				email: email as string,
+				passwordHash: passwordHash
+			});
 
-		const session = await lucia.createSession(userId, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+			const session = await lucia.createSession(userId, {});
+			const sessionCookie = lucia.createSessionCookie(session.id);
+			event.cookies.set(sessionCookie.name, sessionCookie.value, {
+				path: '.',
+				...sessionCookie.attributes
+			});
+		} catch (err) {
+			return (
+				fail(400),
+				{
+					message: 'Email or username already used'
+				}
+			);
+		}
 
 		redirect(302, '/');
 	}
