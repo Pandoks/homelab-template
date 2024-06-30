@@ -1,18 +1,18 @@
 import { defineConfig } from 'drizzle-kit';
 
-const DB_USERNAME = process.env.DB_USERNAME;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_HOST = process.env.DB_HOST;
-const DB_PORT = process.env.DB_PORT;
-const DB_DATABASE = process.env.DB_DATABASE;
+const USER_DB_USERNAME = process.env.USER_DB_USERNAME;
+const USER_DB_PASSWORD = process.env.USER_DB_PASSWORD;
+const USER_DB_HOST = process.env.USER_DB_HOST;
+const USER_DB_PORT = process.env.USER_DB_PORT;
+const USER_DB_DATABASE = process.env.USER_DB_DATABASE;
 
 if (
-	!DB_DATABASE ||
-	!DB_PORT ||
-	!DB_HOST ||
-	DB_PASSWORD === undefined ||
-	DB_PASSWORD === null ||
-	!DB_USERNAME
+	!USER_DB_DATABASE ||
+	!USER_DB_PORT ||
+	!USER_DB_HOST ||
+	USER_DB_PASSWORD === undefined ||
+	USER_DB_PASSWORD === null ||
+	!USER_DB_USERNAME
 ) {
 	throw new Error('Database credentials is required');
 }
@@ -22,11 +22,11 @@ export default defineConfig({
 	dialect: 'postgresql',
 	out: './drizzle',
 	dbCredentials: {
-		user: DB_USERNAME,
-		password: DB_PASSWORD,
-		host: DB_HOST,
-		port: parseInt(DB_PORT),
-		database: DB_DATABASE,
+		user: USER_DB_USERNAME,
+		password: USER_DB_PASSWORD,
+		host: USER_DB_HOST,
+		port: parseInt(USER_DB_PORT),
+		database: USER_DB_DATABASE,
 		ssl: false // enable ssl for production
 	},
 	verbose: true,

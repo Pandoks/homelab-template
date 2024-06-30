@@ -1,14 +1,20 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from '$env/static/private';
+import {
+	USER_DB_DATABASE,
+	USER_DB_HOST,
+	USER_DB_PASSWORD,
+	USER_DB_PORT,
+	USER_DB_USERNAME
+} from '$env/static/private';
 
 if (
-	!DB_DATABASE ||
-	!DB_PORT ||
-	!DB_HOST ||
-	DB_PASSWORD === undefined ||
-	DB_PASSWORD === null ||
-	!DB_USERNAME
+	!USER_DB_DATABASE ||
+	!USER_DB_PORT ||
+	!USER_DB_HOST ||
+	USER_DB_PASSWORD === undefined ||
+	USER_DB_PASSWORD === null ||
+	!USER_DB_USERNAME
 ) {
 	throw new Error('Database credentials is required');
 }
@@ -16,10 +22,10 @@ if (
 // add {prepare: false} if using "Transaction" pool mode in Supabase (serverless hosting)
 // otherwise nothing needs to be changed for "Session" (long running hosting)
 const queryClient = postgres({
-	username: DB_USERNAME,
-	password: DB_PASSWORD,
-	host: DB_HOST,
-	port: parseInt(DB_PORT),
-	database: DB_DATABASE
+	username: USER_DB_USERNAME,
+	password: USER_DB_PASSWORD,
+	host: USER_DB_HOST,
+	port: parseInt(USER_DB_PORT),
+	database: USER_DB_DATABASE
 });
 export const db = drizzle(queryClient);
