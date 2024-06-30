@@ -40,7 +40,7 @@ export const actions: Actions = {
 				.limit(1);
 		}
 
-		const validPassword = await verify(user.passwordHash, password, {
+		const validPassword = await verify(user.passwordHash, password as string, {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
