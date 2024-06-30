@@ -25,3 +25,14 @@ export const createPasswordResetToken = async ({ userId }: { userId: string }): 
 
 	return tokenId;
 };
+
+export const sendVerificationCode = async ({
+	email,
+	verificationLink
+}: {
+	email: string;
+	verificationLink: string;
+}) => {
+	console.log(`Sending verification code: ${email}`);
+	console.log(`Verification link: ${verificationLink}`);
+};
