@@ -32,7 +32,8 @@ export const sendVerificationCode = async ({
 	email: string;
 	verificationCode: string;
 }) => {
-	console.log('Sending verification code');
+	console.log(`Sending verification code: ${email}`);
+	console.log(`Verification code: ${verificationCode}`);
 };
 
 export const verifyVerificationCode = async ({ user, code }: { user: User; code: string }) => {
