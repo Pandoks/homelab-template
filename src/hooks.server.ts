@@ -2,6 +2,17 @@ import { lucia } from '$lib/server/auth';
 import { error, json, text, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
+/** Paths that don't have CSRF protection
+ *  When making requests to these paths, store the sessiond ID in localstorage and send it over
+ *  as a bearer token:
+ *  fetch('https://api/example.com', {
+ *    headers: {
+ *      Authorization: `Bearer ${sessionId}`
+ *    }
+ *  })
+ */
+const nakedPaths: string[] = [];
+
 const luciaAuth: Handle = async ({ event, resolve }) => {
 	const nakedPath = nakedPaths.includes(event.url.pathname);
 	const sessionId = nakedPath
@@ -65,16 +76,5 @@ const csrf: Handle = async ({ event, resolve }) => {
 
 	return resolve(event);
 };
-
-/** Paths that don't have CSRF protection
- *  When making requests to these paths, store the sessiond ID in localstorage and send it over
- *  as a bearer token:
- *  fetch('https://api/example.com', {
- *    headers: {
- *      Authorization: `Bearer ${sessionId}`
- *    }
- *  })
- */
-const nakedPaths: string[] = [];
 
 export const handle: Handle = sequence(csrf, luciaAuth);

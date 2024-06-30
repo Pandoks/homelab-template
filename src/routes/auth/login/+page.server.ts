@@ -47,6 +47,7 @@ export const actions: Actions = {
 			outputLen: 32,
 			parallelism: 1
 		});
+		// NOTE: don't return incorrect user before hashing the password as it gives information to hackers
 		if (!user || !validPassword) {
 			return fail(400, {
 				message: 'Incorrect login credentials'

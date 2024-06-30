@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { alphabet, generateRandomString } from 'oslo/crypto';
-import { createDate, TimeSpan } from 'oslo';
+import { createDate, isWithinExpirationDate, TimeSpan } from 'oslo';
 import { db } from '$lib/db';
 import { emailVerificationCodes } from '$lib/db/schema/auth';
+import { type User } from 'lucia';
 
 export const generateEmailVerificationCode = async ({
 	userId,
@@ -32,4 +33,31 @@ export const sendVerificationCode = async ({
 	verificationCode: string;
 }) => {
 	console.log('Sending verification code');
+};
+
+export const verifyVerificationCode = async ({ user, code }: { user: User; code: string }) => {
+	const isValidVerificationCode: boolean = await db.transaction(async (transaction) => {
+		const [emailVerificationCode] = await transaction
+			.select()
+			.from(emailVerificationCodes)
+			.where(eq(emailVerificationCodes.userId, user.id));
+		if (!emailVerificationCode || emailVerificationCode.code !== code) {
+			transaction.rollback();
+			return false;
+		}
+		await transaction
+			.delete(emailVerificationCodes)
+			.where(eq(emailVerificationCodes.id, emailVerificationCode.id));
+
+		if (
+			isWithinExpirationDate(emailVerificationCode.expiresAt) ||
+			emailVerificationCode.email !== user.email
+		) {
+			return false;
+		}
+
+		return true;
+	});
+
+	return isValidVerificationCode;
 };
