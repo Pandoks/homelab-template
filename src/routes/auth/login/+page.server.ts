@@ -25,7 +25,6 @@ export const actions: Actions = {
 			});
 		}
 
-		// TODO: get exinsting user
 		let user: User | null = null;
 		if (isUsername) {
 			[user] = await db
