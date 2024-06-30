@@ -3,7 +3,7 @@ import { users } from '$lib/db/schema';
 import { emailSchema } from '$lib/schema-validation';
 import { eq } from 'drizzle-orm';
 import type { Actions } from './$types';
-import { createPasswordResetToken } from '$lib/server/auth/password-reset';
+import { createPasswordResetToken, sendPasswordResetToken } from '$lib/server/auth/password-reset';
 import { PUBLIC_APP_HOST } from '$env/static/public';
 
 export const actions: Actions = {
@@ -27,7 +27,7 @@ export const actions: Actions = {
 		const verificationToken = await createPasswordResetToken({ userId: user.id });
 		const verificationLink = `${PUBLIC_APP_HOST}/auth/reset-password/${verificationToken}`;
 
-		await sendPasswordResetToken({ email: email, verificationLink: verificationLink });
+		await sendPasswordResetToken({ email: email as string, verificationLink: verificationLink });
 		return { success: true };
 	}
 };
