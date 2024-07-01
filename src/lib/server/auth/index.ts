@@ -17,7 +17,8 @@ export const lucia = new Lucia(adapter, {
 		return {
 			username: attributes.username,
 			email: attributes.email,
-			isEmailVerified: attributes.isEmailVerified
+			isEmailVerified: attributes.isEmailVerified,
+			isTwoFactor: attributes.twoFactorSecret !== null
 		};
 	}
 });
@@ -35,4 +36,5 @@ interface DatabaseUserAttributes {
 	username: string;
 	email: string;
 	isEmailVerified: boolean;
+	twoFactorSecret: string | null;
 }

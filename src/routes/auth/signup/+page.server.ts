@@ -36,7 +36,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const passwordHash = await hash(password, {
+		const passwordHash = await hash(password as string, {
 			// recommended minimum parameters
 			memoryCost: 19456,
 			timeCost: 2,
@@ -53,7 +53,8 @@ export const actions: Actions = {
 				username: username as string,
 				email: email as string,
 				passwordHash: passwordHash,
-				isEmailVerified: false
+				isEmailVerified: false,
+				twoFactorSecret: null
 			});
 
 			const verificationCode = await generateEmailVerificationCode({
