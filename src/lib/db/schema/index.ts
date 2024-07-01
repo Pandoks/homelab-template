@@ -11,7 +11,8 @@ export const users = pgTable('users', {
 	email: text('email').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
 	isEmailVerified: boolean('is_email_verified').default(false),
-	twoFactorSecret: text('two_factor_secret')
+	twoFactorSecret: text('two_factor_secret'),
+	twoFactorRecoveryHash: text('two_factor_recovery_hash')
 });
 export type User = typeof users.$inferSelect;
 export const insertUserSchema = createInsertSchema(users);

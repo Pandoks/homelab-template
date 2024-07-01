@@ -1,3 +1,7 @@
+/**
+ * Create new 2FA TOTP credentials for user
+ * Should not EVER be used unless the user has NEVER initialized 2FA or is resetting their 2FA settings
+ */
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { lucia } from '$lib/server/auth';
@@ -8,6 +12,9 @@ import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
+import { generateIdFromEntropySize } from 'lucia';
+import { sha256 } from 'oslo/crypto';
+import { TextEncoderStream } from 'stream/web';
 
 export const actions: Actions = {
 	'verify-otp': async (event) => {
@@ -46,15 +53,23 @@ export const actions: Actions = {
 };
 export const load: PageServerLoad = async (event) => {
 	const { user } = await lucia.validateSession(event.locals.session.id);
-	if (!user) redirect(302, '/');
+	if (!user || user.isTwoFactor) redirect(302, '/');
 
 	const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
-	await db.update(users).set({ twoFactorSecret: encodeHex(twoFactorSecret) });
+	const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
+	const twoFactorRecoveryCodeHash = encodeHex(
+		await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
+	);
+	await db.update(users).set({
+		twoFactorSecret: encodeHex(twoFactorSecret),
+		twoFactorRecoveryHash: twoFactorRecoveryCodeHash
+	});
 
 	// create TOTP with app name, and user identifier (username/email)
 	const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, twoFactorSecret);
 	return {
 		username: user.username,
-		qrCodeLink: uri
+		qrCodeLink: uri,
+		recoveryCode: twoFactorRecoveryCode
 	};
 };
