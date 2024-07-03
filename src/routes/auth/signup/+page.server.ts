@@ -63,7 +63,7 @@ export const actions: Actions = {
 			});
 			await sendVerificationCode({ email: email as string, verificationCode: verificationCode });
 
-			const session = await lucia.createSession(userId, {});
+			const session = await lucia.createSession(userId, { isTwoFactorVerified: false });
 			const sessionCookie = lucia.createSessionCookie(session.id);
 			event.cookies.set(sessionCookie.name, sessionCookie.value, {
 				path: '.',

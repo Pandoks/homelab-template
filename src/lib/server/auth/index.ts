@@ -20,6 +20,11 @@ export const lucia = new Lucia(adapter, {
 			isEmailVerified: attributes.isEmailVerified,
 			isTwoFactor: attributes.twoFactorSecret !== null
 		};
+	},
+	getSessionAttributes: (attributes) => {
+		return {
+			isTwoFactorVerified: attributes.isTwoFactorVerified
+		};
 	}
 });
 
@@ -28,6 +33,7 @@ declare module 'lucia' {
 	interface Register {
 		Lucia: typeof lucia;
 		DatabaseUserAttributes: DatabaseUserAttributes;
+		DatabaseSessionAttributes: DatabaseSessionAttributes;
 	}
 }
 
@@ -37,4 +43,9 @@ interface DatabaseUserAttributes {
 	email: string;
 	isEmailVerified: boolean;
 	twoFactorSecret: string | null;
+}
+
+// attributes of session for a user from the database
+interface DatabaseSessionAttributes {
+	isTwoFactorVerified: boolean;
 }

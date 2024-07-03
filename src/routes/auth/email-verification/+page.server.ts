@@ -33,12 +33,16 @@ export const actions: Actions = {
 		await lucia.invalidateUserSessions(user.id);
 		await db.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
 
-		const session = await lucia.createSession(user.id, {});
+		const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',
 			...sessionCookie.attributes
 		});
+
+		if (user.isTwoFactor) {
+			redirect(302, '/auth/2fa/otp');
+		}
 
 		redirect(302, '/');
 	}

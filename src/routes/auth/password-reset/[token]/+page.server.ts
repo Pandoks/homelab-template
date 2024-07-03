@@ -45,8 +45,9 @@ export const actions: Actions = {
 			parallelism: 1
 		});
 		await db.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
+		const [user] = await db.select().from(users).where(eq(users.id, token.userId)).limit(1);
 
-		const session = await lucia.createSession(token.userId, {});
+		const session = await lucia.createSession(token.userId, { isTwoFactorVerified: false });
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',
@@ -55,6 +56,10 @@ export const actions: Actions = {
 		event.setHeaders({
 			'Referrer-Policy': 'strict-origin' // see load function
 		});
+
+		if (user.twoFactorSecret) {
+			redirect(302, '/auth/2fa/otp');
+		}
 
 		redirect(302, '/');
 	}

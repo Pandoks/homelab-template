@@ -53,7 +53,11 @@ export const actions: Actions = {
 			});
 		}
 
-		const session = await lucia.createSession(user.id, {});
+		if (user.twoFactorSecret) {
+			return redirect(302, '/auth/otp');
+		}
+
+		const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',

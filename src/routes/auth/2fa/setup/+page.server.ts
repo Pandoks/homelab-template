@@ -1,9 +1,9 @@
 /**
  * Create new 2FA TOTP credentials for user
- * Should not EVER be used unless the user has NEVER initialized 2FA or is resetting their 2FA settings
+ * NOTE: Should not EVER be used unless the user has NEVER initialized 2FA or is resetting their 2FA settings
  */
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from '../$types';
 import { lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
@@ -14,7 +14,6 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { generateIdFromEntropySize } from 'lucia';
 import { sha256 } from 'oslo/crypto';
-import { TextEncoderStream } from 'stream/web';
 
 export const actions: Actions = {
 	'verify-otp': async (event) => {
@@ -51,6 +50,7 @@ export const actions: Actions = {
 		});
 	}
 };
+
 export const load: PageServerLoad = async (event) => {
 	const { user } = await lucia.validateSession(event.locals.session.id);
 	if (!user || user.isTwoFactor) redirect(302, '/');
