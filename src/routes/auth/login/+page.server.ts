@@ -1,46 +1,38 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
 import { lucia } from '$lib/server/auth';
-import { emailSchema, passwordSchema, usernameSchema } from '$lib/schema-validation';
 import { db } from '$lib/db';
 import { users, type User } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { loginSchema } from './schema';
+import { emailSchema } from '../schema';
 
 export const actions: Actions = {
 	login: async (event) => {
-		const formData = await event.request.formData();
-		const usernameOrEmail = formData.get('username/email');
-		const password = formData.get('password');
+		const loginForm = await superValidate(event, zod(loginSchema));
+		if (!loginForm.valid) {
+			return fail(400, {
+				form: loginForm
+			});
+		}
 
 		let isUsername = true;
-		if (emailSchema.safeParse(usernameOrEmail).success) {
+		const usernameOrEmail = loginForm.data.usernameOrEmail;
+		if (!emailSchema.safeParse(usernameOrEmail).success) {
 			isUsername = false;
-		} else if (
-			!usernameSchema.safeParse(usernameOrEmail).success ||
-			!passwordSchema.safeParse(password).success
-		) {
-			return fail(400, {
-				message: 'Invalid login credentials'
-			});
 		}
 
 		let user: User | null = null;
 		if (isUsername) {
-			[user] = await db
-				.select()
-				.from(users)
-				.where(eq(users.username, usernameOrEmail as string))
-				.limit(1);
+			[user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
 		} else {
-			[user] = await db
-				.select()
-				.from(users)
-				.where(eq(users.email, usernameOrEmail as string))
-				.limit(1);
+			[user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
 		}
 
-		const validPassword = await verify(user.passwordHash, password as string, {
+		const validPassword = await verify(user.passwordHash, loginForm.data.password, {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
@@ -49,6 +41,7 @@ export const actions: Actions = {
 		// NOTE: don't return incorrect user before hashing the password as it gives information to hackers
 		if (!user || !validPassword) {
 			return fail(400, {
+				success: false,
 				message: 'Incorrect login credentials'
 			});
 		}
@@ -66,4 +59,34 @@ export const actions: Actions = {
 
 		redirect(302, '/');
 	}
+};
+
+export const load: PageServerLoad = async (event) => {
+	const existingSession = event.locals.session;
+
+	if (!existingSession) {
+		// user isn't logged in
+		return {
+			loginForm: await superValidate(zod(loginSchema))
+		};
+	}
+
+	const { session, user } = await lucia.validateSession(existingSession.id);
+	if (!session) {
+		// reset current cookie/session
+		const sessionCookie = lucia.createBlankSessionCookie();
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: '.',
+			...sessionCookie.attributes
+		});
+
+		return {
+			loginForm: await superValidate(zod(loginSchema))
+		};
+	}
+
+	if (!session.isTwoFactorVerified && user.isTwoFactor) {
+		return redirect(302, '/auth/otp');
+	}
+	return redirect(302, '/');
 };
