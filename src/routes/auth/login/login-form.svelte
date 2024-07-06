@@ -23,9 +23,10 @@
 	<Form.Field {form} name="usernameOrEmail" class="grid gap-2">
 		<Form.Control let:attrs>
 			<Label>Email/Username</Label>
-			<Input {...attrs} bind:value={$formData.usernameOrEmail} placeholder="email@example.com" />
+			<Input {...attrs} bind:value={$formData.usernameOrEmail} />
 		</Form.Control>
 	</Form.Field>
+
 	<Form.Field {form} name="password" class="grid gap-2">
 		<Form.Control let:attrs>
 			<div class="flex items-center">
@@ -37,6 +38,7 @@
 			<Input {...attrs} bind:value={$formData.password} type="password" />
 		</Form.Control>
 	</Form.Field>
+
 	{#if $delayed}
 		<Form.Button disabled class="w-full">
 			<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />

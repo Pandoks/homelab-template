@@ -6,4 +6,4 @@ export const signupSchema = z.object({
 	email: emailSchema,
 	password: passwordSchema
 });
-export type LoginFormSchema = typeof signupSchema;
+export type SignupSchema = typeof signupSchema;
