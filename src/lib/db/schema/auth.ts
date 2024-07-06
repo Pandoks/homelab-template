@@ -1,5 +1,5 @@
 import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from '$lib/db/schema/index';
+import { users } from './index';
 import { relations } from 'drizzle-orm';
 
 export const sessions = pgTable('sessions', {

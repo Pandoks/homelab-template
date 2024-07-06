@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { boolean, pgTable, text } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
-import { emailVerificationCodes, sessions } from '$lib/db/schema/auth';
+import { emailVerificationCodes, sessions } from './auth';
 
 export const users = pgTable('users', {
 	id: text('id').primaryKey(),

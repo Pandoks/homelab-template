@@ -9,7 +9,8 @@
 	export let data: SuperValidated<Infer<LoginFormSchema>>;
 
 	const form = superForm(data, {
-		validators: zodClient(loginSchema)
+		validators: zodClient(loginSchema),
+		dataType: 'json'
 	});
 
 	const { form: formData, enhance } = form;
@@ -19,14 +20,16 @@
 	<Form.Field {form} name="usernameOrEmail" class="grid gap-2">
 		<Form.Control let:attrs>
 			<Label>Email/Username</Label>
-			<Input {...attrs} bind:value={$formData.usernameOrEmail} placeholder="m@example.com" />
+			<Input {...attrs} bind:value={$formData.usernameOrEmail} placeholder="email@example.com" />
 		</Form.Control>
 	</Form.Field>
 	<Form.Field {form} name="password" class="grid gap-2">
 		<Form.Control let:attrs>
 			<div class="flex items-center">
 				<Label for="password">Password</Label>
-				<a href="##" class="ml-auto inline-block text-sm underline"> Forgot your password? </a>
+				<a href="/auth/password-reset" class="ml-auto inline-block text-sm underline">
+					Forgot your password?
+				</a>
 			</div>
 			<Input {...attrs} bind:value={$formData.password} type="password" />
 		</Form.Control>

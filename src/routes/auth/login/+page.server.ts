@@ -15,7 +15,8 @@ export const actions: Actions = {
 		const loginForm = await superValidate(event, zod(loginSchema));
 		if (!loginForm.valid) {
 			return fail(400, {
-				form: loginForm
+				success: false,
+				message: 'Incorrect login credentials'
 			});
 		}
 
@@ -40,6 +41,7 @@ export const actions: Actions = {
 		});
 		// NOTE: don't return incorrect user before hashing the password as it gives information to hackers
 		if (!user || !validPassword) {
+			console.log('test');
 			return fail(400, {
 				success: false,
 				message: 'Incorrect login credentials'
@@ -57,7 +59,7 @@ export const actions: Actions = {
 			...sessionCookie.attributes
 		});
 
-		redirect(302, '/');
+		return redirect(302, '/');
 	}
 };
 
