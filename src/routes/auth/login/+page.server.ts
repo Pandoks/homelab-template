@@ -16,7 +16,7 @@ export const actions: Actions = {
 		if (!loginForm.valid) {
 			return fail(400, {
 				success: false,
-				message: 'Incorrect login credentials'
+				loginForm
 			});
 		}
 
@@ -33,18 +33,21 @@ export const actions: Actions = {
 			[user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
 		}
 
-		const validPassword = await verify(user.passwordHash, loginForm.data.password, {
-			memoryCost: 19456,
-			timeCost: 2,
-			outputLen: 32,
-			parallelism: 1
-		});
+		let validPassword = false;
+		if (user) {
+			validPassword = await verify(user.passwordHash, loginForm.data.password, {
+				memoryCost: 19456,
+				timeCost: 2,
+				outputLen: 32,
+				parallelism: 1
+			});
+		}
 		// NOTE: don't return incorrect user before hashing the password as it gives information to hackers
 		if (!user || !validPassword) {
 			console.log('test');
 			return fail(400, {
 				success: false,
-				message: 'Incorrect login credentials'
+				loginForm
 			});
 		}
 
