@@ -5,8 +5,6 @@ import { emailVerificationCodes, sessions } from './auth';
 
 export const users = pgTable('users', {
 	id: text('id').primaryKey(),
-	firstName: text('first_name'),
-	lastName: text('last_name'),
 	username: text('username').notNull().unique(),
 	email: text('email').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
