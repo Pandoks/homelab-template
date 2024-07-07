@@ -40,11 +40,11 @@
   </Form.Field>
 
   {#if $delayed}
-    <Form.Button disabled class="w-full">
+    <Form.Button disabled class="w-full mt-4">
       <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
       Logging In
     </Form.Button>
   {:else}
-    <Form.Button>Login</Form.Button>
+    <Form.Button class="mt-4">Login</Form.Button>
   {/if}
 </form>

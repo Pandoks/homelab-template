@@ -13,7 +13,7 @@
       <div class="grid gap-2 text-center">
         <h1 class="text-3xl font-bold">Login</h1>
         <p class="text-balance text-muted-foreground">
-          Enter your email below to login to your account
+          Enter your credentials to login to your account
         </p>
         {#if form && !form.success}
           <p class="text-balance text-red-600">Invalid Credentials</p>
@@ -22,7 +22,7 @@
 
       <LoginForm data={data.loginForm} />
 
-      <div class="mt-4 text-center text-sm">
+      <div class="text-center text-sm">
         Don&apos;t have an account?
         <a href="/auth/signup" class="underline"> Sign up </a>
       </div>

@@ -51,16 +51,16 @@ export const actions: Actions = {
       });
     }
 
-    if (user.twoFactorSecret) {
-      return redirect(302, '/auth/otp');
-    }
-
     const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '.',
       ...sessionCookie.attributes
     });
+
+    if (user.twoFactorSecret) {
+      return redirect(302, '/auth/otp');
+    }
 
     return redirect(302, '/');
   }

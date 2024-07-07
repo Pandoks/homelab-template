@@ -13,15 +13,15 @@
       <div class="grid gap-2 text-center">
         <h1 class="text-3xl font-bold">Sign Up</h1>
         <p class="text-balance text-muted-foreground">
-          Enter your email below to login to your account
+          Enter your information to create an account
         </p>
       </div>
 
       <SignupForm data={data.signupForm} />
 
-      <div class="mt-4 text-center text-sm">
-        Don&apos;t have an account?
-        <a href="/auth/signup" class="underline"> Sign up </a>
+      <div class="text-center text-sm">
+        Already have an account?
+        <a href="/auth/login" class="underline"> Login </a>
       </div>
     </div>
   </div>

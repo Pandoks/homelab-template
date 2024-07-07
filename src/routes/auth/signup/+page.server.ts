@@ -28,12 +28,13 @@ export const actions: Actions = {
       parallelism: 1
     });
     const userId = generateIdFromEntropySize(10); // 16 characters long
+    const email = signupForm.data.email;
 
     try {
       await db.insert(users).values({
         id: userId,
         username: signupForm.data.username,
-        email: signupForm.data.email,
+        email: email,
         passwordHash: passwordHash,
         isEmailVerified: false,
         twoFactorSecret: null,
@@ -42,9 +43,9 @@ export const actions: Actions = {
 
       const verificationCode = await generateEmailVerificationCode({
         userId: userId,
-        email: email as string
+        email: email
       });
-      await sendVerificationCode({ email: email as string, verificationCode: verificationCode });
+      await sendVerificationCode({ email: email, verificationCode: verificationCode });
 
       const session = await lucia.createSession(userId, { isTwoFactorVerified: false });
       const sessionCookie = lucia.createSessionCookie(session.id);
@@ -56,12 +57,13 @@ export const actions: Actions = {
       return (
         fail(400),
         {
-          message: 'Email or username already used'
+          success: false,
+          message: 'Email or username already in use'
         }
       );
     }
 
-    redirect(302, '/');
+    redirect(302, '/auth/email-verification');
   }
 };
 
