@@ -1,5 +1,5 @@
 import { generateIdFromEntropySize } from 'lucia';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
 import { emailSchema, passwordSchema, usernameSchema } from '$lib/schema-validation';
@@ -8,6 +8,9 @@ import { users } from '$lib/db/schema';
 import { z } from 'zod';
 import { lucia } from '$lib/server/auth';
 import { generateEmailVerificationCode, sendVerificationCode } from '$lib/server/auth/email';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { signupSchema } from './schema';
 
 export const actions: Actions = {
 	signup: async (event) => {
@@ -80,4 +83,34 @@ export const actions: Actions = {
 
 		redirect(302, '/');
 	}
+};
+
+export const load: PageServerLoad = async (event) => {
+	const existingSession = event.locals.session;
+
+	if (!existingSession) {
+		// user isn't logged in
+		return {
+			signupForm: await superValidate(zod(signupSchema))
+		};
+	}
+
+	const { session, user } = await lucia.validateSession(existingSession.id);
+	if (!session) {
+		// reset current cookie/session
+		const sessionCookie = lucia.createBlankSessionCookie();
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: '.',
+			...sessionCookie.attributes
+		});
+
+		return {
+			signupForm: await superValidate(zod(signupSchema))
+		};
+	}
+
+	if (!session.isTwoFactorVerified && user.isTwoFactor) {
+		return redirect(302, '/auth/otp');
+	}
+	return redirect(302, '/');
 };
