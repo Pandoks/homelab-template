@@ -8,7 +8,7 @@
 </script>
 
 <div class="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
-  <div class="flex items-center justify-center py-12">
+  <div class="flex items-center justify-center h-screen">
     <div class="mx-auto grid w-[350px] gap-6">
       <div class="grid gap-2 text-center">
         <h1 class="text-3xl font-bold">Sign Up</h1>

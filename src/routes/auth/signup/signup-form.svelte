@@ -11,8 +11,7 @@
   const form = superForm(data, {
     validators: zodClient(signupSchema),
     clearOnSubmit: 'message',
-    multipleSubmits: 'prevent',
-    dataType: 'json'
+    multipleSubmits: 'prevent'
   });
 
   const { form: formData, enhance, delayed } = form;
