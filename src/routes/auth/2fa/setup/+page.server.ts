@@ -16,60 +16,60 @@ import { generateIdFromEntropySize } from 'lucia';
 import { sha256 } from 'oslo/crypto';
 
 export const actions: Actions = {
-	'verify-otp': async (event) => {
-		const formData = await event.request.formData();
-		const otp = formData.get('otp');
-		if (!z.string().length(6).safeParse(otp).success) {
-			return fail(400, {
-				message: 'Invalid otp code'
-			});
-		}
-		const { user } = await lucia.validateSession(event.locals.session.id);
-		if (!user) {
-			return fail(400, {
-				message: 'Invalid otp code'
-			});
-		}
+  'verify-otp': async (event) => {
+    const formData = await event.request.formData();
+    const otp = formData.get('otp');
+    if (!z.string().length(6).safeParse(otp).success) {
+      return fail(400, {
+        message: 'Invalid otp code'
+      });
+    }
+    const { user } = await lucia.validateSession(event.locals.session.id);
+    if (!user) {
+      return fail(400, {
+        message: 'Invalid otp code'
+      });
+    }
 
-		const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
-		if (!userInfo || !userInfo.twoFactorSecret) {
-			return fail(400, {
-				message: 'Invalid otp code'
-			});
-		}
-		const validOTP = await new TOTPController().verify(
-			otp as string,
-			decodeHex(userInfo.twoFactorSecret)
-		);
-		if (validOTP) {
-			redirect(302, '/');
-		}
+    const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    if (!userInfo || !userInfo.twoFactorSecret) {
+      return fail(400, {
+        message: 'Invalid otp code'
+      });
+    }
+    const validOTP = await new TOTPController().verify(
+      otp as string,
+      decodeHex(userInfo.twoFactorSecret)
+    );
+    if (validOTP) {
+      redirect(302, '/');
+    }
 
-		return fail(400, {
-			message: 'Invalid otp code'
-		});
-	}
+    return fail(400, {
+      message: 'Invalid otp code'
+    });
+  }
 };
 
 export const load: PageServerLoad = async (event) => {
-	const { user } = await lucia.validateSession(event.locals.session.id);
-	if (!user || user.isTwoFactor) redirect(302, '/');
+  const { user } = await lucia.validateSession(event.locals.session.id);
+  if (!user || user.isTwoFactor) redirect(302, '/');
 
-	const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
-	const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-	const twoFactorRecoveryCodeHash = encodeHex(
-		await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
-	);
-	await db.update(users).set({
-		twoFactorSecret: encodeHex(twoFactorSecret),
-		twoFactorRecoveryHash: twoFactorRecoveryCodeHash
-	});
+  const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
+  const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
+  const twoFactorRecoveryCodeHash = encodeHex(
+    await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
+  );
+  await db.update(users).set({
+    twoFactorSecret: encodeHex(twoFactorSecret),
+    twoFactorRecoveryHash: twoFactorRecoveryCodeHash
+  });
 
-	// create TOTP with app name, and user identifier (username/email)
-	const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, twoFactorSecret);
-	return {
-		username: user.username,
-		qrCodeLink: uri,
-		recoveryCode: twoFactorRecoveryCode
-	};
+  // create TOTP with app name, and user identifier (username/email)
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, twoFactorSecret);
+  return {
+    username: user.username,
+    qrCodeLink: uri,
+    recoveryCode: twoFactorRecoveryCode
+  };
 };

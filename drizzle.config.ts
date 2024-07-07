@@ -7,28 +7,28 @@ const USER_DB_PORT = process.env.USER_DB_PORT;
 const USER_DB_DATABASE = process.env.USER_DB_DATABASE;
 
 if (
-	!USER_DB_DATABASE ||
-	!USER_DB_PORT ||
-	!USER_DB_HOST ||
-	USER_DB_PASSWORD === undefined ||
-	USER_DB_PASSWORD === null ||
-	!USER_DB_USERNAME
+  !USER_DB_DATABASE ||
+  !USER_DB_PORT ||
+  !USER_DB_HOST ||
+  USER_DB_PASSWORD === undefined ||
+  USER_DB_PASSWORD === null ||
+  !USER_DB_USERNAME
 ) {
-	throw new Error('Database credentials is required');
+  throw new Error('Database credentials is required');
 }
 
 export default defineConfig({
-	schema: './src/lib/db/schema/*',
-	dialect: 'postgresql',
-	out: './drizzle',
-	dbCredentials: {
-		user: USER_DB_USERNAME,
-		password: USER_DB_PASSWORD,
-		host: USER_DB_HOST,
-		port: parseInt(USER_DB_PORT),
-		database: USER_DB_DATABASE,
-		ssl: false // enable ssl for production
-	},
-	verbose: true,
-	strict: true
+  schema: './src/lib/db/schema/*',
+  dialect: 'postgresql',
+  out: './drizzle',
+  dbCredentials: {
+    user: USER_DB_USERNAME,
+    password: USER_DB_PASSWORD,
+    host: USER_DB_HOST,
+    port: parseInt(USER_DB_PORT),
+    database: USER_DB_DATABASE,
+    ssl: false // enable ssl for production
+  },
+  verbose: true,
+  strict: true
 });

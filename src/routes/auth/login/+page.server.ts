@@ -11,87 +11,87 @@ import { loginSchema } from './schema';
 import { emailSchema } from '../schema';
 
 export const actions: Actions = {
-	login: async (event) => {
-		const loginForm = await superValidate(event, zod(loginSchema));
-		if (!loginForm.valid) {
-			return fail(400, {
-				success: false,
-				loginForm
-			});
-		}
+  login: async (event) => {
+    const loginForm = await superValidate(event, zod(loginSchema));
+    if (!loginForm.valid) {
+      return fail(400, {
+        success: false,
+        loginForm
+      });
+    }
 
-		let isUsername = true;
-		const usernameOrEmail = loginForm.data.usernameOrEmail;
-		if (!emailSchema.safeParse(usernameOrEmail).success) {
-			isUsername = false;
-		}
+    let isUsername = true;
+    const usernameOrEmail = loginForm.data.usernameOrEmail;
+    if (!emailSchema.safeParse(usernameOrEmail).success) {
+      isUsername = false;
+    }
 
-		let user: User | null = null;
-		if (isUsername) {
-			[user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
-		} else {
-			[user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
-		}
+    let user: User | null = null;
+    if (isUsername) {
+      [user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
+    } else {
+      [user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+    }
 
-		let validPassword = false;
-		if (user) {
-			validPassword = await verify(user.passwordHash, loginForm.data.password, {
-				memoryCost: 19456,
-				timeCost: 2,
-				outputLen: 32,
-				parallelism: 1
-			});
-		}
-		// NOTE: don't return incorrect user before hashing the password as it gives information to hackers
-		if (!user || !validPassword) {
-			console.log('test');
-			return fail(400, {
-				success: false,
-				loginForm
-			});
-		}
+    let validPassword = false;
+    if (user) {
+      validPassword = await verify(user.passwordHash, loginForm.data.password, {
+        memoryCost: 19456,
+        timeCost: 2,
+        outputLen: 32,
+        parallelism: 1
+      });
+    }
+    // NOTE: don't return incorrect user before hashing the password as it gives information to hackers
+    if (!user || !validPassword) {
+      console.log('test');
+      return fail(400, {
+        success: false,
+        loginForm
+      });
+    }
 
-		if (user.twoFactorSecret) {
-			return redirect(302, '/auth/otp');
-		}
+    if (user.twoFactorSecret) {
+      return redirect(302, '/auth/otp');
+    }
 
-		const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+    const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
+    const sessionCookie = lucia.createSessionCookie(session.id);
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '.',
+      ...sessionCookie.attributes
+    });
 
-		return redirect(302, '/');
-	}
+    return redirect(302, '/');
+  }
 };
 
 export const load: PageServerLoad = async (event) => {
-	const existingSession = event.locals.session;
+  const existingSession = event.locals.session;
 
-	if (!existingSession) {
-		// user isn't logged in
-		return {
-			loginForm: await superValidate(zod(loginSchema))
-		};
-	}
+  if (!existingSession) {
+    // user isn't logged in
+    return {
+      loginForm: await superValidate(zod(loginSchema))
+    };
+  }
 
-	const { session, user } = await lucia.validateSession(existingSession.id);
-	if (!session) {
-		// reset current cookie/session
-		const sessionCookie = lucia.createBlankSessionCookie();
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+  const { session, user } = await lucia.validateSession(existingSession.id);
+  if (!session) {
+    // reset current cookie/session
+    const sessionCookie = lucia.createBlankSessionCookie();
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '.',
+      ...sessionCookie.attributes
+    });
 
-		return {
-			loginForm: await superValidate(zod(loginSchema))
-		};
-	}
+    return {
+      loginForm: await superValidate(zod(loginSchema))
+    };
+  }
 
-	if (!session.isTwoFactorVerified && user.isTwoFactor) {
-		return redirect(302, '/auth/otp');
-	}
-	return redirect(302, '/');
+  if (!session.isTwoFactorVerified && user.isTwoFactor) {
+    return redirect(302, '/auth/otp');
+  }
+  return redirect(302, '/');
 };
