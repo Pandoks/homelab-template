@@ -1,12 +1,37 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
+  import authPlaceholderImage from '$lib/assets/auth-placeholder.svg';
+  import type { ActionData, PageData } from './$types';
+  import SignupForm from './signup-form.svelte';
+
+  export let data: PageData;
+  export let form: ActionData;
 </script>
 
-<h1>Sign up</h1>
-<form method="post" action="/signup" use:enhance>
-  <label for="username">Username</label>
-  <input name="username" id="username" /><br />
-  <label for="password">Password</label>
-  <input type="password" name="password" id="password" /><br />
-  <button>Continue</button>
-</form>
+<div class="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+  <div class="flex items-center justify-center py-12">
+    <div class="mx-auto grid w-[350px] gap-6">
+      <div class="grid gap-2 text-center">
+        <h1 class="text-3xl font-bold">Sign Up</h1>
+        <p class="text-balance text-muted-foreground">
+          Enter your email below to login to your account
+        </p>
+      </div>
+
+      <SignupForm data={data.signupForm} />
+
+      <div class="mt-4 text-center text-sm">
+        Don&apos;t have an account?
+        <a href="/auth/signup" class="underline"> Sign up </a>
+      </div>
+    </div>
+  </div>
+  <div class="hidden bg-muted lg:block">
+    <img
+      src={authPlaceholderImage}
+      alt="placeholder"
+      width="1920"
+      height="1080"
+      class="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+    />
+  </div>
+</div>

@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import SuperDebug, { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import { signupSchema, type SignupSchema } from './schema';
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { Label } from '$lib/components/ui/label';
   import { LoaderCircle } from 'lucide-svelte';
+  import { Switch } from '$lib/components/ui/switch';
 
   export let data: SuperValidated<Infer<SignupSchema>>;
 
@@ -57,6 +58,18 @@
       {form}
       name="twoFactor"
       class="flex flex-row items-center justify-between rounded-lg border p-4"
-    ></Form.Field>
+    >
+      <Form.Control let:attrs>
+        <div class="space-y-0.5">
+          <Form.Label>Two Factor Authentication</Form.Label>
+          <Form.Description>
+            <p>Secure your account with one time passwords. <i>You can setup later.</i></p>
+          </Form.Description>
+        </div>
+        <Switch includeInput {...attrs} bind:checked={$formData.twoFactor} />
+      </Form.Control>
+    </Form.Field>
   </fieldset>
 </form>
+
+<SuperDebug data={$formData} />
