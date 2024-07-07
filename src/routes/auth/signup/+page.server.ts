@@ -16,6 +16,7 @@ export const actions: Actions = {
     if (!signupForm.valid) {
       return fail(400, {
         success: false,
+        message: '',
         signupForm
       });
     }
@@ -54,16 +55,10 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
     } catch (err) {
-      return (
-        fail(400),
-        {
-          success: false,
-          message: 'Email or username already in use'
-        }
-      );
+      return fail(400, { success: false, message: 'Internal server error', signupForm });
     }
 
-    redirect(302, '/auth/email-verification');
+    return redirect(302, '/');
   }
 };
 

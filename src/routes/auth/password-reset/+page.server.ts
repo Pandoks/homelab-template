@@ -14,7 +14,7 @@ export const actions: Actions = {
   'password-reset': async (event) => {
     const passwordResetForm = await superValidate(event, zod(passwordResetSchema));
     if (!passwordResetForm.valid) {
-      return { success: true, passwordResetForm };
+      return { success: false, passwordResetForm };
     }
 
     const email = passwordResetForm.data.email;

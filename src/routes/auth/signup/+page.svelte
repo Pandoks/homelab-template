@@ -15,6 +15,9 @@
         <p class="text-balance text-muted-foreground">
           Enter your information to create an account
         </p>
+        {#if form && !form.success && form.message}
+          {form.message}
+        {/if}
       </div>
 
       <SignupForm data={data.signupForm} />
