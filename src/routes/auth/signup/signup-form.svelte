@@ -51,4 +51,12 @@
 	{:else}
 		<Form.Button>Signup</Form.Button>
 	{/if}
+
+	<fieldset>
+		<Form.Field
+			{form}
+			name="twoFactor"
+			class="flex flex-row items-center justify-between rounded-lg border p-4"
+		></Form.Field>
+	</fieldset>
 </form>
