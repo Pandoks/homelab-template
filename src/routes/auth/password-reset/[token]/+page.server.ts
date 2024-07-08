@@ -1,4 +1,3 @@
-import { passwordSchema } from '$lib/schema-validation';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
@@ -10,13 +9,20 @@ import { isWithinExpirationDate } from 'oslo';
 import { lucia } from '$lib/server/auth';
 import { hash } from '@node-rs/argon2';
 import { users } from '$lib/db/schema';
+import { superValidate } from 'sveltekit-superforms';
+import { newPasswordSchema } from './schema';
+import { zod } from 'sveltekit-superforms/adapters';
+import { validateAuthRequest } from '../../validation';
 
 export const actions: Actions = {
-  'password-reset': async (event) => {
-    const formData = await event.request.formData();
-    const password = formData.get('password');
-    if (!passwordSchema.safeParse(password).success) {
-      return fail(400, { message: 'Invalid password format' });
+  'new-password': async (event) => {
+    const newPasswordForm = await superValidate(event, zod(newPasswordSchema));
+    if (!newPasswordForm.valid) {
+      return fail(400, {
+        success: false,
+        message: '',
+        newPasswordForm
+      });
     }
 
     const passwordResetToken = event.params.token;
@@ -34,11 +40,15 @@ export const actions: Actions = {
         .where(eq(passwordResetTokens.tokenHash, passwordResetTokenHash));
     }
     if (!token || !isWithinExpirationDate(token.expiresAt)) {
-      return fail(400);
+      return fail(400, {
+        success: false,
+        message: 'Password reset link has expired',
+        newPasswordForm
+      });
     }
 
     await lucia.invalidateUserSessions(token.userId);
-    const passwordHash = await hash(password as string, {
+    const passwordHash = await hash(newPasswordForm.data.password, {
       memoryCost: 19456,
       timeCost: 2,
       outputLen: 32,
@@ -54,14 +64,13 @@ export const actions: Actions = {
       ...sessionCookie.attributes
     });
     event.setHeaders({
-      'Referrer-Policy': 'strict-origin' // see load function
+      'Referrer-Policy': 'strict-origin' // see why in load function
     });
 
     if (user.twoFactorSecret) {
-      redirect(302, '/auth/2fa/otp');
+      return redirect(302, '/auth/2fa/otp');
     }
-
-    redirect(302, '/');
+    return redirect(302, '/');
   }
 };
 
@@ -71,5 +80,41 @@ export const load: PageServerLoad = async (event) => {
   event.setHeaders({
     'Referrer-Policy': 'strict-origin'
   });
-  return {};
+
+  await validateAuthRequest({ event: event });
+
+  const newPasswordForm = await superValidate(zod(newPasswordSchema));
+
+  // Check if the token is valid let the user know
+  const passwordResetToken = event.params.token;
+  const passwordResetTokenHash = encodeHex(
+    await sha256(new TextEncoder().encode(passwordResetToken))
+  );
+  const [token] = await db
+    .select()
+    .from(passwordResetTokens)
+    .where(eq(passwordResetTokens.tokenHash, passwordResetTokenHash))
+    .limit(1);
+  if (!token) {
+    return {
+      success: false,
+      message: 'Password reset link has expired',
+      newPasswordForm
+    };
+  } else if (!isWithinExpirationDate(token.expiresAt)) {
+    await db
+      .delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.tokenHash, passwordResetToken));
+    return {
+      success: false,
+      message: 'Password reset link has expired',
+      newPasswordForm
+    };
+  }
+
+  return {
+    success: true,
+    message: '',
+    newPasswordForm
+  };
 };

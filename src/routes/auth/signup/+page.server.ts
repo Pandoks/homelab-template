@@ -9,6 +9,7 @@ import { generateEmailVerificationCode, sendVerificationCode } from '$lib/server
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from './schema';
+import { validateAuthRequest } from '../validation';
 
 export const actions: Actions = {
   signup: async (event) => {
@@ -63,31 +64,8 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  const existingSession = event.locals.session;
-
-  if (!existingSession) {
-    // user isn't logged in
-    return {
-      signupForm: await superValidate(zod(signupSchema))
-    };
-  }
-
-  const { session, user } = await lucia.validateSession(existingSession.id);
-  if (!session) {
-    // reset current cookie/session
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '.',
-      ...sessionCookie.attributes
-    });
-
-    return {
-      signupForm: await superValidate(zod(signupSchema))
-    };
-  }
-
-  if (!session.isTwoFactorVerified && user.isTwoFactor) {
-    return redirect(302, '/auth/otp');
-  }
-  return redirect(302, '/');
+  validateAuthRequest({ event: event });
+  return {
+    signupForm: await superValidate(zod(signupSchema))
+  };
 };

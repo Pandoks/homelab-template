@@ -9,6 +9,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginSchema } from './schema';
 import { emailSchema } from '../schema';
+import { validateAuthRequest } from '../validation';
 
 export const actions: Actions = {
   login: async (event) => {
@@ -67,31 +68,8 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  const existingSession = event.locals.session;
-
-  if (!existingSession) {
-    // user isn't logged in
-    return {
-      loginForm: await superValidate(zod(loginSchema))
-    };
-  }
-
-  const { session, user } = await lucia.validateSession(existingSession.id);
-  if (!session) {
-    // reset current cookie/session
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '.',
-      ...sessionCookie.attributes
-    });
-
-    return {
-      loginForm: await superValidate(zod(loginSchema))
-    };
-  }
-
-  if (!session.isTwoFactorVerified && user.isTwoFactor) {
-    return redirect(302, '/auth/otp');
-  }
-  return redirect(302, '/');
+  validateAuthRequest({ event: event });
+  return {
+    loginForm: await superValidate(zod(loginSchema))
+  };
 };

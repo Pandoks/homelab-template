@@ -80,4 +80,6 @@ const csrf: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
+// NOTE: DON'T protect your routes in middleware. Leave auth to layouts or a per page basis
+
 export const handle: Handle = sequence(csrf, luciaAuth);

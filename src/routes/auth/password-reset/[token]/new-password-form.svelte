@@ -4,12 +4,13 @@
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
-  import { passwordResetSchema, type PasswordResetSchema } from './schema';
+  import { newPasswordSchema, type NewPasswordSchema } from './schema';
 
-  export let data: SuperValidated<Infer<PasswordResetSchema>>;
+  export let data: SuperValidated<Infer<NewPasswordSchema>>;
+  export let disabled: boolean = false;
 
   const form = superForm(data, {
-    validators: zodClient(passwordResetSchema),
+    validators: zodClient(newPasswordSchema),
     clearOnSubmit: 'message',
     multipleSubmits: 'prevent'
   });
@@ -18,15 +19,25 @@
 </script>
 
 <form class="grid gap-4" method="post" use:enhance action="?/password-reset">
-  <Form.Field {form} name="email" class="grid gap-2">
+  <Form.Field {form} name="password">
     <Form.Control let:attrs>
-      <Form.Label>Email</Form.Label>
-      <Input {...attrs} bind:value={$formData.email} />
+      <Form.Label>Password</Form.Label>
+      <Input {...attrs} type="password" bind:value={$formData.password} />
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>
 
-  {#if $delayed}
+  <Form.Field {form} name="passwordConfirmation">
+    <Form.Control let:attrs>
+      <Form.Label>Confirm Password</Form.Label>
+      <Input {...attrs} type="password" bind:value={$formData.passwordConfirmation} />
+    </Form.Control>
+    <Form.FieldErrors />
+  </Form.Field>
+
+  {#if disabled}
+    <Form.Button disabled>Submit</Form.Button>
+  {:else if $delayed}
     <Form.Button disabled class="w-full">
       <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
       Submitting
