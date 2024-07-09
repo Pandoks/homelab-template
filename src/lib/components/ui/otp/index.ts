@@ -1,4 +1,4 @@
-import Field from './input-otp-input.svelte';
+import Field from './input-otp-field.svelte';
 import Root from './input-otp-root.svelte';
 
 type Props = {
@@ -89,10 +89,6 @@ type Input = {
    */
   focusClassName?: string;
 };
-
-export const REGEXP_ONLY_DIGITS = /^$|\d/;
-export const REGEXP_ONLY_CHARS = /[a-zA-Z]/;
-export const REGEXP_ONLY_DIGITS_AND_CHARS = /[a-zA-Z0-9]/;
 
 export {
   Root,

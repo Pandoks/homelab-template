@@ -49,8 +49,8 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  if (!event.locals.user) redirect(302, '/');
-  return {
-    username: event.locals.user.username
-  };
+  // if (!event.locals.user) redirect(302, '/');
+  // return {
+  //   username: event.locals.user.username
+  // };
 };

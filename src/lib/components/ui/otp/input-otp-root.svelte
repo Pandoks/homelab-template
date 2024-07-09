@@ -39,6 +39,7 @@
         return REGEXP_ONLY_DIGITS;
     }
   }
+
   // Function to update the store
   function updateOtpArray(otp: string) {
     value = otp;
@@ -104,10 +105,20 @@
   // Handle keydown event
   function handleKeyDown(event: KeyboardEvent) {
     if (disabled) return;
-    if (event.key === 'Backspace') {
+    const key = event.key;
+    const input = event.target as HTMLInputElement;
+    if (key === 'Backspace') {
       event.preventDefault();
-      const otp = (event.target as HTMLInputElement).value.slice(0, -1);
+      const otp = input.value.slice(0, -1);
       updateOtpArray(otp);
+    } else if (key.length === 1 && input.value.length >= maxLength!) {
+      const regex = new RegExp(getPattern());
+      if (regex.test(key)) {
+        console.log('here', event.key);
+        event.preventDefault;
+        const otp = `${input.value.slice(0, maxLength! - 1)}${key}`;
+        updateOtpArray(otp);
+      }
     }
   }
 
