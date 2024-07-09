@@ -22,6 +22,7 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
 export const emailVerificationCodes = pgTable('email_verification_codes', {
   id: serial('id').primaryKey(),
   code: text('code'),
+  linkToken: text('link_token'),
   userId: text('user_id')
     .notNull()
     .references(() => users.id),

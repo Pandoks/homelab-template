@@ -12,7 +12,7 @@ import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
-import { validateAuthRequest } from '../../validation';
+import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'new-password': async (event) => {
@@ -81,7 +81,15 @@ export const load: PageServerLoad = async (event) => {
     'Referrer-Policy': 'strict-origin'
   });
 
-  await validateAuthRequest({ event: event });
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else {
+      return redirect(302, '/');
+    }
+  }
 
   const newPasswordForm = await superValidate(zod(newPasswordSchema));
 

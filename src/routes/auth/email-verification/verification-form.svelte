@@ -1,0 +1,36 @@
+<script lang="ts">
+  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import { verificationSchema, type VerificationSchema } from './schema';
+  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { Input } from '$lib/components/ui/input';
+  import * as Form from '$lib/components/ui/form';
+  import { LoaderCircle } from 'lucide-svelte';
+  import { Label } from '$lib/components/ui/label';
+
+  export let data: SuperValidated<Infer<VerificationSchema>>;
+
+  const form = superForm(data, {
+    clearOnSubmit: 'message',
+    multipleSubmits: 'prevent'
+  });
+
+  const { form: formData, enhance, delayed } = form;
+</script>
+
+<form class="grid gap-2" method="post" use:enhance action="?/verify-email-code">
+  <Form.Field {form} name="code">
+    <Form.Control let:attrs>
+      <Label>Verification Code</Label>
+      <Input {...attrs} class="text-center" bind:value={$formData.code} />
+    </Form.Control>
+  </Form.Field>
+
+  {#if $delayed}
+    <Form.Button disabled class="w-full mt-4">
+      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+      Activating
+    </Form.Button>
+  {:else}
+    <Form.Button class="mt-4">Activate</Form.Button>
+  {/if}
+</form>

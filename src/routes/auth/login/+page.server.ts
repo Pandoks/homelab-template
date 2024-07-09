@@ -3,17 +3,18 @@ import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
 import { lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
-import { users, type User } from '$lib/db/schema';
+import { users, type User as DbUser } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginSchema } from './schema';
 import { emailSchema } from '../schema';
-import { validateAuthRequest } from '../validation';
+import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   login: async (event) => {
     const loginForm = await superValidate(event, zod(loginSchema));
+    console.log(loginForm);
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
@@ -27,7 +28,7 @@ export const actions: Actions = {
       isUsername = false;
     }
 
-    let user: User | null = null;
+    let user: DbUser | null = null;
     if (isUsername) {
       [user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
     } else {
@@ -68,7 +69,16 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  validateAuthRequest({ event: event });
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else {
+      return redirect(302, '/');
+    }
+  }
+
   return {
     loginForm: await superValidate(zod(loginSchema))
   };

@@ -1,4 +1,4 @@
-import { generateIdFromEntropySize } from 'lucia';
+import { generateIdFromEntropySize, type Session, type User } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
@@ -9,7 +9,6 @@ import { generateEmailVerificationCode, sendVerificationCode } from '$lib/server
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from './schema';
-import { validateAuthRequest } from '../validation';
 
 export const actions: Actions = {
   signup: async (event) => {
@@ -64,7 +63,16 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  validateAuthRequest({ event: event });
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else {
+      return redirect(302, '/');
+    }
+  }
+
   return {
     signupForm: await superValidate(zod(signupSchema))
   };

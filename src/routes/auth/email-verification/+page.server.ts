@@ -6,6 +6,10 @@ import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyVerificationCode } from '$lib/server/auth/email';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { verificationSchema } from './schema';
+import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {
@@ -49,8 +53,17 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  // if (!event.locals.user) redirect(302, '/');
-  // return {
-  //   username: event.locals.user.username
-  // };
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else {
+      return redirect(302, '/');
+    }
+  }
+
+  return {
+    emailVerificationForm: await superValidate(zod(verificationSchema))
+  };
 };

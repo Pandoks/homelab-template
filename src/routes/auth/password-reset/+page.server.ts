@@ -7,7 +7,8 @@ import { PUBLIC_APP_HOST } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
-import { validateAuthRequest } from '../validation';
+import { redirect } from '@sveltejs/kit';
+import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'password-reset': async (event) => {
@@ -31,7 +32,16 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  await validateAuthRequest({ event: event });
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else {
+      return redirect(302, '/');
+    }
+  }
+
   return {
     passwordResetForm: await superValidate(zod(passwordResetSchema))
   };
