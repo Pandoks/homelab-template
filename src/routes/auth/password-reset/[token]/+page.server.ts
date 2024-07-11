@@ -6,13 +6,12 @@ import { db } from '$lib/db';
 import { passwordResetTokens } from '$lib/db/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
-import { lucia } from '$lib/server/auth';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
 import { hash } from '@node-rs/argon2';
 import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
-import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'new-password': async (event) => {
@@ -67,9 +66,12 @@ export const actions: Actions = {
       'Referrer-Policy': 'strict-origin' // see why in load function
     });
 
-    if (user.twoFactorSecret) {
-      return redirect(302, '/auth/2fa/otp');
+    if (!user.isEmailVerified) {
+      return redirect(302, '/auth/email-verification');
+    } else if (user.twoFactorSecret) {
+      return redirect(302, '/auth/otp');
     }
+
     return redirect(302, '/');
   }
 };
@@ -80,16 +82,6 @@ export const load: PageServerLoad = async (event) => {
   event.setHeaders({
     'Referrer-Policy': 'strict-origin'
   });
-
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
-  if (session) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
-      return redirect(302, '/auth/2fa/otp');
-    } else {
-      return redirect(302, '/');
-    }
-  }
 
   const newPasswordForm = await superValidate(zod(newPasswordSchema));
 

@@ -1,6 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { z } from 'zod';
 import { lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
@@ -13,24 +12,33 @@ import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {
-    const formData = await event.request.formData();
-    const code = formData.get('code');
-    if (!z.string().safeParse(code).success) {
+    const emailVerificationForm = await superValidate(event, zod(verificationSchema));
+    if (!emailVerificationForm.valid) {
       return fail(400, {
-        message: 'Invalid code'
-      });
-    }
-    const { user } = await lucia.validateSession(event.locals.session.id);
-    if (!user) {
-      return fail(400, {
-        message: 'Invalid code'
+        success: false,
+        message: 'Invalid code',
+        emailVerificationForm
       });
     }
 
-    const isValidCode = await verifyVerificationCode({ user: user, code: code as string });
+    const user = event.locals.user;
+    if (!user) {
+      return fail(400, {
+        success: false,
+        message: 'Invalid code',
+        emailVerificationForm
+      });
+    }
+
+    const isValidCode = await verifyVerificationCode({
+      user: user,
+      code: emailVerificationForm.data.code
+    });
     if (!isValidCode) {
       return fail(400, {
-        message: 'Invalid code'
+        success: false,
+        message: 'Invalid code',
+        emailVerificationForm
       });
     }
 
@@ -44,21 +52,18 @@ export const actions: Actions = {
       ...sessionCookie.attributes
     });
 
-    if (user.isTwoFactor) {
-      redirect(302, '/auth/2fa/otp');
-    }
-
     redirect(302, '/');
   }
 };
 
 export const load: PageServerLoad = async (event) => {
+  // Don't use handleLoggedIn as we're verifying emails now
   const session: Session | null = event.locals.session;
   const user: User | null = event.locals.user;
-  if (session) {
+  if (session && user) {
     if (!session.isTwoFactorVerified && user!.isTwoFactor) {
       return redirect(302, '/auth/2fa/otp');
-    } else {
+    } else if (user?.isEmailVerified) {
       return redirect(302, '/');
     }
   }

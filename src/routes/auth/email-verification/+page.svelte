@@ -14,12 +14,10 @@
     <div class="mx-auto grid w-[350px] gap-6">
       <div class="grid gap-2 text-center">
         <h1 class="text-3xl font-bold">Email Verification</h1>
-        <p class="text-balance text-muted-foreground">
-          Enter your code to fully activate your account
-        </p>
-        <!-- {#if form && form.success} -->
-        <!--   <p class="text-green-600">Password reset instructions sent to email!</p> -->
-        <!-- {/if} -->
+        <p class="text-balance text-muted-foreground">Enter your code to activate your account</p>
+        {#if form && !form.success}
+          <p class="text-balance text-red-600">{form.message}</p>
+        {/if}
       </div>
 
       <VerificationForm data={data.emailVerificationForm} />

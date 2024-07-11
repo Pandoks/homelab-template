@@ -1,9 +1,10 @@
-import { Lucia } from 'lucia';
+import { Lucia, type Session, type User } from 'lucia';
 import { dev } from '$app/environment';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { sessions } from '$lib/db/schema/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
+import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
 
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
@@ -49,3 +50,17 @@ interface DatabaseUserAttributes {
 interface DatabaseSessionAttributes {
   isTwoFactorVerified: boolean;
 }
+
+export const handleLoggedIn = (event: ServerLoadEvent): void => {
+  const session: Session | null = event.locals.session;
+  const user: User | null = event.locals.user;
+  if (session && user) {
+    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+      return redirect(302, '/auth/2fa/otp');
+    } else if (!user.isEmailVerified) {
+      return redirect(302, '/auth/email-verification');
+    } else {
+      return redirect(302, '/');
+    }
+  }
+};

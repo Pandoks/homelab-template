@@ -1,7 +1,6 @@
 <script lang="ts">
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
-  import { verificationSchema, type VerificationSchema } from './schema';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { type VerificationSchema } from './schema';
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';

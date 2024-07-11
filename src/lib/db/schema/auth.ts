@@ -19,10 +19,9 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
   })
 }));
 
-export const emailVerificationCodes = pgTable('email_verification_codes', {
+export const emailVerifications = pgTable('email_verification_codes', {
   id: serial('id').primaryKey(),
   code: text('code'),
-  linkToken: text('link_token'),
   userId: text('user_id')
     .notNull()
     .references(() => users.id),
@@ -31,9 +30,9 @@ export const emailVerificationCodes = pgTable('email_verification_codes', {
     .references(() => users.email),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull()
 });
-export const emailVerificationCodeRelations = relations(emailVerificationCodes, ({ one }) => ({
+export const emailVerificationCodeRelations = relations(emailVerifications, ({ one }) => ({
   user: one(users, {
-    fields: [emailVerificationCodes.userId],
+    fields: [emailVerifications.userId],
     references: [users.id]
   })
 }));

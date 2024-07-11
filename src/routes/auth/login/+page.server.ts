@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
-import { lucia } from '$lib/server/auth';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users, type User as DbUser } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -9,12 +9,10 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginSchema } from './schema';
 import { emailSchema } from '../schema';
-import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   login: async (event) => {
     const loginForm = await superValidate(event, zod(loginSchema));
-    console.log(loginForm);
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
@@ -60,7 +58,9 @@ export const actions: Actions = {
       ...sessionCookie.attributes
     });
 
-    if (user.twoFactorSecret) {
+    if (!user.isEmailVerified) {
+      return redirect(302, '/auth/email-verification');
+    } else if (user.twoFactorSecret) {
       return redirect(302, '/auth/otp');
     }
 
@@ -69,15 +69,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
-  if (session) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
-      return redirect(302, '/auth/2fa/otp');
-    } else {
-      return redirect(302, '/');
-    }
-  }
+  handleLoggedIn(event);
 
   return {
     loginForm: await superValidate(zod(loginSchema))

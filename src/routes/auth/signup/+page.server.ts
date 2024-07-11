@@ -4,8 +4,8 @@ import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
-import { lucia } from '$lib/server/auth';
-import { generateEmailVerificationCode, sendVerificationCode } from '$lib/server/auth/email';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
+import { generateEmailVerification, sendVerification } from '$lib/server/auth/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from './schema';
@@ -42,11 +42,11 @@ export const actions: Actions = {
         twoFactorRecoveryHash: null
       });
 
-      const verificationCode = await generateEmailVerificationCode({
+      const verificationCode = await generateEmailVerification({
         userId: userId,
         email: email
       });
-      await sendVerificationCode({ email: email, verificationCode: verificationCode });
+      await sendVerification({ email: email, code: verificationCode });
 
       const session = await lucia.createSession(userId, { isTwoFactorVerified: false });
       const sessionCookie = lucia.createSessionCookie(session.id);
@@ -58,20 +58,12 @@ export const actions: Actions = {
       return fail(400, { success: false, message: 'Internal server error', signupForm });
     }
 
-    return redirect(302, '/');
+    return redirect(302, '/auth/email-verification');
   }
 };
 
 export const load: PageServerLoad = async (event) => {
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
-  if (session) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
-      return redirect(302, '/auth/2fa/otp');
-    } else {
-      return redirect(302, '/');
-    }
-  }
+  handleLoggedIn(event);
 
   return {
     signupForm: await superValidate(zod(signupSchema))

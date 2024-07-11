@@ -2,7 +2,7 @@ import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
-import { createPasswordResetToken, sendPasswordResetToken } from '$lib/server/auth/password-reset';
+import { createPasswordResetToken, sendPasswordReset } from '$lib/server/auth/password-reset';
 import { PUBLIC_APP_HOST } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -26,22 +26,12 @@ export const actions: Actions = {
     const verificationToken = await createPasswordResetToken({ userId: user.id });
     const verificationLink = `${PUBLIC_APP_HOST}/auth/reset-password/${verificationToken}`;
 
-    await sendPasswordResetToken({ email: email, verificationLink: verificationLink });
+    await sendPasswordReset({ email: email, verificationLink: verificationLink });
     return { success: true, passwordResetForm };
   }
 };
 
-export const load: PageServerLoad = async (event) => {
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
-  if (session) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
-      return redirect(302, '/auth/2fa/otp');
-    } else {
-      return redirect(302, '/');
-    }
-  }
-
+export const load: PageServerLoad = async () => {
   return {
     passwordResetForm: await superValidate(zod(passwordResetSchema))
   };
