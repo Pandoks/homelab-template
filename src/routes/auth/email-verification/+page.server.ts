@@ -21,7 +21,7 @@ export const actions: Actions = {
       });
     }
 
-    const user = event.locals.user;
+    const user: User | null = event.locals.user;
     if (!user) {
       return fail(400, {
         success: false,
@@ -30,20 +30,29 @@ export const actions: Actions = {
       });
     }
 
-    const isValidCode = await verifyVerificationCode({
-      user: user,
-      code: emailVerificationForm.data.code
-    });
-    if (!isValidCode) {
+    try {
+      const isValidCode = await verifyVerificationCode({
+        user: user,
+        code: emailVerificationForm.data.code
+      });
+      if (!isValidCode) {
+        return fail(400, {
+          success: false,
+          message: 'Invalid code',
+          emailVerificationForm
+        });
+      }
+
+      await lucia.invalidateUserSessions(user.id);
+      await db.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
+    } catch (err) {
+      console.error(err);
       return fail(400, {
         success: false,
         message: 'Invalid code',
         emailVerificationForm
       });
     }
-
-    await lucia.invalidateUserSessions(user.id);
-    await db.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
 
     const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
     const sessionCookie = lucia.createSessionCookie(session.id);

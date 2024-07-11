@@ -37,7 +37,6 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
       .from(emailVerifications)
       .where(eq(emailVerifications.userId, user.id));
     if (!emailVerificationCode || emailVerificationCode.code !== code) {
-      transaction.rollback();
       return false;
     }
     await transaction
@@ -45,7 +44,7 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
       .where(eq(emailVerifications.id, emailVerificationCode.id));
 
     if (
-      isWithinExpirationDate(emailVerificationCode.expiresAt) ||
+      !isWithinExpirationDate(emailVerificationCode.expiresAt) ||
       emailVerificationCode.email !== user.email
     ) {
       return false;

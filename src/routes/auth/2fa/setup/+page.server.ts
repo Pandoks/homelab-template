@@ -4,7 +4,7 @@
  */
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from '../$types';
-import { lucia } from '$lib/server/auth';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { decodeHex, encodeHex } from 'oslo/encoding';
@@ -52,8 +52,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  const { user } = await lucia.validateSession(event.locals.session.id);
-  if (!user || user.isTwoFactor) redirect(302, '/');
+  handleLoggedIn(event);
 
   const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
   const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
@@ -66,9 +65,8 @@ export const load: PageServerLoad = async (event) => {
   });
 
   // create TOTP with app name, and user identifier (username/email)
-  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, twoFactorSecret);
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, twoFactorSecret);
   return {
-    username: user.username,
     qrCodeLink: uri,
     recoveryCode: twoFactorRecoveryCode
   };

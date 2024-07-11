@@ -19,7 +19,7 @@ export const lucia = new Lucia(adapter, {
       username: attributes.username,
       email: attributes.email,
       isEmailVerified: attributes.isEmailVerified,
-      isTwoFactor: attributes.twoFactorSecret !== null
+      hasTwoFactor: attributes.hasTwoFactor
     };
   },
   getSessionAttributes: (attributes) => {
@@ -43,7 +43,7 @@ interface DatabaseUserAttributes {
   username: string;
   email: string;
   isEmailVerified: boolean;
-  twoFactorSecret: string | null;
+  hasTwoFactor: boolean;
 }
 
 // attributes of session for a user from the database
@@ -55,7 +55,7 @@ export const handleLoggedIn = (event: ServerLoadEvent): void => {
   const session: Session | null = event.locals.session;
   const user: User | null = event.locals.user;
   if (session && user) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+    if (!session.isTwoFactorVerified && user.hasTwoFactor) {
       return redirect(302, '/auth/2fa/otp');
     } else if (!user.isEmailVerified) {
       return redirect(302, '/auth/email-verification');

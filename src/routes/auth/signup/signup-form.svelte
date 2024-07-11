@@ -17,7 +17,7 @@
   const { form: formData, enhance, delayed } = form;
 </script>
 
-<form class="grid gap-2" method="post" use:enhance action="?/login">
+<form class="grid gap-2" method="post" use:enhance action="?/signup">
   <Form.Field {form} name="username">
     <Form.Control let:attrs>
       <Form.Label>Username</Form.Label>

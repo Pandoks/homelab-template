@@ -19,7 +19,7 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
   })
 }));
 
-export const emailVerifications = pgTable('email_verification_codes', {
+export const emailVerifications = pgTable('email_verifications', {
   id: serial('id').primaryKey(),
   code: text('code'),
   userId: text('user_id')
@@ -37,16 +37,16 @@ export const emailVerificationCodeRelations = relations(emailVerifications, ({ o
   })
 }));
 
-export const passwordResetTokens = pgTable('password_reset_tokens', {
+export const passwordResets = pgTable('password_resets', {
   tokenHash: text('token_hash').primaryKey(),
   userId: text('user_id')
     .notNull()
     .references(() => users.id),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull()
 });
-export const passwordResetTokenRelations = relations(passwordResetTokens, ({ one }) => ({
+export const passwordResetTokenRelations = relations(passwordResets, ({ one }) => ({
   user: one(users, {
-    fields: [passwordResetTokens.userId],
+    fields: [passwordResets.userId],
     references: [users.id]
   })
 }));

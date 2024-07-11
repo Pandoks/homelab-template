@@ -1,4 +1,4 @@
-import { generateIdFromEntropySize, type Session, type User } from 'lucia';
+import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
@@ -38,6 +38,7 @@ export const actions: Actions = {
         email: email,
         passwordHash: passwordHash,
         isEmailVerified: false,
+        hasTwoFactor: false,
         twoFactorSecret: null,
         twoFactorRecoveryHash: null
       });

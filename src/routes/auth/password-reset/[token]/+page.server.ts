@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db';
-import { passwordResetTokens } from '$lib/db/schema/auth';
+import { passwordResets } from '$lib/db/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
 import { handleLoggedIn, lucia } from '$lib/server/auth';
@@ -30,13 +30,11 @@ export const actions: Actions = {
     );
     const [token] = await db
       .select()
-      .from(passwordResetTokens)
-      .where(eq(passwordResetTokens.tokenHash, passwordResetTokenHash))
+      .from(passwordResets)
+      .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
       .limit(1);
     if (token) {
-      await db
-        .delete(passwordResetTokens)
-        .where(eq(passwordResetTokens.tokenHash, passwordResetTokenHash));
+      await db.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetTokenHash));
     }
     if (!token || !isWithinExpirationDate(token.expiresAt)) {
       return fail(400, {
@@ -92,8 +90,8 @@ export const load: PageServerLoad = async (event) => {
   );
   const [token] = await db
     .select()
-    .from(passwordResetTokens)
-    .where(eq(passwordResetTokens.tokenHash, passwordResetTokenHash))
+    .from(passwordResets)
+    .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
     .limit(1);
   if (!token) {
     return {
@@ -102,9 +100,7 @@ export const load: PageServerLoad = async (event) => {
       newPasswordForm
     };
   } else if (!isWithinExpirationDate(token.expiresAt)) {
-    await db
-      .delete(passwordResetTokens)
-      .where(eq(passwordResetTokens.tokenHash, passwordResetToken));
+    await db.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetToken));
     return {
       success: false,
       message: 'Password reset link has expired',
