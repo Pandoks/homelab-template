@@ -7,8 +7,6 @@ import { PUBLIC_APP_HOST } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
-import { redirect } from '@sveltejs/kit';
-import type { Session, User } from 'lucia';
 
 export const actions: Actions = {
   'password-reset': async (event) => {

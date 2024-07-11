@@ -18,7 +18,7 @@ export const actions: Actions = {
       });
     }
     const { user, session } = await lucia.validateSession(event.locals.session.id);
-    if (!user || !user.isTwoFactor || session.isTwoFactorVerified) {
+    if (!user || !user.hasTwoFactor || session.isTwoFactorVerified) {
       redirect(302, '/');
     }
 

@@ -27,7 +27,7 @@ export const actions: Actions = {
     if (
       !userInfo ||
       !userInfo.twoFactorSecret ||
-      (user.isTwoFactor && session.isTwoFactorVerified)
+      (user.hasTwoFactor && session.isTwoFactorVerified)
     ) {
       return fail(400, {
         message: 'Invalid otp code'
@@ -56,7 +56,7 @@ export const actions: Actions = {
 
 export const load: PageServerLoad = async (event) => {
   const { user } = await lucia.validateSession(event.locals.session.id);
-  if (!user || !user.isTwoFactor) redirect(302, '/');
+  if (!user || !user.hasTwoFactor) redirect(302, '/');
 
   return {
     username: user.username

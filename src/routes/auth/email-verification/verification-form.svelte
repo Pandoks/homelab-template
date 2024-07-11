@@ -14,6 +14,7 @@
   });
 
   const { form: formData, enhance, delayed } = form;
+  $: $formData.code = $formData.code.replaceAll(' ', '');
 </script>
 
 <form class="grid gap-2" method="post" use:enhance action="?/verify-email-code">

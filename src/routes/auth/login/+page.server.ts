@@ -70,6 +70,9 @@ export const actions: Actions = {
 
 export const load: PageServerLoad = async (event) => {
   handleLoggedIn(event);
+  if (event.locals.session) {
+    return redirect(302, '/');
+  }
 
   return {
     loginForm: await superValidate(zod(loginSchema))

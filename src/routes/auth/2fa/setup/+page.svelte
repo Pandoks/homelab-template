@@ -10,4 +10,3 @@
 {#await twoFactorQrCodePromise then twoFactorQrCode}
   <img class="qrcode" src={twoFactorQrCode} alt="2 factor authentication qr code" />
 {/await}
-<img class="qrcode" src="test" alt="2 factor authentication qr code" />

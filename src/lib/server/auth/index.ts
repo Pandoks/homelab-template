@@ -59,8 +59,6 @@ export const handleLoggedIn = (event: ServerLoadEvent): void => {
       return redirect(302, '/auth/2fa/otp');
     } else if (!user.isEmailVerified) {
       return redirect(302, '/auth/email-verification');
-    } else {
-      return redirect(302, '/');
     }
   }
 };

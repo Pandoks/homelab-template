@@ -70,9 +70,9 @@ export const load: PageServerLoad = async (event) => {
   const session: Session | null = event.locals.session;
   const user: User | null = event.locals.user;
   if (session && user) {
-    if (!session.isTwoFactorVerified && user!.isTwoFactor) {
+    if (!session.isTwoFactorVerified && user!.hasTwoFactor) {
       return redirect(302, '/auth/2fa/otp');
-    } else if (user?.isEmailVerified) {
+    } else if (user.isEmailVerified) {
       return redirect(302, '/');
     }
   }
