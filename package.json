@@ -43,6 +43,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@bitjson/qr-code": "^1.0.2",
     "@lucia-auth/adapter-drizzle": "^1.0.7",
     "@node-rs/argon2": "^1.8.3",
     "bits-ui": "^0.21.12",
@@ -56,6 +57,7 @@
     "npm": "^10.8.1",
     "oslo": "^1.2.1",
     "postgres": "^3.4.4",
+    "qrcode": "^1.5.3",
     "sveltekit-superforms": "^2.15.2",
     "tailwind-merge": "^2.3.0",
     "tailwind-variants": "^0.2.1",
