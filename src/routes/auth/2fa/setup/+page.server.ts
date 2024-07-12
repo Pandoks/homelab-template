@@ -69,8 +69,6 @@ export const actions: Actions = {
 export const load: PageServerLoad = async (event) => {
   handleLoggedIn(event);
 
-  console.log('test');
-
   const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
   const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
   const twoFactorRecoveryCodeHash = encodeHex(
