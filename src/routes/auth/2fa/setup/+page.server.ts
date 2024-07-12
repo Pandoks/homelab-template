@@ -7,7 +7,7 @@ import type { Actions, PageServerLoad } from '../$types';
 import { handleLoggedIn } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
-import { decodeHex, encodeHex } from 'oslo/encoding';
+import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
@@ -83,6 +83,7 @@ export const load: PageServerLoad = async (event) => {
   const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, twoFactorSecret);
   return {
     qrCodeLink: uri,
+    twoFactorSecret: base32.encode(twoFactorSecret),
     recoveryCode: twoFactorRecoveryCode,
     otpForm: await superValidate(zod(twoFactorSetupSchema))
   };
