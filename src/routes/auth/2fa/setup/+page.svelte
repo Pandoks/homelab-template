@@ -4,6 +4,7 @@
   import type { ActionData, PageData } from './$types';
   import { fade } from 'svelte/transition';
   import OtpForm from './otp-form.svelte';
+  import { Button } from '$lib/components/ui/button';
 
   export let data: PageData;
   export let form: ActionData;
@@ -28,13 +29,17 @@
               If you are unable to scan, enter this secret code instead
             </p>
             <CircleCheck />
+            <Button><CircleCheck /></Button>
           </div>
         {/if}
         <label>
           <input type="checkbox" bind:checked={animate} />
         </label>
       </div>
-      <OtpForm data={data.otpForm} />
+      <OtpForm data={data.otpForm} success={form ? form.success : false} />
+      {#if form && form.success}
+        <CircleCheck />
+      {/if}
     </div>
   </div>
 </div>

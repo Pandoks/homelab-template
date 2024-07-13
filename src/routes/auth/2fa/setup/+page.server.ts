@@ -20,6 +20,11 @@ import { twoFactorSetupSchema } from './schema';
 export const actions: Actions = {
   'verify-otp': async (event) => {
     const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
+    return {
+      success: true,
+      message: 'Success',
+      otpForm
+    };
     if (!otpForm.valid) {
       return fail(400, {
         success: false,
