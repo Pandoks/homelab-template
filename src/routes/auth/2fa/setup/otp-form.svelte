@@ -22,22 +22,35 @@
   <Form.Field {form} name="otp">
     <Form.Control let:attrs>
       <Label>Verification Code</Label>
-      <Input
-        {...attrs}
-        class="text-center"
-        placeholder="XXXXXX"
-        maxlength={6}
-        bind:value={$formData.otp}
-      />
+      <div class="flex w-full max-w-sm items-center space-x-3">
+        <Input
+          {...attrs}
+          class="text-center"
+          placeholder="XXXXXX"
+          maxlength={6}
+          bind:value={$formData.otp}
+        />
+
+        {#if $delayed}
+          <Form.Button disabled variant="secondary" class="w-full">
+            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+            Verifying
+          </Form.Button>
+        {:else}
+          <Form.Button variant="secondary">Verify</Form.Button>
+        {/if}
+      </div>
     </Form.Control>
   </Form.Field>
 
   {#if $delayed}
     <Form.Button disabled class="w-full mt-4">
       <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-      Verifying
+      Activating 2 Factor Authentication
     </Form.Button>
+  {:else if data.valid}
+    <Form.Button class="mt-4">Activate 2 Factor Authentication</Form.Button>
   {:else}
-    <Form.Button class="mt-4">Verify</Form.Button>
+    <Form.Button disabled class="mt-4">Activate 2 Factor Authentication</Form.Button>
   {/if}
 </form>
