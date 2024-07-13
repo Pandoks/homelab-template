@@ -1,5 +1,8 @@
 <script lang="ts">
   import { draw } from 'svelte/transition';
+
+  let className: string | null | undefined = undefined;
+  export { className as class };
 </script>
 
 <svg
@@ -13,7 +16,8 @@
   stroke-linecap="round"
   stroke-linejoin="round"
   shape-rendering="geometricPrecision"
-  class="lucide lucide-circle-check"
+  class={cn('lucide lucide-circle-check', className)}
+  {...$$restProps}
 >
   <path d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2" in:draw={{ duration: 1000 }} />
   <path d="m9 12 2 2 4-4" in:draw={{ duration: 1000 }} />
