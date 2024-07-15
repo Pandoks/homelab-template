@@ -6,13 +6,10 @@ type ShakeParams = {
   intensity?: number;
 };
 
-const shake = ({
-  node,
-  params = { duration: 300, intensity: 5 }
-}: {
-  node: Element;
-  params: ShakeParams;
-}): TransitionConfig => {
+const shake = (
+  node: Element,
+  params: ShakeParams = { duration: 300, intensity: 5 }
+): TransitionConfig => {
   return {
     duration: params.duration,
     css: (time: number) => {

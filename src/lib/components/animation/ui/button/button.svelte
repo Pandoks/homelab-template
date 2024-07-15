@@ -4,6 +4,7 @@
   import { type Props } from './index';
   import { applyTransition, cn } from '$lib/utils';
   import { createEventDispatcher } from 'svelte';
+  import { errorShake } from '$lib/components/animation/function';
 
   type $$Props = Props;
 
@@ -19,7 +20,11 @@
     outTransition: fly,
     outParams: { duration: 300, y: 30 }
   };
-  export let failTransition: $$Props['failTransition'] = {};
+  export let failTransition: $$Props['failTransition'] = {
+    inTransition: errorShake,
+    outTransition: fly,
+    outParams: { duration: 300, y: 30 }
+  };
   export let resetTransition: $$Props['resetTransition'] = {
     inTransition: fade,
     inParams: { duration: 300 }
@@ -34,6 +39,9 @@
         // reset the button
         verified = false;
         errored = false;
+        console.log('verified: ', verified);
+        console.log('errored: ', errored);
+        console.log('reset: ', reset);
       }, duration);
     };
   };
@@ -41,17 +49,30 @@
   let verified: boolean = false;
   let errored: boolean = false;
   let reset: boolean = true;
+  let internalDone: boolean = false;
 
   $: if (success) {
     verified = true;
+    errored = false;
     reset = false;
   }
   $: if (fail) {
     errored = true;
+    verified = false;
     reset = false;
   }
 
   const dispatch = createEventDispatcher();
+  const handleDispatch = (dispatchEvent: 'introstart' | 'introend' | 'outrostart' | 'outroend') => {
+    return () => {
+      if (dispatchEvent.includes('start')) {
+        internalDone = false;
+      } else {
+        internalDone = true;
+      }
+      dispatch(dispatchEvent);
+    };
+  };
 </script>
 
 <Button
@@ -69,10 +90,10 @@
         transition: loadingTransition ? loadingTransition.outTransition : undefined,
         params: loadingTransition ? loadingTransition.outParams : undefined
       }}
-      on:introstart={() => dispatch('introstart')}
-      on:introend={() => dispatch('introend')}
-      on:outrostart={() => dispatch('outrostart')}
-      on:outroend={() => dispatch('outroend')}
+      on:introstart={handleDispatch('introstart')}
+      on:introend={handleDispatch('introend')}
+      on:outrostart={handleDispatch('outrostart')}
+      on:outroend={handleDispatch('outroend')}
     >
       <slot name="loading" />
     </div>
@@ -86,12 +107,12 @@
         transition: successTransition ? successTransition.outTransition : undefined,
         params: successTransition ? successTransition.outParams : undefined
       }}
-      on:introstart={() => dispatch('introstart')}
-      on:introend={() => dispatch('introend')}
-      on:outrostart={() => dispatch('outrostart')}
+      on:introstart={handleDispatch('introstart')}
+      on:introend={handleDispatch('introend')}
+      on:outrostart={handleDispatch('outrostart')}
       on:outroend={() => {
         reset = true;
-        dispatch('outroend');
+        handleDispatch('outroend')();
       }}
     >
       <slot
@@ -109,12 +130,12 @@
         transition: failTransition ? failTransition.outTransition : undefined,
         params: failTransition ? failTransition.outParams : undefined
       }}
-      on:introstart={() => dispatch('introstart')}
-      on:introend={() => dispatch('introend')}
-      on:outrostart={() => dispatch('outrostart')}
+      on:introstart={handleDispatch('introstart')}
+      on:introend={handleDispatch('introend')}
+      on:outrostart={handleDispatch('outrostart')}
       on:outroend={() => {
         reset = true;
-        dispatch('outroend');
+        handleDispatch('outroend')();
       }}
     >
       <slot name="fail" handleIntroEnd={handleDuration(failDuration ? failDuration : 1000)} />
@@ -129,10 +150,10 @@
         transition: resetTransition ? resetTransition.outTransition : undefined,
         params: resetTransition ? resetTransition.outParams : undefined
       }}
-      on:introstart={() => dispatch('introstart')}
-      on:introend={() => dispatch('introend')}
-      on:outrostart={() => dispatch('outrostart')}
-      on:outroend={() => dispatch('outroend')}
+      on:introstart={handleDispatch('introstart')}
+      on:introend={handleDispatch('introend')}
+      on:outrostart={handleDispatch('outrostart')}
+      on:outroend={handleDispatch('outroend')}
     >
       <slot />
     </div>
