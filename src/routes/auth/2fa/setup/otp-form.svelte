@@ -7,9 +7,13 @@
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { CircleCheck } from '$lib/components/animation/icon';
   import { Button } from '$lib/components/animation/ui/button';
+  import type { ActionData } from './$types';
 
   export let data: SuperValidated<Infer<TwoFactorSetupSchema>>;
-  export let verified: boolean = false;
+  export let form: ActionData;
+
+  $: verified = form ? form.success : false;
+  $: fail = form ? !form.success : false;
 
   const superFormFields = superForm(data, {
     validators: zodClient(twoFactorSetupSchema),
@@ -43,6 +47,7 @@
           class="w-24"
           loading={$delayed}
           success={verified}
+          {fail}
         >
           <svelte:fragment slot="loading">
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />

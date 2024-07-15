@@ -26,7 +26,7 @@
         </p>
       </div>
 
-      <OtpForm data={data.otpForm} verified={form ? form.success : false} />
+      <OtpForm data={data.otpForm} {form} />
     </div>
   </div>
 </div>

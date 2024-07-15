@@ -32,16 +32,22 @@
     return () => {
       setTimeout(() => {
         // reset the button
-        success = false;
-        fail = false;
-        console.log('test');
+        verified = false;
+        errored = false;
       }, duration);
     };
   };
 
+  let verified: boolean = false;
+  let errored: boolean = false;
   let reset: boolean = true;
 
   $: if (success) {
+    verified = true;
+    reset = false;
+  }
+  $: if (fail) {
+    errored = true;
     reset = false;
   }
 
@@ -70,7 +76,7 @@
     >
       <slot name="loading" />
     </div>
-  {:else if success}
+  {:else if verified}
     <div
       in:applyTransition={{
         transition: successTransition ? successTransition.inTransition : undefined,
@@ -93,7 +99,7 @@
         handleIntroEnd={handleDuration(successDuration ? successDuration : 1000)}
       />
     </div>
-  {:else if fail}
+  {:else if errored}
     <div
       in:applyTransition={{
         transition: failTransition ? failTransition.inTransition : undefined,
