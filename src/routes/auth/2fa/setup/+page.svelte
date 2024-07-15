@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card } from '$lib/components/ui/card';
+  import { Copy } from '$lib/components/ui/copy';
   import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
@@ -21,9 +22,14 @@
           <QRCode class="w-[100px] " value={data.qrCodeLink} /></Card
         >
 
-        <p class=" text-muted-foreground text-xs">
-          If you are unable to scan, enter this secret code instead:
-        </p>
+        <div class="flex flex-col gap-3">
+          <p class=" text-muted-foreground text-xs text-center">
+            If you are unable to scan, enter this secret code instead:
+          </p>
+          <Copy>
+            <p>test</p>
+          </Copy>
+        </div>
       </div>
 
       <OtpForm data={data.otpForm} {form} />
