@@ -21,7 +21,7 @@ export const actions: Actions = {
   'verify-otp': async (event) => {
     const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
     return {
-      success: false,
+      success: true,
       message: 'Success',
       otpForm
     };

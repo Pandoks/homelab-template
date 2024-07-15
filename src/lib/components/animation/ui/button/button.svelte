@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, type TransitionConfig } from 'svelte/transition';
   import { type Props } from './index';
   import { applyTransition, cn } from '$lib/utils';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, tick } from 'svelte';
   import { errorShake } from '$lib/components/animation/function';
 
   type $$Props = Props;
@@ -30,48 +30,63 @@
     inParams: { duration: 300 }
   };
 
-  export let successDuration: $$Props['successDuration'] = 1000;
-  export let failDuration: $$Props['failDuration'] = 1000;
+  // Includes the time it takes for whatever is animating inside
+  export let successDuration: $$Props['successDuration'] = 1500;
+  export let failDuration: $$Props['failDuration'] = 1500;
 
-  let handleDuration = (duration: number) => {
-    return () => {
-      setTimeout(() => {
-        // reset the button
-        verified = false;
-        errored = false;
-        console.log('verified: ', verified);
-        console.log('errored: ', errored);
-        console.log('reset: ', reset);
-      }, duration);
-    };
+  const handleDurationTransition = (
+    node: HTMLElement,
+    {
+      transition,
+      params,
+      duration
+    }: {
+      transition?: (node: Element, params?: any) => TransitionConfig;
+      params: TransitionConfig;
+      duration: number;
+    }
+  ) => {
+    if (skip) {
+      return {};
+    }
+
+    setTimeout(() => {
+      // reset the button
+      verified = false;
+      errored = false;
+    }, duration);
+    return applyTransition(node, { transition: transition, params: params });
   };
 
   let verified: boolean = false;
   let errored: boolean = false;
-  let reset: boolean = true;
-  let internalDone: boolean = false;
+  let normal: boolean = true;
+  let skip: boolean = false;
 
   $: if (success) {
     verified = true;
     errored = false;
-    reset = false;
+    normal = false;
   }
   $: if (fail) {
     errored = true;
     verified = false;
-    reset = false;
+    normal = false;
   }
 
   const dispatch = createEventDispatcher();
-  const handleDispatch = (dispatchEvent: 'introstart' | 'introend' | 'outrostart' | 'outroend') => {
-    return () => {
-      if (dispatchEvent.includes('start')) {
-        internalDone = false;
-      } else {
-        internalDone = true;
-      }
-      dispatch(dispatchEvent);
-    };
+
+  export const reset = async () => {
+    skip = true;
+    verified = false;
+    errored = false;
+    normal = true;
+    success = false;
+    fail = false;
+    loading = false;
+
+    await tick();
+    skip = false;
   };
 </script>
 
@@ -83,77 +98,76 @@
   {#if loading}
     <div
       in:applyTransition={{
-        transition: loadingTransition ? loadingTransition.inTransition : undefined,
+        transition: !skip && loadingTransition ? loadingTransition.inTransition : undefined,
         params: loadingTransition ? loadingTransition.inParams : undefined
       }}
       out:applyTransition={{
-        transition: loadingTransition ? loadingTransition.outTransition : undefined,
+        transition: !skip && loadingTransition ? loadingTransition.outTransition : undefined,
         params: loadingTransition ? loadingTransition.outParams : undefined
       }}
-      on:introstart={handleDispatch('introstart')}
-      on:introend={handleDispatch('introend')}
-      on:outrostart={handleDispatch('outrostart')}
-      on:outroend={handleDispatch('outroend')}
+      on:introstart={() => dispatch('introstart')}
+      on:introend={() => dispatch('introend')}
+      on:outrostart={() => dispatch('outrostart')}
+      on:outroend={() => dispatch('outroend')}
     >
       <slot name="loading" />
     </div>
   {:else if verified}
     <div
-      in:applyTransition={{
+      in:handleDurationTransition={{
         transition: successTransition ? successTransition.inTransition : undefined,
-        params: successTransition ? successTransition.inParams : undefined
+        params: successTransition ? successTransition.inParams : undefined,
+        duration: successDuration ? successDuration : 1500
       }}
       out:applyTransition={{
-        transition: successTransition ? successTransition.outTransition : undefined,
+        transition: !skip && successTransition ? successTransition.outTransition : undefined,
         params: successTransition ? successTransition.outParams : undefined
       }}
-      on:introstart={handleDispatch('introstart')}
-      on:introend={handleDispatch('introend')}
-      on:outrostart={handleDispatch('outrostart')}
+      on:introstart={() => dispatch('introstart')}
+      on:introend={() => dispatch('introend')}
+      on:outrostart={() => dispatch('outrostart')}
       on:outroend={() => {
-        reset = true;
-        handleDispatch('outroend')();
+        normal = true;
+        dispatch('outroend');
       }}
     >
-      <slot
-        name="success"
-        handleIntroEnd={handleDuration(successDuration ? successDuration : 1000)}
-      />
+      <slot name="success" />
     </div>
   {:else if errored}
     <div
-      in:applyTransition={{
+      in:handleDurationTransition={{
         transition: failTransition ? failTransition.inTransition : undefined,
-        params: failTransition ? failTransition.inParams : undefined
+        params: failTransition ? failTransition.inParams : undefined,
+        duration: failDuration ? failDuration : 1500
       }}
       out:applyTransition={{
-        transition: failTransition ? failTransition.outTransition : undefined,
+        transition: !skip && failTransition ? failTransition.outTransition : undefined,
         params: failTransition ? failTransition.outParams : undefined
       }}
-      on:introstart={handleDispatch('introstart')}
-      on:introend={handleDispatch('introend')}
-      on:outrostart={handleDispatch('outrostart')}
+      on:introstart={() => dispatch('introstart')}
+      on:introend={() => dispatch('introend')}
+      on:outrostart={() => dispatch('outrostart')}
       on:outroend={() => {
-        reset = true;
-        handleDispatch('outroend')();
+        normal = true;
+        dispatch('outroend');
       }}
     >
-      <slot name="fail" handleIntroEnd={handleDuration(failDuration ? failDuration : 1000)} />
+      <slot name="fail" />
     </div>
-  {:else if reset}
+  {:else if normal}
     <div
       in:applyTransition={{
-        transition: resetTransition ? resetTransition.inTransition : undefined,
+        transition: !skip && resetTransition ? resetTransition.inTransition : undefined,
         params: resetTransition ? resetTransition.inParams : undefined
       }}
       out:applyTransition={{
-        transition: resetTransition ? resetTransition.outTransition : undefined,
+        transition: !skip && resetTransition ? resetTransition.outTransition : undefined,
         params: resetTransition ? resetTransition.outParams : undefined
       }}
-      on:introstart={handleDispatch('introstart')}
-      on:introend={handleDispatch('introend')}
-      on:outrostart={handleDispatch('outrostart')}
-      on:outroend={handleDispatch('outroend')}
+      on:introstart={() => dispatch('introstart')}
+      on:introend={() => dispatch('introend')}
+      on:outrostart={() => dispatch('outrostart')}
+      on:outroend={() => dispatch('outroend')}
     >
       <slot />
     </div>

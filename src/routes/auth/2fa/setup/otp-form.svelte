@@ -8,18 +8,22 @@
   import { CircleCheck } from '$lib/components/animation/icon';
   import { Button } from '$lib/components/animation/ui/button';
   import type { ActionData } from './$types';
-  import { errorShake } from '$lib/components/animation/function';
 
   export let data: SuperValidated<Infer<TwoFactorSetupSchema>>;
   export let form: ActionData;
 
+  let animatedButton: Button;
   $: verified = form ? form.success : false;
   $: fail = form ? !form.success : false;
 
   const superFormFields = superForm(data, {
     validators: zodClient(twoFactorSetupSchema),
-    multipleSubmits: 'prevent',
-    invalidateAll: false
+    multipleSubmits: 'abort',
+    resetForm: false,
+    invalidateAll: false,
+    onResult: async () => {
+      await animatedButton.reset();
+    }
   });
 
   const { form: formData, enhance, delayed } = superFormFields;
@@ -49,23 +53,14 @@
           loading={$delayed}
           success={verified}
           {fail}
+          bind:this={animatedButton}
         >
           <svelte:fragment slot="loading">
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
             Verifying
           </svelte:fragment>
-          <CircleX
-            slot="fail"
-            class="stroke-red-600"
-            let:handleIntroEnd
-            on:introend={handleIntroEnd}
-          />
-          <CircleCheck
-            slot="success"
-            class="stroke-green-600"
-            let:handleIntroEnd
-            on:introend={handleIntroEnd}
-          />
+          <CircleX slot="fail" class="stroke-red-600" />
+          <CircleCheck slot="success" class="stroke-green-600" />
           <p>Verify</p>
         </Button>
       </div>
