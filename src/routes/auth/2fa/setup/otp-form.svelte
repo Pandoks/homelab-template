@@ -13,6 +13,7 @@
   export let form: ActionData;
 
   let animatedButton: Button;
+  let successElement: CircleCheck;
   $: verified = form ? form.success : false;
   $: fail = form ? !form.success : false;
 
@@ -21,8 +22,12 @@
     multipleSubmits: 'abort',
     resetForm: false,
     invalidateAll: false,
-    onResult: async () => {
+    onResult: async (event) => {
       await animatedButton.reset();
+      if (event.result.type === 'success') {
+        // needed because animation needs to restart when spamming
+        await successElement?.restart();
+      }
     }
   });
 
@@ -60,7 +65,7 @@
             Verifying
           </svelte:fragment>
           <CircleX slot="fail" class="stroke-red-600" />
-          <CircleCheck slot="success" class="stroke-green-600" />
+          <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} />
           <p>Verify</p>
         </Button>
       </div>

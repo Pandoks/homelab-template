@@ -34,6 +34,8 @@
   export let successDuration: $$Props['successDuration'] = 1500;
   export let failDuration: $$Props['failDuration'] = 1500;
 
+  let timeout: NodeJS.Timeout;
+
   const handleDurationTransition = (
     node: HTMLElement,
     {
@@ -50,7 +52,7 @@
       return {};
     }
 
-    setTimeout(() => {
+    timeout = setTimeout(() => {
       // reset the button
       verified = false;
       errored = false;
@@ -77,12 +79,10 @@
   const dispatch = createEventDispatcher();
 
   export const reset = async () => {
+    clearTimeout(timeout);
     skip = true;
     verified = false;
     errored = false;
-    normal = true;
-    success = false;
-    fail = false;
     loading = false;
 
     await tick();
