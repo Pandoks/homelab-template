@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Card } from '$lib/components/ui/card';
   import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
@@ -15,11 +16,13 @@
         <p class="text-muted-foreground">Scan the QR code with your authenticator app</p>
       </div>
 
-      <div class="flex gap-4">
-        <QRCode class="w-[100px]" value={data.qrCodeLink} />
+      <div class="py-10 flex flex-col items-center gap-12">
+        <Card class="p-3">
+          <QRCode class="w-[100px] " value={data.qrCodeLink} /></Card
+        >
 
         <p class=" text-muted-foreground text-xs">
-          If you are unable to scan, enter this secret code instead
+          If you are unable to scan, enter this secret code instead:
         </p>
       </div>
 

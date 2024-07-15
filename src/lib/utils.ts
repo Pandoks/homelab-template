@@ -54,3 +54,18 @@ export const flyAndScale = (
     easing: cubicOut
   };
 };
+
+export const applyTransition = (
+  node: HTMLElement,
+  {
+    transition,
+    params
+  }: { transition?: (node: Element, params?: any) => TransitionConfig; params: TransitionConfig }
+) => {
+  if (transition) {
+    return transition(node, params);
+  }
+
+  // return a no-op transition if no transition is provided
+  return { duration: 0 };
+};

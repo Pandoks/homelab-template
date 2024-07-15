@@ -39,9 +39,7 @@
   {...$$restProps}
 >
   <path
-    on:introstart={() => {
-      dispatch('circleintrostart');
-    }}
+    on:introstart={() => dispatch('circleintrostart')}
     on:introend={() => {
       circleIntroEnd = true;
       dispatch('circleintroend');

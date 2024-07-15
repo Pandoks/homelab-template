@@ -5,19 +5,11 @@
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
   import { zodClient } from 'sveltekit-superforms/adapters';
-  import { CircleCheck } from '$lib/components/animation/circle-check';
-  import { fade, fly } from 'svelte/transition';
+  import { CircleCheck } from '$lib/components/animation/icon';
+  import { Button } from '$lib/components/animation/ui/button';
 
   export let data: SuperValidated<Infer<TwoFactorSetupSchema>>;
   export let verified: boolean = false;
-
-  let showCheckmark = false;
-  let showVerify = true;
-
-  $: if (verified) {
-    showCheckmark = true;
-    showVerify = false;
-  }
 
   const superFormFields = superForm(data, {
     validators: zodClient(twoFactorSetupSchema),
@@ -45,29 +37,25 @@
           bind:value={$formData.otp}
         />
 
-        {#if $delayed}
-          <Form.Button disabled variant="secondary" class="w-full">
+        <Button
+          type="submit"
+          variant="secondary"
+          class="w-24"
+          loading={$delayed}
+          success={verified}
+        >
+          <svelte:fragment slot="loading">
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
             Verifying
-          </Form.Button>
-        {:else}
-          <Form.Button variant="secondary" class="w-24 overflow-hidden">
-            {#if showCheckmark}
-              <div out:fly={{ duration: 400, y: 30 }} on:outroend={() => (showVerify = true)}>
-                <CircleCheck
-                  on:introend={() =>
-                    setTimeout(() => {
-                      showCheckmark = false;
-                    }, 2000)}
-                  class="stroke-green-600"
-                />
-              </div>
-            {:else if showVerify}
-              <!-- won't render on first mount. will only animate after click -->
-              <p in:fade={{ duration: 400 }}>Verify</p>
-            {/if}
-          </Form.Button>
-        {/if}
+          </svelte:fragment>
+          <CircleCheck
+            slot="success"
+            class="stroke-green-600"
+            let:handleIntroEnd
+            on:introend={handleIntroEnd}
+          />
+          <p>Verify</p>
+        </Button>
       </div>
     </Form.Control>
   </Form.Field>
