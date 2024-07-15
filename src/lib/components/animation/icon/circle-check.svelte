@@ -34,7 +34,6 @@
   stroke-width="2"
   stroke-linecap="round"
   stroke-linejoin="round"
-  shape-rendering="geometricPrecision"
   class={cn('lucide lucide-circle-check', className)}
   {...$$restProps}
 >
@@ -53,10 +52,7 @@
     in:draw={drawParams.circle}
   />
   <path
-    on:introstart={() => {
-      checkIntroEnd = true;
-      dispatch('checkintrostart');
-    }}
+    on:introstart={() => dispatch('checkintrostart')}
     on:introend={() => {
       checkIntroEnd = true;
       dispatch('checkintroend');
