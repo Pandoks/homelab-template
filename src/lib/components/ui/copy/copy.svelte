@@ -10,8 +10,14 @@
   export let animate: $$Props['animate'] = false;
   export { className as class };
 
-  let copyText: string = '';
-  $: console.log(copyText);
+  let slotElement: HTMLElement;
+  $: copyText = slotElement?.textContent || '';
 </script>
 
-<Input value="test" disabled class={cn('h-8', className)} {...$$restProps}></Input>
+<div bind:this={slotElement} class="hidden">
+  <slot />
+</div>
+
+{#if variant !== 'code'}
+  <Input disabled class={cn('h-8', className)} {...$$restProps} value={copyText} />
+{:else}{/if}

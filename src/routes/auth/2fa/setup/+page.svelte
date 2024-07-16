@@ -26,9 +26,7 @@
           <p class=" text-muted-foreground text-xs text-center">
             If you are unable to scan, enter this secret code instead:
           </p>
-          <Copy>
-            <p>test</p>
-          </Copy>
+          <Copy class="text-center" variant="default">test</Copy>
         </div>
       </div>
 

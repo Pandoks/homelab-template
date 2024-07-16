@@ -2,7 +2,7 @@ import Root from './copy.svelte';
 
 type Props = {
   className?: string;
-  variant?: 'default' | 'secret' | 'block';
+  variant?: 'default' | 'secret' | 'code';
   animate?: boolean;
 };
 
