@@ -2,7 +2,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { cn } from '$lib/utils';
-  import { Copy, Check } from 'lucide-svelte';
+  import { Copy } from 'lucide-svelte';
 
   type $$Props = {
     class?: string;

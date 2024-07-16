@@ -3,11 +3,25 @@
   import { createEventDispatcher, tick } from 'svelte';
   import { draw, type DrawParams } from 'svelte/transition';
 
-  export let drawParams: { check: DrawParams; circle: DrawParams } = {
+  type $$Props = {
+    drawParams?: {
+      check?: DrawParams;
+      circle?: DrawParams;
+    };
+    class?: string;
+    size?: number;
+    color?: string;
+    strokeWidth?: number;
+  };
+
+  let className: $$Props['class'] = undefined;
+  export let drawParams: $$Props['drawParams'] = {
     check: { duration: 1000 },
     circle: { duration: 1000 }
   };
-  let className: string | null | undefined = undefined;
+  export let size: $$Props['size'] = 24;
+  export let color: $$Props['color'] = 'currentColor';
+  export let strokeWidth: $$Props['strokeWidth'] = 2;
   export { className as class };
 
   let show: boolean = true;
@@ -34,12 +48,12 @@
 {#if show}
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
+    width={size}
+    height={size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    stroke-width="2"
+    stroke={color}
+    stroke-width={strokeWidth}
     stroke-linecap="round"
     stroke-linejoin="round"
     class={cn('lucide lucide-circle-check', className)}
@@ -57,7 +71,7 @@
         dispatch('circleoutroend');
       }}
       d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2"
-      in:draw|global={drawParams.circle}
+      in:draw|global={drawParams?.circle}
     />
     <path
       on:introstart={() => dispatch('checkintrostart')}
@@ -71,7 +85,7 @@
         dispatch('checkoutroend');
       }}
       d="m9 12 2 2 4-4"
-      in:draw|global={drawParams.check}
+      in:draw|global={drawParams?.check}
     />
   </svg>
 {/if}

@@ -98,12 +98,12 @@
   {#if loading}
     <div
       in:applyTransition={{
-        transition: !skip && loadingTransition ? loadingTransition.inTransition : undefined,
-        params: loadingTransition ? loadingTransition.inParams : undefined
+        transition: !skip ? loadingTransition?.inTransition : undefined,
+        params: loadingTransition?.inParams
       }}
       out:applyTransition={{
-        transition: !skip && loadingTransition ? loadingTransition.outTransition : undefined,
-        params: loadingTransition ? loadingTransition.outParams : undefined
+        transition: !skip ? loadingTransition?.outTransition : undefined,
+        params: loadingTransition?.outParams
       }}
       on:introstart={() => dispatch('introstart')}
       on:introend={() => dispatch('introend')}
@@ -115,13 +115,13 @@
   {:else if verified}
     <div
       in:handleDurationTransition={{
-        transition: successTransition ? successTransition.inTransition : undefined,
-        params: successTransition ? successTransition.inParams : undefined,
+        transition: successTransition?.inTransition,
+        params: successTransition?.inParams,
         duration: successDuration ? successDuration : 1500
       }}
       out:applyTransition={{
-        transition: !skip && successTransition ? successTransition.outTransition : undefined,
-        params: successTransition ? successTransition.outParams : undefined
+        transition: !skip ? successTransition?.outTransition : undefined,
+        params: successTransition?.outParams
       }}
       on:introstart={() => dispatch('introstart')}
       on:introend={() => dispatch('introend')}
@@ -136,13 +136,13 @@
   {:else if errored}
     <div
       in:handleDurationTransition={{
-        transition: failTransition ? failTransition.inTransition : undefined,
-        params: failTransition ? failTransition.inParams : undefined,
+        transition: failTransition?.inTransition,
+        params: failTransition?.inParams,
         duration: failDuration ? failDuration : 1500
       }}
       out:applyTransition={{
-        transition: !skip && failTransition ? failTransition.outTransition : undefined,
-        params: failTransition ? failTransition.outParams : undefined
+        transition: !skip ? failTransition?.outTransition : undefined,
+        params: failTransition?.outParams
       }}
       on:introstart={() => dispatch('introstart')}
       on:introend={() => dispatch('introend')}
@@ -157,12 +157,12 @@
   {:else if normal}
     <div
       in:applyTransition={{
-        transition: !skip && resetTransition ? resetTransition.inTransition : undefined,
-        params: resetTransition ? resetTransition.inParams : undefined
+        transition: !skip ? resetTransition?.inTransition : undefined,
+        params: resetTransition?.inParams
       }}
       out:applyTransition={{
-        transition: !skip && resetTransition ? resetTransition.outTransition : undefined,
-        params: resetTransition ? resetTransition.outParams : undefined
+        transition: !skip ? resetTransition?.outTransition : undefined,
+        params: resetTransition?.outParams
       }}
       on:introstart={() => dispatch('introstart')}
       on:introend={() => dispatch('introend')}
