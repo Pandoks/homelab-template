@@ -1,15 +1,7 @@
-import Root from './copy.svelte';
-
-type Props = {
-  className?: string;
-  variant?: 'default' | 'secret' | 'code';
-  animate?: boolean;
-};
+import Text from './copy.svelte';
 
 export {
-  Root,
-  type Props,
+  Text,
   //
-  Root as Copy,
-  type Props as CopyProps
+  Text as CopyText
 };

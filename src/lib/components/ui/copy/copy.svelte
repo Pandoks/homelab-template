@@ -1,23 +1,41 @@
 <script lang="ts">
+  import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { cn } from '$lib/utils';
-  import type { Props } from '.';
+  import { Copy, Check } from 'lucide-svelte';
 
-  type $$Props = Props;
+  type $$Props = {
+    class?: string;
+    copy?: string;
+    duration?: number;
+  };
 
-  let className: $$Props['className'] = undefined;
-  export let variant: $$Props['variant'] = 'default';
-  export let animate: $$Props['animate'] = false;
+  let className: $$Props['class'] = undefined;
   export { className as class };
+  export let copy = '';
+  export let duration = 1500;
 
-  let slotElement: HTMLElement;
-  $: copyText = slotElement?.textContent || '';
+  let success = false;
+  $: buttonStyle = success
+    ? 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-14'
+    : 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-6';
+  const handleClick = async () => {
+    await navigator.clipboard.writeText(copy);
+
+    success = true;
+    setTimeout(() => {
+      success = false;
+    }, duration);
+  };
 </script>
 
-<div bind:this={slotElement} class="hidden">
-  <slot />
+<div class="relative">
+  <Input disabled class={cn('h-9 pr-8', className)} {...$$restProps} value={copy} />
+  <Button class={buttonStyle} variant="outline" size="icon" on:click={handleClick}>
+    {#if success}
+      <p class="text-xs text-muted-foreground">Copied</p>
+    {:else}
+      <Copy size={12} />
+    {/if}
+  </Button>
 </div>
-
-{#if variant !== 'code'}
-  <Input disabled class={cn('h-8', className)} {...$$restProps} value={copyText} />
-{:else}{/if}
