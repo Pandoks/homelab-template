@@ -15,16 +15,18 @@
   export let copy = '';
   export let duration = 1500;
 
-  let success = false;
-  $: buttonStyle = success
+  let copied = false;
+  $: buttonStyle = copied
     ? 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-14'
     : 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-6';
+  let clickTimeout: NodeJS.Timeout;
   const handleClick = async () => {
+    clearTimeout(clickTimeout);
     await navigator.clipboard.writeText(copy);
 
-    success = true;
-    setTimeout(() => {
-      success = false;
+    copied = true;
+    clickTimeout = setTimeout(() => {
+      copied = false;
     }, duration);
   };
 </script>
@@ -32,7 +34,7 @@
 <div class="relative">
   <Input disabled class={cn('h-9 pr-8', className)} {...$$restProps} value={copy} />
   <Button class={buttonStyle} variant="outline" size="icon" on:click={handleClick}>
-    {#if success}
+    {#if copied}
       <p class="text-xs text-muted-foreground">Copied</p>
     {:else}
       <Copy size={12} />

@@ -1,14 +1,12 @@
 <script lang="ts">
   import { Card } from '$lib/components/ui/card';
-  import { CopyText } from '$lib/components/ui/copy';
+  import { CopySecret } from '$lib/components/ui/copy';
   import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
 
   export let data: PageData;
   export let form: ActionData;
-
-  console.log(data.twoFactorSecret);
 </script>
 
 <div class="h-screen">
@@ -28,7 +26,7 @@
           <p class=" text-muted-foreground text-sm text-center">
             If you are unable to scan, enter this secret code:
           </p>
-          <CopyText class="text-left text-xs w-[320px]" copy={data.twoFactorSecret} />
+          <CopySecret class="text-left text-xs w-[320px]" copy={data.twoFactorSecret} />
         </div>
       </div>
 
