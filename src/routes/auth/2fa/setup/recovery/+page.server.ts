@@ -28,7 +28,8 @@ export const load: PageServerLoad = async (event) => {
 
   await db
     .update(users)
-    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: true })
+    // .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: true })
+    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: false })
     .where(eq(users.id, user.id));
 
   return {
