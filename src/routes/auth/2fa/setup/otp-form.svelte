@@ -62,7 +62,6 @@
         >
           <svelte:fragment slot="loading">
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-            Verifying
           </svelte:fragment>
           <CircleX slot="fail" class="stroke-red-600" />
           <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} />
@@ -71,15 +70,4 @@
       </div>
     </Form.Control>
   </Form.Field>
-
-  {#if $delayed}
-    <Form.Button disabled class="w-full mt-4">
-      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-      Activating 2 Factor Authentication
-    </Form.Button>
-  {:else if data.valid}
-    <Form.Button class="mt-4">Activate 2 Factor Authentication</Form.Button>
-  {:else}
-    <Form.Button disabled class="mt-4">Activate 2 Factor Authentication</Form.Button>
-  {/if}
 </form>

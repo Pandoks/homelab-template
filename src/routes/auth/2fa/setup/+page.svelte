@@ -1,12 +1,18 @@
 <script lang="ts">
+  import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
   import { CopySecret } from '$lib/components/ui/copy';
   import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
+  import { goto } from '$app/navigation';
 
   export let data: PageData;
   export let form: ActionData;
+
+  const handleClick = () => {
+    return goto('/auth/2fa/setup/recovery');
+  };
 </script>
 
 <div class="h-screen">
@@ -31,6 +37,12 @@
       </div>
 
       <OtpForm data={data.otpForm} {form} />
+
+      {#if form && form.success}
+        <Button class="mt-2" on:click={handleClick}>Continue</Button>
+      {:else}
+        <Button disabled class="mt-2">Continue</Button>
+      {/if}
     </div>
   </div>
 </div>

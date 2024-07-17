@@ -11,8 +11,7 @@ import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
-import { generateIdFromEntropySize, type User } from 'lucia';
-import { sha256 } from 'oslo/crypto';
+import { type User } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
@@ -20,11 +19,6 @@ import { twoFactorSetupSchema } from './schema';
 export const actions: Actions = {
   'verify-otp': async (event) => {
     const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
-    return {
-      success: true,
-      message: 'Success',
-      otpForm
-    };
     if (!otpForm.valid) {
       return fail(400, {
         success: false,
@@ -62,7 +56,6 @@ export const actions: Actions = {
       });
     }
 
-    await db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
     return {
       success: true,
       message: 'Success',
@@ -74,22 +67,26 @@ export const actions: Actions = {
 export const load: PageServerLoad = async (event) => {
   handleLoggedIn(event);
 
-  const twoFactorSecret = crypto.getRandomValues(new Uint8Array(20));
-  const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-  const twoFactorRecoveryCodeHash = encodeHex(
-    await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
-  );
-  await db.update(users).set({
-    twoFactorSecret: encodeHex(twoFactorSecret),
-    twoFactorRecoveryHash: twoFactorRecoveryCodeHash
-  });
+  const [userInfo] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, event.locals.user.id))
+    .limit(1);
+
+  let twoFactorSecret = userInfo.twoFactorSecret;
+  if (!twoFactorSecret) {
+    twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
+    await db.update(users).set({
+      twoFactorSecret: twoFactorSecret
+    });
+  }
 
   // create TOTP with app name, and user identifier (username/email)
-  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, twoFactorSecret);
+  const decodedSecret = decodeHex(twoFactorSecret);
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, decodedSecret);
   return {
     qrCodeLink: uri,
-    twoFactorSecret: base32.encode(twoFactorSecret),
-    recoveryCode: twoFactorRecoveryCode,
+    twoFactorSecret: base32.encode(decodedSecret),
     otpForm: await superValidate(zod(twoFactorSetupSchema))
   };
 };
