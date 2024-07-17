@@ -8,12 +8,29 @@
     class?: string;
     copy?: string;
     duration?: number;
+    size?:
+      | 'xs'
+      | 'sm'
+      | 'base'
+      | 'lg'
+      | 'xl'
+      | '2xl'
+      | '3xl'
+      | '4xl'
+      | '5xl'
+      | '6xl'
+      | '7xl'
+      | '8xl'
+      | '9xl';
+    align?: 'left' | 'center' | 'right';
   };
 
   let className: $$Props['class'] = undefined;
   export { className as class };
   export let copy = '';
   export let duration = 1500;
+  export let size = 'xs';
+  export let align = 'left';
 
   let copied = false;
   $: buttonStyle = copied
@@ -31,8 +48,13 @@
   };
 </script>
 
-<div class="relative">
-  <Input disabled class={cn('h-9 pr-8', className)} {...$$restProps} value={copy} />
+<div class={cn('relative', className)}>
+  <Input
+    disabled
+    class={cn(`text-${size} text-${align} h-9 pr-8`, className)}
+    {...$$restProps}
+    value={copy}
+  />
   <Button class={buttonStyle} variant="outline" size="icon" on:click={handleClick}>
     {#if copied}
       <p class="text-xs text-muted-foreground">Copied</p>

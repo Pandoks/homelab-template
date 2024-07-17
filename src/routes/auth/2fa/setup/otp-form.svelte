@@ -59,6 +59,7 @@
           success={verified}
           {fail}
           bind:this={animatedButton}
+          failDuration={1000}
         >
           <svelte:fragment slot="loading">
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />

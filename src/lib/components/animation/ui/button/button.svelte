@@ -32,7 +32,7 @@
 
   // Includes the time it takes for whatever is animating inside
   export let successDuration: $$Props['successDuration'] = 1500;
-  export let failDuration: $$Props['failDuration'] = 1000;
+  export let failDuration: $$Props['failDuration'] = 1500;
 
   let timeout: NodeJS.Timeout;
 

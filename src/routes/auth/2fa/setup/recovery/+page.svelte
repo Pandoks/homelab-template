@@ -3,29 +3,31 @@
   import type { PageData } from './$types';
   import * as AlertDialog from '$lib/components/ui/alert-dialog';
   import { Button } from '$lib/components/ui/button';
+  import { enhance } from '$app/forms';
+  import { CopySecret, CopyText } from '$lib/components/ui/copy';
 
   export let data: PageData;
 
   onMount(() => {
-    window.addEventListener('beforeunload', () => console.log('test'));
-
-    return () => {
-      window.removeEventListener('beforeunload', () => console.log('test'));
+    window.onbeforeunload = () => {
+      return '';
     };
   });
 </script>
 
 <div class="h-screen">
   <div class="flex items-center justify-center h-screen">
-    <div class="mx-auto grid w-[350px] gap-3">
-      <div class="grid gap-2 text-center">
+    <div class="mx-auto flex flex-col w-[350px] items-center gap-16">
+      <div class="grid gap-2 text-center -mb-1.5">
         <h1 class="text-3xl font-bold">2 Factor Authentication</h1>
         <p class="text-muted-foreground">Store the recovery code somewhere secure</p>
       </div>
 
+      <CopyText class="w-[310px]" size="xs" copy={data.twoFactorRecoveryCode} />
+
       <AlertDialog.Root>
         <AlertDialog.Trigger asChild let:builder>
-          <Button builders={[builder]}>Activate 2 Factor Authentication</Button>
+          <Button class="w-full" builders={[builder]}>Activate 2 Factor Authentication</Button>
         </AlertDialog.Trigger>
         <AlertDialog.Content>
           <AlertDialog.Header>
@@ -37,7 +39,9 @@
           </AlertDialog.Header>
           <AlertDialog.Footer>
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action>Activate</AlertDialog.Action>
+            <form method="post" use:enhance action="?/activate-2fa">
+              <AlertDialog.Action type="submit">Activate</AlertDialog.Action>
+            </form>
           </AlertDialog.Footer>
         </AlertDialog.Content>
       </AlertDialog.Root>

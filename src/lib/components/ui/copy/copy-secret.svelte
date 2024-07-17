@@ -9,12 +9,29 @@
     class?: string;
     copy?: string;
     duration?: number;
+    size?:
+      | 'xs'
+      | 'sm'
+      | 'base'
+      | 'lg'
+      | 'xl'
+      | '2xl'
+      | '3xl'
+      | '4xl'
+      | '5xl'
+      | '6xl'
+      | '7xl'
+      | '8xl'
+      | '9xl';
+    align?: 'left' | 'center' | 'right';
   };
 
   let className: $$Props['class'] = undefined;
   export { className as class };
   export let copy: $$Props['copy'] = '';
   export let duration = 1200;
+  export let size = 'xs';
+  export let align = 'left';
 
   let isHidden: boolean = true;
 
@@ -43,10 +60,10 @@
   };
 </script>
 
-<div class="relative">
+<div class={cn('relative', className)}>
   <Input
     disabled
-    class={cn(inputStyle, className)}
+    class={cn(`text-${size} text-${align}`, inputStyle)}
     {...$$restProps}
     value={copy}
     type={isHidden ? 'password' : 'text'}
