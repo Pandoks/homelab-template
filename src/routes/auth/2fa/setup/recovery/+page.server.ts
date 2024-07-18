@@ -1,6 +1,6 @@
 import { generateIdFromEntropySize, type User } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { handleLoggedIn } from '$lib/server/auth';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db';
@@ -19,6 +19,13 @@ export const actions: Actions = {
         success: false
       };
     }
+
+    const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
+    const sessionCookie = lucia.createSessionCookie(session.id);
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '.',
+      ...sessionCookie.attributes
+    });
 
     return redirect(302, '/');
   }
