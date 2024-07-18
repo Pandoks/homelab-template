@@ -1,40 +1,43 @@
 import { lucia } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
-import { z } from 'zod';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { TOTPController } from 'oslo/otp';
 import { decodeHex } from 'oslo/encoding';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { oneTimePasswordSchema } from './schema';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
-    const formData = await event.request.formData();
-    const otp = formData.get('otp');
-    if (!z.string().length(6).safeParse(otp).success) {
+    const otpForm = await superValidate(event, zod(oneTimePasswordSchema));
+    if (!otpForm.valid) {
       return fail(400, {
-        message: 'Invalid otp code'
+        success: false,
+        otpForm
       });
     }
-    const { user, session } = await lucia.validateSession(event.locals.session.id);
-    if (!user) {
+
+    const user = event.locals.user;
+    const session = event.locals.session;
+    if (!user || !session) {
       return fail(400, {
-        message: 'Invalid otp code'
+        success: false,
+        otpForm
       });
     }
     const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
-    if (
-      !userInfo ||
-      !userInfo.twoFactorSecret ||
-      (user.hasTwoFactor && session.isTwoFactorVerified)
-    ) {
+    if (!userInfo || !userInfo.twoFactorSecret) {
       return fail(400, {
-        message: 'Invalid otp code'
+        success: false,
+        otpForm
       });
     }
+
     const validOTP = await new TOTPController().verify(
-      otp as string,
+      otpForm.data.otp,
       decodeHex(userInfo.twoFactorSecret)
     );
     if (validOTP) {
@@ -45,20 +48,25 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
 
-      redirect(302, '/');
+      return redirect(302, '/');
     }
 
     return fail(400, {
-      message: 'Invalid otp code'
+      success: false,
+      otpForm
     });
   }
 };
 
 export const load: PageServerLoad = async (event) => {
-  const { user } = await lucia.validateSession(event.locals.session.id);
-  if (!user || !user.hasTwoFactor) redirect(302, '/');
+  // handleLoggedIn(event);
+  const session = event.locals.session;
+  const user = event.locals.user;
+  if (!user!.hasTwoFactor || (user!.hasTwoFactor && session!.isTwoFactorVerified)) {
+    return redirect(302, '/');
+  }
 
   return {
-    username: user.username
+    otpForm: await superValidate(zod(oneTimePasswordSchema))
   };
 };

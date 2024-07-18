@@ -11,7 +11,7 @@ import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
-import { type User } from 'lucia';
+import { TimeSpan, type User } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
@@ -83,7 +83,9 @@ export const load: PageServerLoad = async (event) => {
 
   // create TOTP with app name, and user identifier (username/email)
   const decodedSecret = decodeHex(twoFactorSecret);
-  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, decodedSecret);
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, decodedSecret, {
+    period: new TimeSpan(30, 's')
+  });
   return {
     qrCodeLink: uri,
     twoFactorSecret: base32.encode(decodedSecret),
