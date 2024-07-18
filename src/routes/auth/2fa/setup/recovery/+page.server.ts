@@ -11,7 +11,14 @@ import { redirect } from '@sveltejs/kit';
 export const actions: Actions = {
   'activate-2fa': async (event) => {
     const user: User = event.locals.user;
-    await db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
+
+    try {
+      await db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
+    } catch (err) {
+      return {
+        success: false
+      };
+    }
 
     return redirect(302, '/');
   }
