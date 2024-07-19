@@ -8,7 +8,7 @@ import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
-import { lucia } from '$lib/server/auth';
+import { lucia } from '$lib/auth/server';
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {

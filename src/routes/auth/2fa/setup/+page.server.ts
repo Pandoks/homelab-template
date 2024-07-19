@@ -4,7 +4,7 @@
  */
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from '../$types';
-import { handleAlreadyLoggedIn } from '$lib/server/auth';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';

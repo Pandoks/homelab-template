@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { lucia } from '$lib/server/auth';
+import { lucia } from '$lib/auth/server';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { verifyVerificationCode } from '$lib/server/auth/email';
+import { verifyVerificationCode } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';

@@ -1,4 +1,4 @@
-import { lucia } from '$lib/server/auth';
+import { lucia } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';

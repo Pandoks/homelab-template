@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { lucia } from '$lib/server/auth';
+import { lucia } from '$lib/auth/server';
 
 export const POST: RequestHandler = async (event) => {
   const currentSession = event.locals.session;

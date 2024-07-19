@@ -1,5 +1,5 @@
 // Middleware
-import { lucia } from '$lib/server/auth';
+import { lucia } from '$lib/auth/server';
 import { error, json, text, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 

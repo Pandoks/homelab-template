@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
-import { handleAlreadyLoggedIn, lucia } from '$lib/server/auth';
+import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { db } from '$lib/db';
 import { users, type User as DbUser } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';

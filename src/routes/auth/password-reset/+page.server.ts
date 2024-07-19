@@ -2,12 +2,12 @@ import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
-import { createPasswordResetToken, sendPasswordReset } from '$lib/server/auth/password-reset';
+import { createPasswordResetToken, sendPasswordReset } from '$lib/auth/server/password-reset';
 import { PUBLIC_APP_HOST } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
-import { handleAlreadyLoggedIn } from '$lib/server/auth';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export const actions: Actions = {

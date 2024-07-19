@@ -1,6 +1,6 @@
 import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { verifyLoggedIn, lucia } from '$lib/server/auth';
+import { verifyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db';

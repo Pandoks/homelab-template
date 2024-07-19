@@ -6,7 +6,7 @@ import { db } from '$lib/db';
 import { passwordResets } from '$lib/db/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
-import { lucia, handleAlreadyLoggedIn } from '$lib/server/auth';
+import { lucia, handleAlreadyLoggedIn } from '$lib/auth/server';
 import { hash } from '@node-rs/argon2';
 import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
