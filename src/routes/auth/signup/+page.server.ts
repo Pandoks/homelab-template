@@ -4,7 +4,7 @@ import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
-import { handleLoggedIn, lucia } from '$lib/server/auth';
+import { handleAlreadyLoggedIn, lucia } from '$lib/server/auth';
 import { generateEmailVerification, sendVerification } from '$lib/server/auth/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -64,7 +64,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  handleLoggedIn(event);
+  handleAlreadyLoggedIn(event);
   if (event.locals.session) {
     return redirect(302, '/');
   }

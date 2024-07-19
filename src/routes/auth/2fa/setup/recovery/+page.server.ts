@@ -1,6 +1,6 @@
 import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { handleLoggedIn, lucia } from '$lib/server/auth';
+import { verifyLoggedIn, lucia } from '$lib/server/auth';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db';
@@ -35,7 +35,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  handleLoggedIn(event);
+  verifyLoggedIn(event);
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');

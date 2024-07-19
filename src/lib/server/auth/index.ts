@@ -51,11 +51,11 @@ interface DatabaseSessionAttributes {
   isTwoFactorVerified: boolean;
 }
 
-export const handleLoggedIn = (event: ServerLoadEvent): void => {
+export const handleAlreadyLoggedIn = (event: ServerLoadEvent): void => {
   const session: Session | null = event.locals.session;
   const user: User | null = event.locals.user;
   if (session && user) {
-    if (!session.isTwoFactorVerified && user.hasTwoFactor) {
+    if (user.hasTwoFactor && !session.isTwoFactorVerified) {
       return redirect(302, '/auth/2fa/otp');
     } else if (!user.isEmailVerified) {
       return redirect(302, '/auth/email-verification');

@@ -8,19 +8,11 @@ import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
-import { handleLoggedIn, lucia } from '$lib/server/auth';
+import { lucia } from '$lib/server/auth';
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {
     const recoveryForm = await superValidate(event, zod(twoFactorRecoverySchema));
-    recoveryForm.errors.recoveryCode = ['Invalid'];
-    console.log(recoveryForm);
-    await new Promise((f) => setTimeout(f, 2000));
-    console.log('test');
-    return fail(400, {
-      success: false,
-      recoveryForm
-    });
     if (!recoveryForm.valid) {
       return fail(400, {
         success: false,
@@ -42,6 +34,7 @@ export const actions: Actions = {
       .where(eq(users.twoFactorRecoveryHash, twoFactorRecoveryCodeHash))
       .limit(1);
     if (!userInfo) {
+      recoveryForm.errors.recoveryCode = ['Invalid'];
       return fail(400, {
         success: false,
         recoveryForm
@@ -66,7 +59,15 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  // handleLoggedIn(event)
+  const session = event.locals.session;
+  const user = event.locals.user;
+  if (!session || !user) {
+    return redirect(302, '/auth/login');
+  } else if (session.isTwoFactorVerified) {
+    return redirect(302, '/');
+  } else if (!user.isEmailVerified) {
+    return redirect(302, '/auth/email-verification');
+  }
   return {
     recoveryForm: await superValidate(zod(twoFactorRecoverySchema))
   };

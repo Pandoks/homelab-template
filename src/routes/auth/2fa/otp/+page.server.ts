@@ -59,10 +59,11 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  // handleLoggedIn(event);
   const session = event.locals.session;
   const user = event.locals.user;
-  if (!user!.hasTwoFactor || (user!.hasTwoFactor && session!.isTwoFactorVerified)) {
+  if (!session) {
+    return redirect(302, '/auth/login');
+  } else if (!user!.hasTwoFactor || (user!.hasTwoFactor && session!.isTwoFactorVerified)) {
     return redirect(302, '/');
   }
 

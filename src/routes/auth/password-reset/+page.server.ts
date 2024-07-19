@@ -7,6 +7,8 @@ import { PUBLIC_APP_HOST } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
+import { handleAlreadyLoggedIn } from '$lib/server/auth';
+import { redirect } from '@sveltejs/kit';
 
 export const actions: Actions = {
   'password-reset': async (event) => {
@@ -29,7 +31,12 @@ export const actions: Actions = {
   }
 };
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async (event) => {
+  handleAlreadyLoggedIn(event);
+  if (event.locals.session) {
+    return redirect(302, '/');
+  }
+
   return {
     passwordResetForm: await superValidate(zod(passwordResetSchema))
   };

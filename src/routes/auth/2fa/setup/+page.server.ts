@@ -4,7 +4,7 @@
  */
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from '../$types';
-import { handleLoggedIn } from '$lib/server/auth';
+import { handleAlreadyLoggedIn } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';
@@ -65,7 +65,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  handleLoggedIn(event);
+  handleAlreadyLoggedIn(event);
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');

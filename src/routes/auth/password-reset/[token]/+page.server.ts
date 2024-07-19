@@ -6,7 +6,7 @@ import { db } from '$lib/db';
 import { passwordResets } from '$lib/db/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
-import { lucia } from '$lib/server/auth';
+import { lucia, handleAlreadyLoggedIn } from '$lib/server/auth';
 import { hash } from '@node-rs/argon2';
 import { users } from '$lib/db/schema';
 import { superValidate } from 'sveltekit-superforms';
@@ -75,6 +75,11 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
+  handleAlreadyLoggedIn(event);
+  if (event.locals.session) {
+    return redirect(302, '/');
+  }
+
   // Hides the entire URL when making a request to the website from unsafe environments
   // Used when you have sensitive information in the URL that you don't want to be stolen
   event.setHeaders({

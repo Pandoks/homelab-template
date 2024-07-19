@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
-import { handleLoggedIn, lucia } from '$lib/server/auth';
+import { handleAlreadyLoggedIn, lucia } from '$lib/server/auth';
 import { db } from '$lib/db';
 import { users, type User as DbUser } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -69,7 +69,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  handleLoggedIn(event);
+  handleAlreadyLoggedIn(event);
   if (event.locals.session) {
     return redirect(302, '/');
   }
