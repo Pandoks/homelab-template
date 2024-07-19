@@ -9,6 +9,8 @@ import { generateEmailVerification, sendVerification } from '$lib/auth/server/em
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from './schema';
+import { eq } from 'drizzle-orm';
+import { emailVerifications } from '$lib/db/schema/auth';
 
 export const actions: Actions = {
   signup: async (event) => {
@@ -56,7 +58,6 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
     } catch (err) {
-      console.log(err);
       // @ts-ignore
       if (err!.code) {
         // @ts-ignore
@@ -90,9 +91,24 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  handleAlreadyLoggedIn(event);
-  if (event.locals.session) {
-    return redirect(302, '/');
+  const session = event.locals.session;
+  const user = event.locals.user;
+  if (session && user) {
+    if (user.hasTwoFactor && !session.isTwoFactorVerified) {
+      return redirect(302, '/auth/2fa/otp');
+    } else if (user.isEmailVerified) {
+      return redirect(302, '/');
+    }
+
+    await lucia.invalidateSession(session.id);
+    const sessionCookie = lucia.createBlankSessionCookie();
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '.',
+      ...sessionCookie.attributes
+    });
+
+    await db.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
+    await db.delete(users).where(eq(users.id, user.id));
   }
 
   return {

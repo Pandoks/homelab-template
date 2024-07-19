@@ -100,6 +100,8 @@ export const load: PageServerLoad = async (event) => {
     } else if (user.isEmailVerified) {
       return redirect(302, '/');
     }
+  } else {
+    return redirect(302, '/auth/login');
   }
 
   return {
