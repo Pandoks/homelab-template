@@ -23,6 +23,7 @@ export const actions: Actions = {
 
     const user: User | null = event.locals.user;
     if (!user) {
+      emailVerificationForm.errors.code = ['Invalid'];
       return fail(400, {
         success: false,
         message: 'Invalid code',
@@ -36,6 +37,7 @@ export const actions: Actions = {
         code: emailVerificationForm.data.code
       });
       if (!isValidCode) {
+        emailVerificationForm.errors.code = ['Invalid'];
         return fail(400, {
           success: false,
           message: 'Invalid code',
@@ -47,6 +49,7 @@ export const actions: Actions = {
       await db.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
     } catch (err) {
       console.error(err);
+      emailVerificationForm.errors.code = ['Invalid'];
       return fail(400, {
         success: false,
         message: 'Invalid code',
@@ -62,7 +65,8 @@ export const actions: Actions = {
     });
 
     redirect(302, '/');
-  }
+  },
+  resend: async (event) => {}
 };
 
 export const load: PageServerLoad = async (event) => {

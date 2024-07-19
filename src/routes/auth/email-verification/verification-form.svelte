@@ -4,7 +4,6 @@
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
-  import { Label } from '$lib/components/ui/label';
 
   export let data: SuperValidated<Infer<VerificationSchema>>;
 
@@ -20,7 +19,7 @@
 <form class="grid gap-2" method="post" use:enhance action="?/verify-email-code">
   <Form.Field {form} name="code">
     <Form.Control let:attrs>
-      <Label>Verification Code</Label>
+      <Form.Label>Verification Code</Form.Label>
       <Input {...attrs} class="text-center" bind:value={$formData.code} />
     </Form.Control>
   </Form.Field>

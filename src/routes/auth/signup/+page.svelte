@@ -16,7 +16,7 @@
           Enter your information to create an account
         </p>
         {#if form && !form.success && form.message}
-          {form.message}
+          <p class="text-balance text-red-600">{form.message}</p>
         {/if}
       </div>
 

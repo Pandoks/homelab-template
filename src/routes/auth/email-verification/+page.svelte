@@ -2,6 +2,7 @@
   /**
    * TODO: Use input OTP when available on Shadcn-Svelte
    */
+  import LinkCountdown from '$lib/components/ui/link-countdown/link-countdown.svelte';
   import type { ActionData, PageData } from './$types';
   import VerificationForm from './verification-form.svelte';
 
@@ -21,6 +22,10 @@
       </div>
 
       <VerificationForm data={data.emailVerificationForm} />
+
+      <LinkCountdown class="text-center text-sm" method="post" action="?/resend">
+        Resend
+      </LinkCountdown>
     </div>
   </div>
 </div>
