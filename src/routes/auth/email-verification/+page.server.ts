@@ -4,7 +4,11 @@ import { lucia } from '$lib/auth/server';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { verifyVerificationCode } from '$lib/auth/server/email';
+import {
+  generateEmailVerification,
+  sendVerification,
+  verifyVerificationCode
+} from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
@@ -66,7 +70,24 @@ export const actions: Actions = {
 
     redirect(302, '/');
   },
-  resend: async (event) => {}
+  resend: async (event) => {
+    const user = event.locals.user;
+    if (!user || user.isEmailVerified) {
+      return fail(400, {
+        success: false
+      });
+    }
+
+    const verificationCode = await generateEmailVerification({
+      userId: user.id,
+      email: user.email
+    });
+    await sendVerification({ email: user.email, code: verificationCode });
+
+    return {
+      success: true
+    };
+  }
 };
 
 export const load: PageServerLoad = async (event) => {

@@ -28,12 +28,12 @@
   };
 </script>
 
-<form {method} {action} class={className} {...$$restProps} use:enhance>
+<form {method} {action} class={className} {...$$restProps} use:enhance on:submit={handleSubmit}>
   Didn&apos;t get a code?
   {#if sent}
     {time}
   {:else}
-    <button type="submit" class={sent ? '' : 'underline'} on:click={handleSubmit}>
+    <button type="submit" class="underline">
       <slot />
     </button>
   {/if}
