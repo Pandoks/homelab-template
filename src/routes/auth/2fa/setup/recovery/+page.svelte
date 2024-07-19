@@ -42,9 +42,9 @@
 
       <AlertDialog.Root closeOnOutsideClick={true} bind:open>
         <AlertDialog.Trigger asChild>
-          <Button class="w-full" on:click={() => (open = true)}
-            >Activate 2 Factor Authentication</Button
-          >
+          <Button class="w-full" on:click={() => (open = true)}>
+            Activate 2 Factor Authentication
+          </Button>
         </AlertDialog.Trigger>
         <AlertDialog.Content>
           <AlertDialog.Header>
@@ -56,7 +56,7 @@
           </AlertDialog.Header>
           <AlertDialog.Footer>
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action asChild={true}>
+            <AlertDialog.Action asChild>
               <form
                 method="post"
                 on:submit={() =>

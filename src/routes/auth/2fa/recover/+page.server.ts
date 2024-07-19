@@ -1,29 +1,40 @@
-import { z } from 'zod';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { eq } from 'drizzle-orm';
-import { lucia } from '$lib/server/auth';
 import { sha256 } from 'oslo/crypto';
 import { encodeHex } from 'oslo/encoding';
 import { users } from '$lib/db/schema';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { twoFactorRecoverySchema } from './schema';
+import { handleLoggedIn, lucia } from '$lib/server/auth';
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {
-    const formData = await event.request.formData();
-    const twoFactorRecoveryCode = formData.get('twoFactoryRecoveryCode');
-    if (!z.string().safeParse(twoFactorRecoveryCode).success) {
+    const recoveryForm = await superValidate(event, zod(twoFactorRecoverySchema));
+    recoveryForm.errors.recoveryCode = ['Invalid'];
+    console.log(recoveryForm);
+    await new Promise((f) => setTimeout(f, 2000));
+    console.log('test');
+    return fail(400, {
+      success: false,
+      recoveryForm
+    });
+    if (!recoveryForm.valid) {
       return fail(400, {
-        message: 'Invalid recovery code'
+        success: false,
+        recoveryForm
       });
     }
-    const { user, session } = await lucia.validateSession(event.locals.session.id);
-    if (!user || !user.hasTwoFactor || session.isTwoFactorVerified) {
+
+    const user = event.locals.user;
+    if (!user || !user.hasTwoFactor) {
       redirect(302, '/');
     }
 
     const twoFactorRecoveryCodeHash = encodeHex(
-      await sha256(new TextEncoder().encode(twoFactorRecoveryCode as string))
+      await sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
     );
     const [userInfo] = await db
       .select()
@@ -31,12 +42,32 @@ export const actions: Actions = {
       .where(eq(users.twoFactorRecoveryHash, twoFactorRecoveryCodeHash))
       .limit(1);
     if (!userInfo) {
-      return fail(400);
+      return fail(400, {
+        success: false,
+        recoveryForm
+      });
     }
 
     await db
       .update(users)
-      .set({ twoFactorSecret: null, twoFactorRecoveryHash: null })
+      .set({ twoFactorSecret: null, twoFactorRecoveryHash: null, hasTwoFactor: false })
       .where(eq(users.id, user.id));
+
+    await lucia.invalidateUserSessions(user.id);
+    const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
+    const sessionCookie = lucia.createSessionCookie(session.id);
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '.',
+      ...sessionCookie.attributes
+    });
+
+    return redirect(302, '/');
   }
+};
+
+export const load: PageServerLoad = async (event) => {
+  // handleLoggedIn(event)
+  return {
+    recoveryForm: await superValidate(zod(twoFactorRecoverySchema))
+  };
 };

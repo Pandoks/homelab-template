@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
-  import { CopySecret, CopyText } from '$lib/components/ui/copy';
+  import { CopySecret } from '$lib/components/ui/copy';
   import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';

@@ -1,4 +1,4 @@
-import { generateIdFromEntropySize, type User } from 'lucia';
+import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { handleLoggedIn, lucia } from '$lib/server/auth';
 import { encodeHex } from 'oslo/encoding';
@@ -10,7 +10,10 @@ import { redirect } from '@sveltejs/kit';
 
 export const actions: Actions = {
   'activate-2fa': async (event) => {
-    const user: User = event.locals.user;
+    const user = event.locals.user;
+    if (!user) {
+      return redirect(302, '/auth/login');
+    }
 
     try {
       await db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
@@ -33,7 +36,10 @@ export const actions: Actions = {
 
 export const load: PageServerLoad = async (event) => {
   handleLoggedIn(event);
-  const user: User = event.locals.user;
+  const user = event.locals.user;
+  if (!user) {
+    return redirect(302, '/auth/login');
+  }
 
   const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
   const twoFactorRecoveryCodeHash = encodeHex(

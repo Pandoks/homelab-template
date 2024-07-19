@@ -2,7 +2,7 @@
  * Create new 2FA TOTP credentials for user
  * NOTE: Should not EVER be used unless the user has NEVER initialized 2FA or is resetting their 2FA settings
  */
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from '../$types';
 import { handleLoggedIn } from '$lib/server/auth';
 import { db } from '$lib/db';
@@ -66,12 +66,12 @@ export const actions: Actions = {
 
 export const load: PageServerLoad = async (event) => {
   handleLoggedIn(event);
+  const user = event.locals.user;
+  if (!user) {
+    return redirect(302, '/auth/login');
+  }
 
-  const [userInfo] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, event.locals.user.id))
-    .limit(1);
+  const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
 
   let twoFactorSecret = userInfo.twoFactorSecret;
   if (!twoFactorSecret) {
@@ -83,7 +83,7 @@ export const load: PageServerLoad = async (event) => {
 
   // create TOTP with app name, and user identifier (username/email)
   const decodedSecret = decodeHex(twoFactorSecret);
-  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, event.locals.user.username, decodedSecret, {
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, decodedSecret, {
     period: new TimeSpan(30, 's')
   });
   return {
