@@ -5,7 +5,6 @@ import { users } from '$lib/db/schema';
 import { sessions } from '$lib/db/schema/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
-import { goto } from '$app/navigation';
 
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
@@ -61,24 +60,5 @@ export const handleAlreadyLoggedIn = (event: ServerLoadEvent): void => {
     } else if (!user.isEmailVerified) {
       return redirect(302, '/auth/email-verification');
     }
-  }
-};
-
-export const signOut = async () => {
-  try {
-    const response = await fetch('/auth/logout', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.ok) {
-      goto('/auth/login');
-    } else {
-      throw Error('Sign out failed');
-    }
-  } catch (err) {
-    console.error('Error during sign-out: ', err);
   }
 };
