@@ -56,7 +56,33 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
     } catch (err) {
-      return fail(400, { success: false, message: 'Internal server error', signupForm });
+      console.log(err);
+      // @ts-ignore
+      if (err!.code) {
+        // @ts-ignore
+        const constraint_name = err!.constraint_name;
+        if (constraint_name === 'users_username_unique') {
+          signupForm.errors.username = ['Username already exists'];
+          return fail(400, {
+            success: false,
+            message: 'Username already exists',
+            signupForm
+          });
+        } else if (constraint_name === 'users_email_unique') {
+          signupForm.errors.email = ['Email already exists'];
+          return fail(400, {
+            success: false,
+            message: 'Email already exists',
+            signupForm
+          });
+        }
+      }
+
+      return fail(400, {
+        success: false,
+        message: 'Internal Server Error',
+        signupForm
+      });
     }
 
     return redirect(302, '/auth/email-verification');

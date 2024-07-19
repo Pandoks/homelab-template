@@ -63,11 +63,12 @@ export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
   if (!session || !user) {
     return redirect(302, '/auth/login');
-  } else if (session.isTwoFactorVerified) {
+  } else if (session.isTwoFactorVerified || !user.hasTwoFactor) {
     return redirect(302, '/');
   } else if (!user.isEmailVerified) {
     return redirect(302, '/auth/email-verification');
   }
+
   return {
     recoveryForm: await superValidate(zod(twoFactorRecoverySchema))
   };
