@@ -7,7 +7,7 @@
 
   type $$Props = {
     class?: string;
-    copy?: string;
+    copy?: string | null;
     duration?: number;
     size?:
       | 'xs'
@@ -37,11 +37,11 @@
 
   let copied = false;
   $: buttonStyle = copied
-    ? 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-14'
-    : 'absolute top-1/2 -translate-y-1/2 right-1.5 h-6 w-6';
+    ? 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-14'
+    : 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-6';
 
   const inputStyles = {
-    base: 'h-9 pr-8',
+    base: 'h-8 pr-8',
     variants: {
       hover: 'bg-slate-100'
     }

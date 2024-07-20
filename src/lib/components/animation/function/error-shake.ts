@@ -4,20 +4,23 @@ import type { TransitionConfig } from 'svelte/transition';
 type ShakeParams = {
   duration?: number;
   intensity?: number;
+  frequency?: number;
 };
 
 const shake = (
   node: Element,
-  params: ShakeParams = { duration: 300, intensity: 5 }
+  params: ShakeParams = { duration: 300, intensity: 10, frequency: 2 }
 ): TransitionConfig => {
   return {
     duration: params.duration,
-    css: (time: number) => {
-      const eased = cubicOut(time);
-      const shakeIntensity = Math.sin(time * Math.PI * 4) * params!.intensity! * (1 - eased);
+    css: (t: number) => {
+      const decay = Math.exp(-t * 3); // Exponential decay
+      const oscillation = Math.sin(t * params.frequency! * Math.PI * 2);
+      const offset = decay * oscillation * params.intensity!;
+
       return `
-        transform: translateX(${shakeIntensity}px);
-        opacity: ${eased}
+        transform: translateX(${offset}px);
+        opacity: ${cubicOut(t)}
       `;
     }
   };

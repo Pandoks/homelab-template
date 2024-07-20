@@ -1,4 +1,4 @@
-import { generateIdFromEntropySize } from 'lucia';
+import { generateIdFromEntropySize, type User } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
@@ -8,12 +8,16 @@ import { users } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 
+export const ssr = false;
+
 export const actions: Actions = {
   'activate-2fa': async (event) => {
     const user = event.locals.user;
     if (!user) {
       return redirect(302, '/auth/login');
     }
+
+    db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
 
     const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
     const sessionCookie = lucia.createSessionCookie(session.id);
@@ -23,6 +27,26 @@ export const actions: Actions = {
     });
 
     return redirect(302, '/');
+  },
+  'generate-new': async (event) => {
+    const user = event.locals.user;
+    if (!user) {
+      return redirect(302, '/auth/login');
+    }
+
+    const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
+    const twoFactorRecoveryCodeHashBuffer = sha256(new TextEncoder().encode(twoFactorRecoveryCode));
+
+    updateDatabase({
+      twoFactorRecoveryCodeHashBuffer: twoFactorRecoveryCodeHashBuffer,
+      user: user
+    });
+
+    console.log('test');
+
+    return {
+      twoFactorRecoveryCode: twoFactorRecoveryCode
+    };
   }
 };
 
@@ -33,17 +57,36 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/auth/login');
   }
 
-  const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-  const twoFactorRecoveryCodeHash = encodeHex(
-    await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
-  );
+  const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+  if (userInfo.twoFactorRecoveryHash) {
+    return {
+      twoFactorRecoveryCode: null
+    };
+  }
 
-  await db
-    .update(users)
-    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: true })
-    .where(eq(users.id, user.id));
+  const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
+  const twoFactorRecoveryCodeHashBuffer = sha256(new TextEncoder().encode(twoFactorRecoveryCode));
+
+  updateDatabase({
+    twoFactorRecoveryCodeHashBuffer: twoFactorRecoveryCodeHashBuffer,
+    user: user
+  });
 
   return {
     twoFactorRecoveryCode: twoFactorRecoveryCode
   };
+};
+
+const updateDatabase = async ({
+  twoFactorRecoveryCodeHashBuffer,
+  user
+}: {
+  twoFactorRecoveryCodeHashBuffer: Promise<ArrayBuffer>;
+  user: User;
+}) => {
+  const twoFactorRecoveryCodeHash = encodeHex(await twoFactorRecoveryCodeHashBuffer);
+  await db
+    .update(users)
+    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash })
+    .where(eq(users.id, user!.id));
 };
