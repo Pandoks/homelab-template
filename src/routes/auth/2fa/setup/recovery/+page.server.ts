@@ -1,6 +1,6 @@
 import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { verifyLoggedIn, lucia } from '$lib/auth/server';
+import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db';
@@ -15,18 +15,10 @@ export const actions: Actions = {
       return redirect(302, '/auth/login');
     }
 
-    try {
-      await db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
-    } catch (err) {
-      return {
-        success: false
-      };
-    }
-
     const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '.',
+      path: '/',
       ...sessionCookie.attributes
     });
 
@@ -35,7 +27,7 @@ export const actions: Actions = {
 };
 
 export const load: PageServerLoad = async (event) => {
-  verifyLoggedIn(event);
+  handleAlreadyLoggedIn(event);
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');
@@ -48,8 +40,7 @@ export const load: PageServerLoad = async (event) => {
 
   await db
     .update(users)
-    // .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: true })
-    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: false })
+    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash, hasTwoFactor: true })
     .where(eq(users.id, user.id));
 
   return {

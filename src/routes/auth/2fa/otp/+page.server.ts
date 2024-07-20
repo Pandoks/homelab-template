@@ -44,13 +44,14 @@ export const actions: Actions = {
       const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
       const sessionCookie = lucia.createSessionCookie(session.id);
       event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '.',
+        path: '/',
         ...sessionCookie.attributes
       });
 
       return redirect(302, '/');
     }
 
+    otpForm.errors.otp = ['Invalid code'];
     return fail(400, {
       success: false,
       otpForm
@@ -61,9 +62,10 @@ export const actions: Actions = {
 export const load: PageServerLoad = async (event) => {
   const session = event.locals.session;
   const user = event.locals.user;
-  if (!session) {
+  console.log(session);
+  if (!session || !user) {
     return redirect(302, '/auth/login');
-  } else if (!user!.hasTwoFactor || (user!.hasTwoFactor && session!.isTwoFactorVerified)) {
+  } else if (!user.hasTwoFactor || (user.hasTwoFactor && session.isTwoFactorVerified)) {
     return redirect(302, '/');
   }
 

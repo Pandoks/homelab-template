@@ -5,7 +5,7 @@
   import { Button } from '$lib/components/ui/button';
   import { enhance } from '$app/forms';
   import { CopySecret } from '$lib/components/ui/copy';
-  import { LoaderCircle } from 'lucide-svelte';
+  import { LoaderCircle, TriangleAlert } from 'lucide-svelte';
 
   export let data: PageData;
   export let form: ActionData;
@@ -33,12 +33,15 @@
       <div class="grid gap-2 text-center -mb-1.5">
         <h1 class="text-3xl font-bold">2 Factor Authentication</h1>
         <p class="text-muted-foreground">Store the recovery code somewhere secure</p>
-        {#if form && !form.success}
-          <p class="text-balance text-red-600">Error Contact Support</p>
-        {/if}
       </div>
 
-      <CopySecret class="w-[310px]" size="xs" copy={data.twoFactorRecoveryCode} />
+      <div class="flex flex-col gap-1">
+        <div class="flex gap-1 text-yellow-600">
+          <TriangleAlert size={16} />
+          <p class="text-xs">Do not navigate/refresh until copied</p>
+        </div>
+        <CopySecret class="w-[310px]" size="xs" copy={data.twoFactorRecoveryCode} />
+      </div>
 
       <AlertDialog.Root closeOnOutsideClick={true} bind:open>
         <AlertDialog.Trigger asChild>

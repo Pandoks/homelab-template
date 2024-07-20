@@ -11,7 +11,7 @@ export const POST: RequestHandler = async (event) => {
   await lucia.invalidateSession(currentSession.id);
   const sessionCookie = lucia.createBlankSessionCookie();
   event.cookies.set(sessionCookie.name, sessionCookie.value, {
-    path: '.',
+    path: '/',
     ...sessionCookie.attributes
   });
 

@@ -4,7 +4,7 @@ import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { users } from '$lib/db/schema';
-import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
+import { lucia } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -54,7 +54,7 @@ export const actions: Actions = {
       const session = await lucia.createSession(userId, { isTwoFactorVerified: false });
       const sessionCookie = lucia.createSessionCookie(session.id);
       event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '.',
+        path: '/',
         ...sessionCookie.attributes
       });
     } catch (err) {
@@ -103,7 +103,7 @@ export const load: PageServerLoad = async (event) => {
     await lucia.invalidateSession(session.id);
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '.',
+      path: '/',
       ...sessionCookie.attributes
     });
 
