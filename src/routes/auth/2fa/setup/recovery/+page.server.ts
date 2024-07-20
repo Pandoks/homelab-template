@@ -17,7 +17,10 @@ export const actions: Actions = {
       return redirect(302, '/auth/login');
     }
 
-    db.update(users).set({ hasTwoFactor: true }).where(eq(users.id, user.id));
+    db.update(users)
+      .set({ hasTwoFactor: true })
+      .where(eq(users.id, user.id))
+      .catch((error) => console.error(error));
 
     const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
     const sessionCookie = lucia.createSessionCookie(session.id);
@@ -42,8 +45,6 @@ export const actions: Actions = {
       user: user
     });
 
-    console.log('test');
-
     return {
       twoFactorRecoveryCode: twoFactorRecoveryCode
     };
@@ -55,6 +56,8 @@ export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');
+  } else if (event.locals.session?.isTwoFactorVerified) {
+    return redirect(302, '/');
   }
 
   const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);

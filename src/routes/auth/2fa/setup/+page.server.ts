@@ -69,6 +69,8 @@ export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');
+  } else if (event.locals.session?.isTwoFactorVerified) {
+    return redirect(302, '/');
   }
 
   const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);

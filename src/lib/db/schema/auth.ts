@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './index';
 import { relations } from 'drizzle-orm';
 
@@ -10,7 +10,8 @@ export const sessions = pgTable('sessions', {
   expiresAt: timestamp('expires_at', {
     withTimezone: true,
     mode: 'date'
-  }).notNull()
+  }).notNull(),
+  isTwoFactorVerified: boolean('is_two_factor_verified').notNull().default(false)
 });
 export const sessionRelations = relations(sessions, ({ one }) => ({
   user: one(users, {

@@ -44,7 +44,6 @@ export const actions: Actions = {
     }
     // NOTE: don't return incorrect user before hashing the password as it gives information to hackers
     if (!user || !validPassword) {
-      console.log('test');
       return fail(400, {
         success: false,
         loginForm

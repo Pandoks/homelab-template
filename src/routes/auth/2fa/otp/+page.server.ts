@@ -62,7 +62,6 @@ export const actions: Actions = {
 export const load: PageServerLoad = async (event) => {
   const session = event.locals.session;
   const user = event.locals.user;
-  console.log(session);
   if (!session || !user) {
     return redirect(302, '/auth/login');
   } else if (!user.hasTwoFactor || (user.hasTwoFactor && session.isTwoFactorVerified)) {
