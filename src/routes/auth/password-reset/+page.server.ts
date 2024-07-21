@@ -1,5 +1,5 @@
-import { db } from '$lib/db';
-import { users } from '$lib/db/schema';
+import { db } from '$lib/db/postgres';
+import { users } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { createPasswordResetToken, sendPasswordReset } from '$lib/auth/server/password-reset';

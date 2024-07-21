@@ -1,7 +1,7 @@
 import { lucia } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db';
-import { users } from '$lib/db/schema';
+import { db } from '$lib/db/postgres';
+import { users } from '$lib/db/postgres/schema';
 import { TOTPController } from 'oslo/otp';
 import { decodeHex } from 'oslo/encoding';
 import { eq } from 'drizzle-orm';

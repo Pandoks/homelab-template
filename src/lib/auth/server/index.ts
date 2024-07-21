@@ -1,8 +1,8 @@
 import { Lucia, type Session, type User } from 'lucia';
 import { dev } from '$app/environment';
-import { db } from '$lib/db';
-import { users } from '$lib/db/schema';
-import { sessions } from '$lib/db/schema/auth';
+import { db } from '$lib/db/postgres';
+import { users } from '$lib/db/postgres/schema';
+import { sessions } from '$lib/db/postgres/schema/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
 

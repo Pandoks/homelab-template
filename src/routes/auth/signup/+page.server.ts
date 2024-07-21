@@ -2,15 +2,15 @@ import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db';
-import { users } from '$lib/db/schema';
+import { db } from '$lib/db/postgres';
+import { users } from '$lib/db/postgres/schema';
 import { lucia } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import { emailVerifications } from '$lib/db/schema/auth';
+import { emailVerifications } from '$lib/db/postgres/schema/auth';
 
 export const actions: Actions = {
   signup: async (event) => {

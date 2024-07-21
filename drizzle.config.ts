@@ -18,7 +18,7 @@ if (
 }
 
 export default defineConfig({
-  schema: './src/lib/db/schema/*',
+  schema: './src/lib/db/postgres/schema/*',
   dialect: 'postgresql',
   out: './drizzle',
   dbCredentials: {
