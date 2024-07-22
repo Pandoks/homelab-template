@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { alphabet, generateRandomString } from 'oslo/crypto';
 import { createDate, isWithinExpirationDate, TimeSpan } from 'oslo';
-import { db } from '$lib/db';
-import { emailVerifications } from '$lib/db/schema/auth';
+import { db } from '$lib/db/postgres';
+import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 
 export const generateEmailVerification = async ({

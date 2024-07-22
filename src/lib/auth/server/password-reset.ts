@@ -1,5 +1,5 @@
-import { db } from '$lib/db';
-import { passwordResets } from '$lib/db/schema/auth';
+import { db } from '$lib/db/postgres';
+import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { generateIdFromEntropySize } from 'lucia';
 import { createDate, TimeSpan } from 'oslo';
