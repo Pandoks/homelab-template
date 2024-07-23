@@ -50,6 +50,7 @@
     "@lucia-auth/adapter-drizzle": "^1.0.7",
     "@node-rs/argon2": "^1.8.3",
     "bits-ui": "^0.21.12",
+    "cbor-x": "^1.5.9",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.31.2",
     "drizzle-zod": "^0.5.1",
