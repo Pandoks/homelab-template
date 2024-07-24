@@ -1,4 +1,4 @@
-import { boolean, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, serial, smallint, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './index';
 import { relations } from 'drizzle-orm';
 
@@ -48,6 +48,21 @@ export const passwordResets = pgTable('password_resets', {
 export const passwordResetTokenRelations = relations(passwordResets, ({ one }) => ({
   user: one(users, {
     fields: [passwordResets.userId],
+    references: [users.id]
+  })
+}));
+
+export const passkeys = pgTable('passkeys', {
+  id: text('id').notNull().primaryKey(),
+  algorithm: smallint('algorithm').notNull(),
+  encodedPublicKey: text('encoded_public_key').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id)
+});
+export const passkeyRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
     references: [users.id]
   })
 }));

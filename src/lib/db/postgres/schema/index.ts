@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { boolean, pgTable, text } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
-import { emailVerifications, sessions } from './auth';
+import { emailVerifications, passkeys, sessions } from './auth';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -17,5 +17,6 @@ export type User = typeof users.$inferSelect;
 export const insertUserSchema = createInsertSchema(users);
 export const userRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
-  emailVerificationCode: one(emailVerifications)
+  emailVerificationCode: one(emailVerifications),
+  passkeys: many(passkeys)
 }));

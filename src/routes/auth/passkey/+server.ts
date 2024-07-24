@@ -20,6 +20,8 @@ import { passkeyRegistrationSchema } from './schema';
 import { base64, encodeHex } from 'oslo/encoding';
 import { getRandomValues } from 'crypto';
 import { sha256 } from 'oslo/crypto';
+import { db } from '$lib/db/postgres';
+import { passkeys } from '$lib/db/postgres/schema/auth';
 
 /**
  * Client hits this endpoint to request a challenge. The client will then send the challenge back
@@ -43,6 +45,9 @@ export const PUT: RequestHandler = async (event) => {
   });
 };
 
+/**
+ * Client hits this endpoint to register a new passkey
+ */
 export const POST: RequestHandler = async (event) => {
   const session = event.locals.session;
   if (!session) {
@@ -116,9 +121,24 @@ export const POST: RequestHandler = async (event) => {
           (cosePublicKey as COSERSAPublicKey).e
         ).encodePKIX();
 
-  // TODO: store credentialId, public key, and algorithm with the user's id
+  try {
+    const databaseInfo = {
+      id: base64.encode(credentialId),
+      algorithm: algorithm,
+      encodedPublicKey: base64.encode(encodedPublicKey),
+      userId: session.userId
+    };
+    await db.insert(passkeys).values(databaseInfo);
+  } catch (err) {
+    return error(500);
+  }
 
   return json({
     success: true
   });
 };
+
+/**
+ * Client hits this endpoint to authenticate a passkey
+ */
+export const PATCH: RequestHandler = async (event) => {};
