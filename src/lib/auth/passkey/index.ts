@@ -1,11 +1,11 @@
 import { PUBLIC_APP_DOMAIN, PUBLIC_APP_NAME } from '$env/static/public';
-import { base32, base64 } from 'oslo/encoding';
+import { base64 } from 'oslo/encoding';
 
-export const initializePasskey = async ({ username, name }: { username: string; name: string }) => {
+export const registerPasskey = async ({ username, name }: { username: string; name: string }) => {
   try {
     const challengeResponse = await fetch('/auth/passkey', { method: 'put' });
     const challengeData = await challengeResponse.json();
-    const challenge = base32.decode(challengeData.challenge.toUpperCase());
+    const challenge = base64.decode(challengeData.challenge);
 
     const credential = await navigator.credentials.create({
       publicKey: {
@@ -38,7 +38,7 @@ export const initializePasskey = async ({ username, name }: { username: string; 
 
     const response = credential.response;
     if (!(response instanceof AuthenticatorAttestationResponse)) {
-      throw new Error('Unexpacted');
+      throw new Error('Unexpected error');
     }
 
     const clientDataJSON: ArrayBuffer = response.clientDataJSON;
@@ -76,3 +76,5 @@ export const initializePasskey = async ({ username, name }: { username: string; 
     }
   }
 };
+
+export const authenticatePasskey = async () => {};
