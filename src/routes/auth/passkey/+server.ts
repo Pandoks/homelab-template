@@ -16,7 +16,7 @@ import { redis } from '$lib/db/redis';
 import { TimeSpan } from 'oslo';
 import { error, json } from '@sveltejs/kit';
 import { PUBLIC_APP_DOMAIN, PUBLIC_APP_ORIGIN } from '$env/static/public';
-import { passkeyRegistrationSchema } from './schema';
+import { passkeyAuthenticationSchema, passkeyRegistrationSchema } from './schema';
 import { base64, encodeHex } from 'oslo/encoding';
 import { getRandomValues } from 'crypto';
 import { sha256 } from 'oslo/crypto';
@@ -141,4 +141,14 @@ export const POST: RequestHandler = async (event) => {
 /**
  * Client hits this endpoint to authenticate a passkey
  */
-export const PATCH: RequestHandler = async (event) => {};
+export const PATCH: RequestHandler = async (event) => {
+  const session = event.locals.session;
+  if (!session) {
+    return error(401);
+  }
+
+  const passkeyAuthentication = await event.request.json();
+  if (!passkeyAuthenticationSchema.safeParse(passkeyAuthentication).success) {
+    return error(415);
+  }
+};
