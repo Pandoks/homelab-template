@@ -1,4 +1,5 @@
 import { PUBLIC_APP_DOMAIN, PUBLIC_APP_NAME } from '$env/static/public';
+import { coseAlgorithmES256, coseAlgorithmRS256 } from '@oslojs/webauthn';
 import { base64 } from 'oslo/encoding';
 
 export const registerPasskey = async ({ username, name }: { username: string; name: string }) => {
@@ -22,8 +23,8 @@ export const registerPasskey = async ({ username, name }: { username: string; na
         },
         pubKeyCredParams: [
           // https://www.iana.org/assignments/cose/cose.xhtml
-          { type: 'public-key', alg: -7 }, // ES256
-          { type: 'public-key', alg: -257 } // RS256
+          { type: 'public-key', alg: coseAlgorithmES256 }, // ES256
+          { type: 'public-key', alg: coseAlgorithmRS256 } // RS256
         ],
         challenge: challenge,
         authenticatorSelection: {

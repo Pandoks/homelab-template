@@ -2,6 +2,7 @@ import { boolean, pgTable, serial, smallint, text, timestamp } from 'drizzle-orm
 import { users } from './index';
 import { relations } from 'drizzle-orm';
 
+// TODO: setup cron job to clear invalid sessions with lucia
 export const sessions = pgTable('sessions', {
   id: text('id').primaryKey(),
   userId: text('user_id')
@@ -53,7 +54,7 @@ export const passwordResetTokenRelations = relations(passwordResets, ({ one }) =
 }));
 
 export const passkeys = pgTable('passkeys', {
-  id: text('id').notNull().primaryKey(),
+  credentialId: text('credential_id').notNull().primaryKey(),
   algorithm: smallint('algorithm').notNull(),
   encodedPublicKey: text('encoded_public_key').notNull(),
   userId: text('user_id')

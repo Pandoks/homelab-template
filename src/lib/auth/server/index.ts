@@ -4,7 +4,7 @@ import { db } from '$lib/db/postgres';
 import { users } from '$lib/db/postgres/schema';
 import { sessions } from '$lib/db/postgres/schema/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
-import { redirect, type ServerLoadEvent } from '@sveltejs/kit';
+import { redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit';
 
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
@@ -51,7 +51,7 @@ interface DatabaseSessionAttributes {
   isTwoFactorVerified: boolean;
 }
 
-export const handleAlreadyLoggedIn = (event: ServerLoadEvent): void => {
+export const handleAlreadyLoggedIn = (event: ServerLoadEvent | RequestEvent): void => {
   const session: Session | null = event.locals.session;
   const user: User | null = event.locals.user;
   if (session && user) {
