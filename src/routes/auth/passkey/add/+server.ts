@@ -16,7 +16,7 @@ import {
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '../../../../lib/auth/passkey/utils';
+} from '$lib/auth/passkey/utils';
 import { db } from '$lib/db/postgres';
 import { passkeys } from '$lib/db/postgres/schema/auth';
 
@@ -35,6 +35,7 @@ export const POST: RequestHandler = async (event) => {
   }
 
   const id = passkeyRegistration.id;
+  const name = passkeyRegistration.name;
   const attestationObject = base64url.decode(passkeyRegistration.attestationObject);
   const clientDataJSON = base64url.decode(passkeyRegistration.clientDataJSON);
 
@@ -48,13 +49,12 @@ export const POST: RequestHandler = async (event) => {
   if (!credential) {
     return error(406, { message: 'Missing credential' });
   }
+  const publicKey = getPublicKeyFromCredential(credential);
 
   const algorithm = credential.publicKey.algorithm();
   if (!algorithm || (algorithm !== coseAlgorithmES256 && algorithm !== coseAlgorithmRS256)) {
     return error(406, { message: 'Unsupported algorithm' });
   }
-
-  const publicKey = getPublicKeyFromCredential(credential);
 
   const clientData = parseClientDataJSON(clientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Create });
@@ -65,7 +65,8 @@ export const POST: RequestHandler = async (event) => {
       userId: event.locals.user.id,
       credentialId: base64url.encode(credential.id),
       algorithm: algorithm,
-      encodedPublicKey: base64url.encode(publicKey)
+      encodedPublicKey: publicKey,
+      name: name
     });
   } catch (err) {
     // @ts-ignore
