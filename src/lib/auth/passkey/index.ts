@@ -1,5 +1,4 @@
 import { coseAlgorithmES256 } from '@oslojs/webauthn';
-import { generateIdFromEntropySize } from 'lucia';
 import { base64url } from 'oslo/encoding';
 
 export const registerPasskey = async ({ username, name }: { username: string; name: string }) => {
