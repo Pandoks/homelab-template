@@ -51,11 +51,34 @@
   $: if (type === 'password') {
     $passkeyFormData.username = $signupFormData.username;
     $passkeyFormData.email = $signupFormData.email;
-    passkeyForm.errors.set(get(signupForm.errors));
+
+    let errors: { username?: string[]; email?: string[] } = {};
+    const signupErrors = get(signupForm.errors);
+    if ($passkeyFormData.username) {
+      errors.username = signupErrors.username;
+    }
+    if ($passkeyFormData.email) {
+      errors.email = signupErrors.email;
+    }
+
+    passkeyForm.errors.set(errors);
   } else {
     $signupFormData.username = $passkeyFormData.username;
     $signupFormData.email = $passkeyFormData.email;
-    signupForm.errors.set(get(passkeyForm.errors));
+
+    let errors: { username?: string[]; email?: string[]; password?: string[] } = {};
+    const passkeyErrors = get(passkeyForm.errors);
+    if ($signupFormData.username) {
+      errors.username = passkeyErrors.username;
+    }
+    if ($signupFormData.email) {
+      errors.email = passkeyErrors.email;
+    }
+    if ($signupFormData.password) {
+      errors.password = get(signupForm.errors).password;
+    }
+
+    signupForm.errors.set(errors);
   }
 
   let transitionComplete = false;
