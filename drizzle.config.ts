@@ -20,7 +20,10 @@ if (
 export default defineConfig({
   schema: './src/lib/db/postgres/schema/*',
   dialect: 'postgresql',
-  out: './drizzle',
+  out: './src/lib/db/postgres/migrations',
+  migrations: {
+    prefix: 'timestamp' // compatible with Supabase
+  },
   dbCredentials: {
     user: USER_DB_USERNAME,
     password: USER_DB_PASSWORD,

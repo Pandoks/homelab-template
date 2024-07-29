@@ -4,7 +4,7 @@
 
   type $$Props = Props;
   let className: $$Props['class'] = undefined;
-  export let method: $$Props['method'] = 'post';
+  export let method: $$Props['method'] = 'POST';
   export let action: $$Props['action'] = undefined;
   export let duration: $$Props['duration'] = 60;
   export { className as class };

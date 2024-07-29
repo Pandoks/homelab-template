@@ -1,55 +1,181 @@
 <script lang="ts">
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
-  import { signupSchema, type SignupSchema } from './schema';
+  import {
+    signupPasskeySchema,
+    signupSchema,
+    type SignupPasskeySchema,
+    type SignupSchema
+  } from './schema';
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
-  import { LoaderCircle } from 'lucide-svelte';
+  import { Fingerprint, LoaderCircle } from 'lucide-svelte';
+  import { Separator } from '$lib/components/ui/separator';
+  import { slide } from 'svelte/transition';
+  import { Button } from '$lib/components/ui/button';
+  import { registerPasskey } from '$lib/auth/passkey';
+  import { tick } from 'svelte';
 
-  export let data: SuperValidated<Infer<SignupSchema>>;
+  export let data: {
+    signupForm: SuperValidated<Infer<SignupSchema>>;
+    passkeyForm: SuperValidated<Infer<SignupPasskeySchema>>;
+  };
+  let type: 'password' | 'passkey' = 'password';
 
-  const form = superForm(data, {
+  const signupForm = superForm(data.signupForm, {
     validators: zodClient(signupSchema),
     clearOnSubmit: 'message',
     multipleSubmits: 'prevent'
   });
+  const passkeyForm = superForm(data.passkeyForm, {
+    validators: zodClient(signupPasskeySchema),
+    clearOnSubmit: 'message',
+    multipleSubmits: 'prevent',
+    onSubmit: async (form) => {
+      const data = form.formData;
+      const username = data.get('username') as string;
+      const { id, clientDataJSON, attestationObject } = await registerPasskey({
+        username: username,
+        name: username
+      });
 
-  const { form: formData, enhance, delayed } = form;
+      data.set('id', id ? id : '');
+      data.set('clientDataJSON', clientDataJSON ? clientDataJSON : '');
+      data.set('attestationObject', attestationObject ? attestationObject : '');
+    }
+  });
+  const { form: signupFormData, enhance: signupEnhance, delayed: signupDelayed } = signupForm;
+  const { form: passkeyFormData, enhance: passkeyEnhance, delayed: passkeyDelayed } = passkeyForm;
+
+  $: if (type === 'password') {
+    $passkeyFormData.username = $signupFormData.username;
+    $passkeyFormData.email = $signupFormData.email;
+    passkeyForm.errors = signupForm.errors;
+  } else {
+    $signupFormData.username = $passkeyFormData.username;
+    $signupFormData.email = $passkeyFormData.email;
+    signupForm.errors = passkeyForm.errors;
+  }
+
+  let transitionComplete = false;
+  let passwordFormSwitching = false; // only used for password signup because of transition
+
+  const swapLoginType = async () => {
+    transitionComplete = false;
+    passwordFormSwitching = true;
+
+    await tick();
+
+    type = type === 'password' ? 'passkey' : 'password';
+    passwordFormSwitching = false;
+  };
 </script>
 
-<form class="grid gap-2" method="post" use:enhance action="?/signup">
-  <Form.Field {form} name="username">
-    <Form.Control let:attrs>
-      <Form.Label>Username</Form.Label>
-      <Input {...attrs} bind:value={$formData.username} />
-    </Form.Control>
-    <Form.FieldErrors />
-  </Form.Field>
+{#if type === 'password'}
+  <form class="flex flex-col" method="POST" use:signupEnhance action="?/signup">
+    <Form.Field form={signupForm} name="username">
+      <Form.Control let:attrs>
+        <Form.Label>Username</Form.Label>
+        <Input {...attrs} bind:value={$signupFormData.username} />
+      </Form.Control>
+      <Form.FieldErrors />
+    </Form.Field>
 
-  <Form.Field {form} name="email">
-    <Form.Control let:attrs>
-      <Form.Label>Email</Form.Label>
-      <Input {...attrs} bind:value={$formData.email} />
-    </Form.Control>
-    <Form.FieldErrors />
-  </Form.Field>
+    <Form.Field form={signupForm} name="email" class="mt-1">
+      <Form.Control let:attrs>
+        <Form.Label>Email</Form.Label>
+        <Input {...attrs} bind:value={$signupFormData.email} />
+      </Form.Control>
+      <Form.FieldErrors />
+    </Form.Field>
 
-  <Form.Field {form} name="password">
-    <Form.Control let:attrs>
-      <div class="flex items-center">
-        <Form.Label for="password">Password</Form.Label>
-      </div>
-      <Input {...attrs} bind:value={$formData.password} type="password" />
-    </Form.Control>
-    <Form.FieldErrors />
-  </Form.Field>
+    <div
+      transition:slide|local={{ duration: 250 }}
+      on:outroend={() => {
+        transitionComplete = true;
+        passwordFormSwitching = false;
+      }}
+      class="mt-2"
+    >
+      <Form.Field form={signupForm} name="password">
+        <Form.Control let:attrs>
+          <div class="flex items-center">
+            <Form.Label for="password">Password</Form.Label>
+          </div>
+          <Input
+            {...attrs}
+            bind:value={$signupFormData.password}
+            autocomplete="on"
+            type="password"
+          />
+        </Form.Control>
+        <Form.FieldErrors />
+      </Form.Field>
+    </div>
 
-  {#if $delayed}
-    <Form.Button disabled class="w-full mt-4">
-      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-      Signing Up
+    <Form.Button disabled={$signupDelayed} class="w-full mt-4">
+      {#if $signupDelayed}
+        <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+        Signing Up
+      {:else if passwordFormSwitching}
+        <Fingerprint size={19} class="mr-2" />
+        Sign Up
+      {:else}
+        Sign Up
+      {/if}
     </Form.Button>
-  {:else}
-    <Form.Button class="mt-4">Sign up</Form.Button>
-  {/if}
-</form>
+
+    <div class="flex justify-center items-center pt-4">
+      <Separator class="w-[43%] mr-4" orientation="horizontal" />
+      <p class="text-xs text-muted-foreground">or</p>
+      <Separator class="w-[43%] ml-4" orientation="horizontal" />
+    </div>
+
+    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>
+      {#if passwordFormSwitching}
+        Password Sign Up
+      {:else}
+        <Fingerprint size={19} class="mr-2" />
+        Passkey Sign Up
+      {/if}
+    </Button>
+  </form>
+{:else if transitionComplete}
+  <form class="flex flex-col" method="POST" use:passkeyEnhance action="?/signup-passkey">
+    <Form.Field form={passkeyForm} name="username">
+      <Form.Control let:attrs>
+        <Form.Label>Username</Form.Label>
+        <Input {...attrs} bind:value={$passkeyFormData.username} />
+      </Form.Control>
+      <Form.FieldErrors />
+    </Form.Field>
+
+    <Form.Field form={passkeyForm} name="email" class="mt-1">
+      <Form.Control let:attrs>
+        <Form.Label>Email</Form.Label>
+        <Input {...attrs} bind:value={$passkeyFormData.email} />
+      </Form.Control>
+      <Form.FieldErrors />
+    </Form.Field>
+
+    <Form.Button disabled={$passkeyDelayed} class="w-full mt-4">
+      {#if $passkeyDelayed}
+        <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+        Signing Up
+      {:else}
+        <Fingerprint size={19} class="mr-2" />
+        Sign Up
+      {/if}
+    </Form.Button>
+
+    <div class="flex justify-center items-center pt-4">
+      <Separator class="w-[43%] mr-4" orientation="horizontal" />
+      <p class="text-xs text-muted-foreground">or</p>
+      <Separator class="w-[43%] ml-4" orientation="horizontal" />
+    </div>
+
+    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>
+      Password Sign Up
+    </Button>
+  </form>
+{/if}

@@ -23,7 +23,7 @@
 
       <VerificationForm data={data.emailVerificationForm} />
 
-      <LinkCountdown class="text-center text-sm" method="post" action="?/resend">
+      <LinkCountdown class="text-center text-sm" method="POST" action="?/resend">
         Resend
       </LinkCountdown>
     </div>

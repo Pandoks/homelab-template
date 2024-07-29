@@ -18,7 +18,7 @@
   const { form: formData, enhance, delayed } = form;
 </script>
 
-<form class="grid gap-4" method="post" use:enhance action="?/password-reset">
+<form class="grid gap-4" method="POST" use:enhance action="?/password-reset">
   <Form.Field {form} name="password">
     <Form.Control let:attrs>
       <Form.Label>Password</Form.Label>

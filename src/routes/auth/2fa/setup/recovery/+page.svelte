@@ -61,7 +61,7 @@
           </div>
           <form
             class="w-full"
-            method="post"
+            method="POST"
             on:submit={() =>
               (formTimeout = setTimeout(() => {
                 delayed = true;
@@ -102,7 +102,7 @@
               <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
               <AlertDialog.Action asChild>
                 <form
-                  method="post"
+                  method="POST"
                   on:submit={() =>
                     (formTimeout = setTimeout(() => {
                       delayed = true;
@@ -126,7 +126,7 @@
       {:else}
         <form
           class="w-full"
-          method="post"
+          method="POST"
           on:submit={() =>
             (formTimeout = setTimeout(() => {
               delayed = true;

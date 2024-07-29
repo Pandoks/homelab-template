@@ -1,18 +1,16 @@
-import { base64Schema } from '$lib/zod';
+import { base64UrlSchema } from '$lib/zod';
 import { z } from 'zod';
 
-export const passkeyChallengeRequestSchema = z.object({
-  username: z.string()
-});
-
 export const passkeyRegistrationSchema = z.object({
-  clientDataJSON: base64Schema,
-  attestationObject: base64Schema
+  id: z.string(),
+  clientDataJSON: base64UrlSchema,
+  attestationObject: base64UrlSchema
 });
 
 export const passkeyAuthenticationSchema = z.object({
+  id: z.string(),
   credentialId: z.string(),
-  signature: base64Schema,
-  encodedAuthenticatorData: base64Schema,
-  clientDataJSON: base64Schema
+  signature: base64UrlSchema,
+  encodedAuthenticatorData: base64UrlSchema,
+  clientDataJSON: base64UrlSchema
 });

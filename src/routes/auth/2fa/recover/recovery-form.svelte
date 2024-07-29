@@ -22,7 +22,7 @@
   let open = false;
 </script>
 
-<form id="recovery-form" class="grid gap-2" method="post" use:enhance action="?/recover-2fa">
+<form id="recovery-form" class="grid gap-2" method="POST" use:enhance action="?/recover-2fa">
   <Form.Field form={superFormFields} name="recoveryCode">
     <Form.Control let:attrs>
       <Form.Label>Recovery Code</Form.Label>

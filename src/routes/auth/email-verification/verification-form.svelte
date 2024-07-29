@@ -16,7 +16,7 @@
   $: $formData.code = $formData.code.replaceAll(' ', '');
 </script>
 
-<form class="grid gap-2" method="post" use:enhance action="?/verify-email-code">
+<form class="grid gap-2" method="POST" use:enhance action="?/verify-email-code">
   <Form.Field {form} name="code">
     <Form.Control let:attrs>
       <Form.Label>Verification Code</Form.Label>

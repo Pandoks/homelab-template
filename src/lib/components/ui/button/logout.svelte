@@ -12,7 +12,7 @@
 
   const handleSignOut = async () => {
     response = await fetch('/auth/logout', {
-      method: 'post'
+      method: 'POST'
     });
   };
 </script>

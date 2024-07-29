@@ -8,12 +8,13 @@ import { lucia } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { signupSchema } from './schema';
+import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 
 export const actions: Actions = {
   signup: async (event) => {
+    console.log('test');
     const signupForm = await superValidate(event, zod(signupSchema));
     if (!signupForm.valid) {
       return fail(400, {
@@ -87,6 +88,16 @@ export const actions: Actions = {
     }
 
     return redirect(302, '/auth/email-verification');
+  },
+  'signup-passkey': async (event) => {
+    const signupForm = await superValidate(event, zod(signupPasskeySchema));
+    if (!signupForm.valid) {
+      return fail(400, {
+        success: false,
+        message: '',
+        signupForm
+      });
+    }
   }
 };
 
@@ -112,6 +123,7 @@ export const load: PageServerLoad = async (event) => {
   }
 
   return {
-    signupForm: await superValidate(zod(signupSchema))
+    signupForm: await superValidate(zod(signupSchema)),
+    signupPasskeyForm: await superValidate(zod(signupPasskeySchema))
   };
 };

@@ -3,7 +3,7 @@ import { goto } from '$app/navigation';
 export const signOut = async () => {
   try {
     const response = await fetch('/auth/logout', {
-      method: 'post',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }

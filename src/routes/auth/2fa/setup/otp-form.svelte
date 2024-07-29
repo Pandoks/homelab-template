@@ -34,7 +34,7 @@
   const { form: formData, enhance, delayed } = superFormFields;
 </script>
 
-<form class="grid gap-2" method="post" use:enhance action="?/verify-otp">
+<form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
   <Form.Field form={superFormFields} name="otp">
     <Form.Control let:attrs>
       {#if verified}

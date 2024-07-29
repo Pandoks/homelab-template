@@ -1,7 +1,7 @@
 import Root from './link-countdown.svelte';
 
 type Props = {
-  method?: 'get' | 'post';
+  method?: 'GET' | 'POST';
   action?: string;
   duration?: number;
   class?: string;
