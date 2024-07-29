@@ -34,11 +34,11 @@
         clientDataJSON
       } = await authenticatePasskey();
 
-      data.set('challengeId', challengeId ? challengeId : '');
-      data.set('credentialId', credentialId ? credentialId : '');
-      data.set('signature', signature ? signature : '');
-      data.set('encodedAuthenticatorData', authenticatorData ? authenticatorData : '');
-      data.set('clientDataJSON', clientDataJSON ? clientDataJSON : '');
+      data.set('challengeId', challengeId || '');
+      data.set('credentialId', credentialId || '');
+      data.set('signature', signature || '');
+      data.set('encodedAuthenticatorData', authenticatorData || '');
+      data.set('clientDataJSON', clientDataJSON || '');
     }
   });
 

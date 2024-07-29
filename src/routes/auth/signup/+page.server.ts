@@ -29,6 +29,7 @@ import {
 
 export const actions: Actions = {
   signup: async (event) => {
+    console.log('test');
     handleAlreadyLoggedIn(event);
 
     const signupForm = await superValidate(event, zod(signupSchema));
@@ -78,6 +79,7 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
     } catch (err) {
+      console.error(err);
       // @ts-ignore
       if (err!.code) {
         // @ts-ignore
@@ -229,6 +231,7 @@ export const load: PageServerLoad = async (event) => {
     });
 
     await db.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
+    await db.delete(passkeys).where(eq(passkeys.userId, user.id));
     await db.delete(users).where(eq(users.id, user.id));
   }
 

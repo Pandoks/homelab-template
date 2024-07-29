@@ -15,6 +15,7 @@
   import { Button } from '$lib/components/ui/button';
   import { registerPasskey } from '$lib/auth/passkey';
   import { tick } from 'svelte';
+  import { get } from 'svelte/store';
 
   export let data: {
     signupForm: SuperValidated<Infer<SignupSchema>>;
@@ -39,9 +40,9 @@
         name: username
       });
 
-      data.set('id', id ? id : '');
-      data.set('clientDataJSON', clientDataJSON ? clientDataJSON : '');
-      data.set('attestationObject', attestationObject ? attestationObject : '');
+      data.set('id', id || '');
+      data.set('clientDataJSON', clientDataJSON || '');
+      data.set('attestationObject', attestationObject || '');
     }
   });
   const { form: signupFormData, enhance: signupEnhance, delayed: signupDelayed } = signupForm;
@@ -50,11 +51,11 @@
   $: if (type === 'password') {
     $passkeyFormData.username = $signupFormData.username;
     $passkeyFormData.email = $signupFormData.email;
-    passkeyForm.errors = signupForm.errors;
+    passkeyForm.errors.set(get(signupForm.errors));
   } else {
     $signupFormData.username = $passkeyFormData.username;
     $signupFormData.email = $passkeyFormData.email;
-    signupForm.errors = passkeyForm.errors;
+    signupForm.errors.set(get(passkeyForm.errors));
   }
 
   let transitionComplete = false;
