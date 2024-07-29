@@ -74,9 +74,6 @@
     if ($signupFormData.email) {
       errors.email = passkeyErrors.email;
     }
-    if ($signupFormData.password) {
-      errors.password = get(signupForm.errors).password;
-    }
 
     signupForm.errors.set(errors);
   }
