@@ -40,6 +40,10 @@
         name: username
       });
 
+      if (!id || !clientDataJSON || !attestationObject) {
+        form.cancel();
+      }
+
       data.set('id', id || '');
       data.set('clientDataJSON', clientDataJSON || '');
       data.set('attestationObject', attestationObject || '');
