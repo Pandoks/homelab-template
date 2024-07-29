@@ -68,7 +68,10 @@ export const actions: Actions = {
       });
       await sendVerification({ email: email, code: verificationCode });
 
-      const session = await lucia.createSession(userId, { isTwoFactorVerified: false });
+      const session = await lucia.createSession(userId, {
+        isTwoFactorVerified: false,
+        isPasskeyVerified: false
+      });
       const sessionCookie = lucia.createSessionCookie(session.id);
       event.cookies.set(sessionCookie.name, sessionCookie.value, {
         path: '/',
@@ -211,12 +214,13 @@ export const load: PageServerLoad = async (event) => {
   const session = event.locals.session;
   const user = event.locals.user;
   if (session && user) {
-    if (user.hasTwoFactor && !session.isTwoFactorVerified) {
+    if (user.hasTwoFactor && !session.isTwoFactorVerified && !session.isPasskeyVerified) {
       return redirect(302, '/auth/2fa/otp');
     } else if (user.isEmailVerified) {
       return redirect(302, '/');
     }
 
+    // not email verified delete account if signing up again
     await lucia.invalidateSession(session.id);
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

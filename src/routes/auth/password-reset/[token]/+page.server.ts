@@ -54,7 +54,10 @@ export const actions: Actions = {
     await db.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
     const [user] = await db.select().from(users).where(eq(users.id, token.userId)).limit(1);
 
-    const session = await lucia.createSession(token.userId, { isTwoFactorVerified: false });
+    const session = await lucia.createSession(token.userId, {
+      isTwoFactorVerified: false,
+      isPasskeyVerified: false
+    });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',

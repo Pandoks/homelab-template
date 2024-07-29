@@ -125,8 +125,7 @@ export const authenticatePasskey = async () => {
     const authenticatorData: ArrayBuffer = response.authenticatorData;
     const clientDataJSON: ArrayBuffer = response.clientDataJSON;
     return {
-      id: generateIdFromEntropySize(25),
-      // id: challengeData.id as string,
+      id: challengeData.id as string,
       credentialId: base64url.encode(new Uint8Array(credentialId)),
       signature: base64url.encode(new Uint8Array(signature)),
       authenticatorData: base64url.encode(new Uint8Array(authenticatorData)),

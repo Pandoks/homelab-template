@@ -20,7 +20,7 @@
         {/if}
       </div>
 
-      <LoginForm data={data.loginForm} />
+      <LoginForm data={{ loginForm: data.loginForm, passkeyForm: data.loginPasskeyForm }} />
 
       <div class="text-center text-sm">
         Don&apos;t have an account?

@@ -7,7 +7,7 @@ import { users, type User as DbUser } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { loginSchema } from './schema';
+import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
 
 export const actions: Actions = {
@@ -34,7 +34,7 @@ export const actions: Actions = {
     }
 
     let validPassword = false;
-    if (user) {
+    if (user && user.passwordHash) {
       validPassword = await verify(user.passwordHash, loginForm.data.password, {
         memoryCost: 19456,
         timeCost: 2,
@@ -50,7 +50,10 @@ export const actions: Actions = {
       });
     }
 
-    const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
+    const session = await lucia.createSession(user.id, {
+      isTwoFactorVerified: false,
+      isPasskeyVerified: false
+    });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
@@ -74,6 +77,7 @@ export const load: PageServerLoad = async (event) => {
   }
 
   return {
-    loginForm: await superValidate(zod(loginSchema))
+    loginForm: await superValidate(zod(loginSchema)),
+    loginPasskeyForm: await superValidate(zod(loginPasskeySchema))
   };
 };

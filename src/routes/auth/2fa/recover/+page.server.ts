@@ -47,7 +47,10 @@ export const actions: Actions = {
       .where(eq(users.id, user.id));
 
     await lucia.invalidateUserSessions(user.id);
-    const session = await lucia.createSession(user.id, { isTwoFactorVerified: false });
+    const session = await lucia.createSession(user.id, {
+      isTwoFactorVerified: false,
+      isPasskeyVerified: false
+    });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',

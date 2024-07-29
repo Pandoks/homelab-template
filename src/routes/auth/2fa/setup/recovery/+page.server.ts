@@ -22,7 +22,10 @@ export const actions: Actions = {
       .where(eq(users.id, user.id))
       .catch((error) => console.error(error));
 
-    const session = await lucia.createSession(user.id, { isTwoFactorVerified: true });
+    const session = await lucia.createSession(user.id, {
+      isTwoFactorVerified: true,
+      isPasskeyVerified: false
+    });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
