@@ -34,6 +34,10 @@
         clientDataJSON
       } = await authenticatePasskey();
 
+      if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
+        form.cancel();
+      }
+
       data.set('challengeId', challengeId || '');
       data.set('credentialId', credentialId || '');
       data.set('signature', signature || '');
