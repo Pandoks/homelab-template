@@ -9,9 +9,12 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
+import { verifyPasskey } from '$lib/auth/passkey/server';
 
 export const actions: Actions = {
   login: async (event) => {
+    handleAlreadyLoggedIn(event);
+
     const loginForm = await superValidate(event, zod(loginSchema));
     if (!loginForm.valid) {
       return fail(400, {
@@ -64,6 +67,67 @@ export const actions: Actions = {
       return redirect(302, '/auth/email-verification');
     } else if (user.twoFactorSecret) {
       return redirect(302, '/auth/otp');
+    }
+
+    return redirect(302, '/');
+  },
+  'login-passkey': async (event) => {
+    handleAlreadyLoggedIn(event);
+
+    const loginForm = await superValidate(event, zod(loginPasskeySchema));
+    if (!loginForm.valid) {
+      return fail(400, {
+        success: false,
+        loginForm
+      });
+    }
+
+    let isUsername = true;
+    const usernameOrEmail = loginForm.data.usernameOrEmail;
+    if (!emailSchema.safeParse(usernameOrEmail).success) {
+      isUsername = false;
+    }
+
+    let user: DbUser | null = null;
+    if (isUsername) {
+      [user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
+    } else {
+      [user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+    }
+    if (!user) {
+      return fail(400, {
+        success: false,
+        loginForm
+      });
+    }
+
+    const isValidPasskey = await verifyPasskey({
+      userId: user.id,
+      challengeId: loginForm.data.challengeId,
+      credentialId: loginForm.data.credentialId,
+      signature: loginForm.data.signature,
+      encodedAuthenticatorData: loginForm.data.encodedAuthenticatorData,
+      clientDataJSON: loginForm.data.clientDataJSON
+    });
+    if (!isValidPasskey) {
+      return fail(400, {
+        success: false,
+        loginForm
+      });
+    }
+
+    const session = await lucia.createSession(user.id, {
+      isTwoFactorVerified: false,
+      isPasskeyVerified: true
+    });
+    const sessionCookie = lucia.createSessionCookie(session.id);
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '/',
+      ...sessionCookie.attributes
+    });
+
+    if (!user.isEmailVerified) {
+      return redirect(302, '/auth/email-verification');
     }
 
     return redirect(302, '/');
