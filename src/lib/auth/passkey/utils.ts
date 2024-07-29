@@ -13,7 +13,7 @@ import {
   type WebAuthnCredential
 } from '@oslojs/webauthn';
 import { error } from '@sveltejs/kit';
-import { encodeHex } from 'oslo/encoding';
+import { base64url, encodeHex } from 'oslo/encoding';
 
 export const verifyAuthenticatorData = (authenticatorData: AuthenticatorData): void => {
   if (!authenticatorData.verifyRelyingPartyIdHash(PUBLIC_APP_DOMAIN)) {
@@ -68,9 +68,11 @@ export const getPublicKeyFromCredential = (credential: WebAuthnCredential) => {
       return error(406, { message: 'Unsupported algorithm' });
     }
 
-    return new ECDSAPublicKey(p256, cosePublicKey.x, cosePublicKey.y).encodeSEC1Uncompressed();
+    return base64url.encode(
+      new ECDSAPublicKey(p256, cosePublicKey.x, cosePublicKey.y).encodeSEC1Uncompressed()
+    );
   } else {
     const cosePublicKey = credential.publicKey.rsa();
-    return new RSAPublicKey(cosePublicKey.n, cosePublicKey.e).encodePKCS1();
+    return base64url.encode(new RSAPublicKey(cosePublicKey.n, cosePublicKey.e).encodePKCS1());
   }
 };

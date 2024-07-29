@@ -1,7 +1,6 @@
-import { boolean, pgEnum, pgTable, serial, smallint, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, serial, smallint, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './index';
 import { relations } from 'drizzle-orm';
-import { coseAlgorithmES256, coseAlgorithmRS256 } from '@oslojs/webauthn';
 
 // TODO: setup cron job to clear invalid sessions with lucia
 export const sessions = pgTable('sessions', {
@@ -13,7 +12,8 @@ export const sessions = pgTable('sessions', {
     withTimezone: true,
     mode: 'date'
   }).notNull(),
-  isTwoFactorVerified: boolean('is_two_factor_verified').notNull().default(false)
+  isTwoFactorVerified: boolean('is_two_factor_verified').notNull().default(false),
+  isPasskeyVerified: boolean('is_passkey_verified').notNull().default(false)
 });
 export const sessionRelations = relations(sessions, ({ one }) => ({
   user: one(users, {

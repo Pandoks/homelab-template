@@ -16,7 +16,7 @@ import {
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '../utils';
+} from '$lib/auth/passkey/utils';
 import { db } from '$lib/db/postgres';
 import { passkeys } from '$lib/db/postgres/schema/auth';
 
@@ -63,39 +63,39 @@ export const POST: RequestHandler = async (event) => {
   await verifyChallenge({ id: id, challenge: clientData.challenge });
 
   try {
-    await db.insert(passkeys).values({
-      userId: event.locals.user.id,
-      credentialId: base64url.encode(credential.id),
-      algorithm: algorithm,
-      encodedPublicKey: base64url.encode(encodedPublicKey)
-    });
+    if (!userInfo) {
+      console.log('new user signup');
+      // new user signup
+      const email = passkeyRegistration.email;
+      const id = generateIdFromEntropySize(10);
+      await db.transaction(async (transaction) => {
+        await transaction.insert(users).values({
+          id: id,
+          username: username,
+          email: email,
+          passwordHash: null,
+          isEmailVerified: false,
+          hasTwoFactor: false,
+          twoFactorSecret: null,
+          twoFactorRecoveryHash: null
+        });
+        await transaction.insert(passkeys).values({ userId: id, ...databaseInfo });
+      });
 
-    // if (!userInfo) {
-    //   console.log('new user signup');
-    //   // new user signup
-    //   const email = passkeyRegistration.email;
-    //   const id = generateIdFromEntropySize(10);
-    //   await db.transaction(async (transaction) => {
-    //     await transaction.insert(users).values({
-    //       id: id,
-    //       username: username,
-    //       email: email,
-    //       passwordHash: null,
-    //       isEmailVerified: false,
-    //       hasTwoFactor: false,
-    //       twoFactorSecret: null,
-    //       twoFactorRecoveryHash: null
-    //     });
-    //     await transaction.insert(passkeys).values({ userId: id, ...databaseInfo });
-    //   });
-    //
-    //   const verificationCode = await generateEmailVerification({
-    //     userId: id,
-    //     email: email
-    //   });
-    //   console.log('created email verification code');
-    //   await sendVerification({ email: email, code: verificationCode });
-    // } else {
+      const verificationCode = await generateEmailVerification({
+        userId: id,
+        email: email
+      });
+      console.log('created email verification code');
+      await sendVerification({ email: email, code: verificationCode });
+    } else {
+      await db.insert(passkeys).values({
+        userId: event.locals.user.id,
+        credentialId: base64url.encode(credential.id),
+        algorithm: algorithm,
+        encodedPublicKey: base64url.encode(encodedPublicKey)
+      });
+    }
   } catch (err) {
     // @ts-ignore
     if (err!.code) {

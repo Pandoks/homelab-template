@@ -24,7 +24,8 @@ export const lucia = new Lucia(adapter, {
   },
   getSessionAttributes: (attributes) => {
     return {
-      isTwoFactorVerified: attributes.isTwoFactorVerified
+      isTwoFactorVerified: attributes.isTwoFactorVerified,
+      isPasskeyVerified: attributes.isPasskeyVerified
     };
   }
 });
@@ -49,6 +50,7 @@ interface DatabaseUserAttributes {
 // attributes of session for a user from the database
 interface DatabaseSessionAttributes {
   isTwoFactorVerified: boolean;
+  isPasskeyVerified: boolean;
 }
 
 export const handleAlreadyLoggedIn = (event: ServerLoadEvent | RequestEvent): void => {

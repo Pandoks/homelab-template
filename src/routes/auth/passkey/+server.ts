@@ -28,7 +28,11 @@ import { passkeys } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { sha256 as syncSha256 } from '@oslojs/crypto/sha2';
-import { verifyAuthenticatorData, verifyChallenge, verifyClientData } from './utils';
+import {
+  verifyAuthenticatorData,
+  verifyChallenge,
+  verifyClientData
+} from '$lib/auth/passkey/utils';
 
 /**
  * Client hits this endpoint to authenticate a passkey (login)

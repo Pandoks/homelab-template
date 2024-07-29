@@ -16,7 +16,7 @@ import {
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '../utils';
+} from '../../../../lib/auth/passkey/utils';
 import { db } from '$lib/db/postgres';
 import { passkeys } from '$lib/db/postgres/schema/auth';
 
