@@ -10,6 +10,7 @@
   import { Separator } from '$lib/components/ui/separator';
   import { Button } from '$lib/components/ui/button';
   import { slide } from 'svelte/transition';
+  import { get } from 'svelte/store';
 
   export let data: {
     loginForm: SuperValidated<Infer<LoginFormSchema>>;
@@ -19,13 +20,14 @@
 
   const loginForm = superForm(data.loginForm, {
     clearOnSubmit: 'none',
-    multipleSubmits: 'prevent'
+    multipleSubmits: 'prevent',
+    dataType: 'json' // needed for union zod types
   });
   const passkeyForm = superForm(data.passkeyForm, {
     clearOnSubmit: 'none',
     multipleSubmits: 'prevent',
+    dataType: 'json',
     onSubmit: async (form) => {
-      const data = form.formData;
       const {
         id: challengeId,
         credentialId,
@@ -38,11 +40,14 @@
         form.cancel();
       }
 
-      data.set('challengeId', challengeId || '');
-      data.set('credentialId', credentialId || '');
-      data.set('signature', signature || '');
-      data.set('encodedAuthenticatorData', authenticatorData || '');
-      data.set('clientDataJSON', clientDataJSON || '');
+      passkeyForm.form.set({
+        usernameOrEmail: get(passkeyForm.form).usernameOrEmail,
+        credentialId: credentialId || '',
+        challengeId: challengeId || '',
+        signature: signature || '',
+        encodedAuthenticatorData: authenticatorData || '',
+        clientDataJSON: clientDataJSON || ''
+      });
     }
   });
 
@@ -141,7 +146,7 @@
     </Form.Field>
 
     <Form.Button disabled={$passkeyDelayed} class="w-full mt-6">
-      {#if $loginDelayed}
+      {#if $passkeyDelayed}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Logging In
       {:else}

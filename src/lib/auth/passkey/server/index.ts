@@ -49,7 +49,7 @@ export const verifyPasskey = async ({
   const clientData = parseClientDataJSON(decodedClientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Get });
 
-  await verifyChallenge({ id: challengeId, challenge: clientData.challenge });
+  await verifyChallenge({ challengeId: challengeId, challenge: clientData.challenge });
 
   const [passkeyInfo] = await db
     .select()

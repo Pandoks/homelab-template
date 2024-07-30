@@ -46,7 +46,7 @@ export const registerPasskey = async ({ username, name }: { username: string; na
     const clientDataJSON: ArrayBuffer = response.clientDataJSON;
     const attestationObject: ArrayBuffer = response.attestationObject;
     return {
-      id: challengeData.id as string,
+      challengeId: challengeData.id as string,
       clientDataJSON: base64url.encode(new Uint8Array(clientDataJSON)),
       attestationObject: base64url.encode(new Uint8Array(attestationObject))
     };
@@ -99,7 +99,7 @@ export const registerPasskey = async ({ username, name }: { username: string; na
 
 export const authenticatePasskey = async () => {
   try {
-    const challengeResponse = await fetch('/auth/passkey', { method: 'PUT' });
+    const challengeResponse = await fetch('/auth/passkey/challenge', { method: 'POST' });
     const challengeData = await challengeResponse.json();
     const challenge = base64url.decode(challengeData.challenge);
 

@@ -38,13 +38,13 @@ export const verifyClientData = ({
 };
 
 export const verifyChallenge = async ({
-  id,
+  challengeId,
   challenge
 }: {
-  id: string;
+  challengeId: string;
   challenge: Uint8Array;
 }): Promise<void> => {
-  const redisQuery = `passkey-challenge:${id}`;
+  const redisQuery = `passkey-challenge:${challengeId}`;
   const clientChallengeHash = encodeHex(sha256(challenge));
   const challengeHash = await redis.main.get(redisQuery);
   if (!challengeHash) {

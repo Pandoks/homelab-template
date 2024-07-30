@@ -29,7 +29,6 @@ import {
 
 export const actions: Actions = {
   signup: async (event) => {
-    console.log('test');
     handleAlreadyLoggedIn(event);
 
     const signupForm = await superValidate(event, zod(signupSchema));
@@ -144,7 +143,10 @@ export const actions: Actions = {
 
     const clientData = parseClientDataJSON(base64url.decode(signupForm.data.clientDataJSON));
     verifyClientData({ clientData: clientData, type: ClientDataType.Create });
-    await verifyChallenge({ id: signupForm.data.id, challenge: clientData.challenge });
+    await verifyChallenge({
+      challengeId: signupForm.data.challengeId,
+      challenge: clientData.challenge
+    });
 
     try {
       const userId = generateIdFromEntropySize(10);
@@ -162,7 +164,7 @@ export const actions: Actions = {
           twoFactorRecoveryHash: null
         });
         await transaction.insert(passkeys).values({
-          credentialId: signupForm.data.id,
+          credentialId: base64url.encode(credential.id),
           name: 'Main Passkey',
           algorithm: algorithm,
           encodedPublicKey: publicKey,

@@ -25,7 +25,7 @@ export const actions: Actions = {
 
     let isUsername = true;
     const usernameOrEmail = loginForm.data.usernameOrEmail;
-    if (!emailSchema.safeParse(usernameOrEmail).success) {
+    if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }
 
@@ -84,7 +84,7 @@ export const actions: Actions = {
 
     let isUsername = true;
     const usernameOrEmail = loginForm.data.usernameOrEmail;
-    if (!emailSchema.safeParse(usernameOrEmail).success) {
+    if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }
 

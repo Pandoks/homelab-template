@@ -12,7 +12,7 @@ export type SignupSchema = typeof signupSchema;
 export const signupPasskeySchema = z.object({
   username: usernameSchema,
   email: emailSchema,
-  id: z.string(),
+  challengeId: z.string(),
   clientDataJSON: base64UrlSchema,
   attestationObject: base64UrlSchema
 });

@@ -25,8 +25,8 @@ export const actions: Actions = {
       });
     }
 
-    const user: User | null = event.locals.user;
-    if (!user) {
+    const user = event.locals.user;
+    if (!user || !event.locals.session) {
       emailVerificationForm.errors.code = ['Invalid'];
       return fail(400, {
         success: false,
@@ -63,7 +63,7 @@ export const actions: Actions = {
 
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
-      isPasskeyVerified: false
+      isPasskeyVerified: event.locals.session.isPasskeyVerified
     });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

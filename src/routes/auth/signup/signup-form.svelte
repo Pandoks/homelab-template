@@ -35,16 +35,16 @@
     onSubmit: async (form) => {
       const data = form.formData;
       const username = data.get('username') as string;
-      const { id, clientDataJSON, attestationObject } = await registerPasskey({
+      const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
         username: username,
         name: username
       });
 
-      if (!id || !clientDataJSON || !attestationObject) {
+      if (!challengeId || !clientDataJSON || !attestationObject) {
         form.cancel();
       }
 
-      data.set('id', id || '');
+      data.set('challengeId', challengeId || '');
       data.set('clientDataJSON', clientDataJSON || '');
       data.set('attestationObject', attestationObject || '');
     }
