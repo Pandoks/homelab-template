@@ -5,6 +5,12 @@
 
   export let data: PageData;
   export let form: ActionData;
+
+  $: if (form) {
+    formInteracted = false;
+  }
+
+  let formInteracted = false;
 </script>
 
 <div class="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
@@ -15,12 +21,15 @@
         <p class="text-balance text-muted-foreground">
           Enter your credentials to login to your account
         </p>
-        {#if form && !form.success}
+        {#if form && !form.success && !formInteracted}
           <p class="text-balance text-red-600">Invalid Credentials</p>
         {/if}
       </div>
 
-      <LoginForm data={{ loginForm: data.loginForm, passkeyForm: data.loginPasskeyForm }} />
+      <LoginForm
+        data={{ loginForm: data.loginForm, passkeyForm: data.loginPasskeyForm }}
+        on:interacted={() => (formInteracted = true)}
+      />
 
       <div class="text-center text-sm">
         Don&apos;t have an account?

@@ -6,7 +6,7 @@
   import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
   import { authenticatePasskey } from '$lib/auth/passkey';
-  import { tick } from 'svelte';
+  import { createEventDispatcher, tick } from 'svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { Button } from '$lib/components/ui/button';
   import { slide } from 'svelte/transition';
@@ -72,6 +72,8 @@
     type = type === 'password' ? 'passkey' : 'password';
     passwordFormSwitching = false;
   };
+
+  const dispatch = createEventDispatcher();
 </script>
 
 {#if type === 'password'}
@@ -79,7 +81,11 @@
     <Form.Field form={loginForm} name="usernameOrEmail">
       <Form.Control let:attrs>
         <Label>Email/Username</Label>
-        <Input {...attrs} bind:value={$loginFormData.usernameOrEmail} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$loginFormData.usernameOrEmail}
+        />
       </Form.Control>
     </Form.Field>
 
@@ -100,6 +106,7 @@
             </a>
           </div>
           <Input
+            on:input={() => dispatch('interacted')}
             {...attrs}
             bind:value={$loginFormData.password}
             autocomplete="on"
@@ -141,7 +148,11 @@
     <Form.Field form={passkeyForm} name="usernameOrEmail">
       <Form.Control let:attrs>
         <Label>Email/Username</Label>
-        <Input {...attrs} bind:value={$passkeyFormData.usernameOrEmail} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$passkeyFormData.usernameOrEmail}
+        />
       </Form.Control>
     </Form.Field>
 
