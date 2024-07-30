@@ -4,6 +4,7 @@
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
+  import { createEventDispatcher } from 'svelte';
 
   export let data: SuperValidated<Infer<OneTimePasswordSchema>>;
 
@@ -13,6 +14,8 @@
   });
 
   const { form: formData, enhance, delayed } = superFormFields;
+
+  const dispatch = createEventDispatcher();
 </script>
 
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
@@ -20,6 +23,7 @@
     <Form.Control let:attrs>
       <Form.Label>2FA Code</Form.Label>
       <Input
+        on:input={() => dispatch('interacted')}
         {...attrs}
         class="text-center"
         placeholder="XXXXXX"

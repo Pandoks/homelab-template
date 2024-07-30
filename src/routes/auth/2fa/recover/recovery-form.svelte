@@ -6,6 +6,7 @@
   import { LoaderCircle } from 'lucide-svelte';
   import * as AlertDialog from '$lib/components/ui/alert-dialog';
   import { Button } from '$lib/components/ui/button';
+  import { createEventDispatcher } from 'svelte';
 
   export let data: SuperValidated<Infer<TwoFactorRecoverySchema>>;
 
@@ -20,13 +21,19 @@
   const { form: formData, enhance, delayed } = superFormFields;
 
   let open = false;
+
+  const dispatch = createEventDispatcher();
 </script>
 
 <form id="recovery-form" class="grid gap-2" method="POST" use:enhance action="?/recover-2fa">
   <Form.Field form={superFormFields} name="recoveryCode">
     <Form.Control let:attrs>
       <Form.Label>Recovery Code</Form.Label>
-      <Input {...attrs} bind:value={$formData.recoveryCode} />
+      <Input
+        on:input={() => dispatch('interacted')}
+        {...attrs}
+        bind:value={$formData.recoveryCode}
+      />
     </Form.Control>
   </Form.Field>
 
