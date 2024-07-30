@@ -14,7 +14,7 @@
   import { slide } from 'svelte/transition';
   import { Button } from '$lib/components/ui/button';
   import { registerPasskey } from '$lib/auth/passkey';
-  import { tick } from 'svelte';
+  import { createEventDispatcher, tick } from 'svelte';
   import { get } from 'svelte/store';
 
   export let data: {
@@ -94,6 +94,8 @@
     type = type === 'password' ? 'passkey' : 'password';
     passwordFormSwitching = false;
   };
+
+  const dispatch = createEventDispatcher();
 </script>
 
 {#if type === 'password'}
@@ -101,7 +103,11 @@
     <Form.Field form={signupForm} name="username">
       <Form.Control let:attrs>
         <Form.Label>Username</Form.Label>
-        <Input {...attrs} bind:value={$signupFormData.username} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$signupFormData.username}
+        />
       </Form.Control>
       <Form.FieldErrors />
     </Form.Field>
@@ -109,7 +115,11 @@
     <Form.Field form={signupForm} name="email" class="mt-1">
       <Form.Control let:attrs>
         <Form.Label>Email</Form.Label>
-        <Input {...attrs} bind:value={$signupFormData.email} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$signupFormData.email}
+        />
       </Form.Control>
       <Form.FieldErrors />
     </Form.Field>
@@ -128,6 +138,7 @@
             <Form.Label for="password">Password</Form.Label>
           </div>
           <Input
+            on:input={() => dispatch('interacted')}
             {...attrs}
             bind:value={$signupFormData.password}
             autocomplete="on"
@@ -170,7 +181,11 @@
     <Form.Field form={passkeyForm} name="username">
       <Form.Control let:attrs>
         <Form.Label>Username</Form.Label>
-        <Input {...attrs} bind:value={$passkeyFormData.username} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$passkeyFormData.username}
+        />
       </Form.Control>
       <Form.FieldErrors />
     </Form.Field>
@@ -178,7 +193,11 @@
     <Form.Field form={passkeyForm} name="email" class="mt-1">
       <Form.Control let:attrs>
         <Form.Label>Email</Form.Label>
-        <Input {...attrs} bind:value={$passkeyFormData.email} />
+        <Input
+          on:input={() => dispatch('interacted')}
+          {...attrs}
+          bind:value={$passkeyFormData.email}
+        />
       </Form.Control>
       <Form.FieldErrors />
     </Form.Field>

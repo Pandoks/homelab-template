@@ -5,6 +5,12 @@
 
   export let data: PageData;
   export let form: ActionData;
+
+  $: if (form) {
+    formInteracted = false;
+  }
+
+  let formInteracted = false;
 </script>
 
 <div class="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
@@ -15,12 +21,15 @@
         <p class="text-balance text-muted-foreground">
           Enter your information to create an account
         </p>
-        {#if form && !form.success && form.message}
+        {#if form && !form.success && form.message && !formInteracted}
           <p class="text-balance text-red-600">{form.message}</p>
         {/if}
       </div>
 
-      <SignupForm data={{ signupForm: data.signupForm, passkeyForm: data.signupPasskeyForm }} />
+      <SignupForm
+        data={{ signupForm: data.signupForm, passkeyForm: data.signupPasskeyForm }}
+        on:interacted={() => (formInteracted = true)}
+      />
 
       <div class="text-center text-sm">
         Already have an account?
