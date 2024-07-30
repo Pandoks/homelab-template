@@ -5,6 +5,7 @@
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
   import { passwordResetSchema, type PasswordResetSchema } from './schema';
+  import { createEventDispatcher } from 'svelte';
 
   export let data: SuperValidated<Infer<PasswordResetSchema>>;
 
@@ -15,13 +16,15 @@
   });
 
   const { form: formData, enhance, delayed } = form;
+
+  const dispatch = createEventDispatcher();
 </script>
 
 <form class="grid gap-4" method="POST" use:enhance action="?/password-reset">
   <Form.Field {form} name="email" class="grid gap-2">
     <Form.Control let:attrs>
       <Form.Label>Email</Form.Label>
-      <Input {...attrs} bind:value={$formData.email} />
+      <Input on:input={() => dispatch('interacted')} {...attrs} bind:value={$formData.email} />
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>

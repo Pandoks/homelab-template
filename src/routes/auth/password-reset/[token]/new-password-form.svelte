@@ -5,6 +5,7 @@
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
   import { newPasswordSchema, type NewPasswordSchema } from './schema';
+  import { createEventDispatcher } from 'svelte';
 
   export let data: SuperValidated<Infer<NewPasswordSchema>>;
   export let disabled: boolean = false;
@@ -16,13 +17,21 @@
   });
 
   const { form: formData, enhance, delayed } = form;
+
+  const dispatch = createEventDispatcher();
 </script>
 
 <form class="grid gap-4" method="POST" use:enhance action="?/new-password">
   <Form.Field {form} name="password">
     <Form.Control let:attrs>
       <Form.Label>Password</Form.Label>
-      <Input {...attrs} type="password" autocomplete="on" bind:value={$formData.password} />
+      <Input
+        on:input={() => dispatch('interacted')}
+        {...attrs}
+        type="password"
+        autocomplete="on"
+        bind:value={$formData.password}
+      />
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>
@@ -31,6 +40,7 @@
     <Form.Control let:attrs>
       <Form.Label>Confirm Password</Form.Label>
       <Input
+        on:input={() => dispatch('interacted')}
         {...attrs}
         type="password"
         autocomplete="on"
