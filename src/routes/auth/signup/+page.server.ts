@@ -4,7 +4,7 @@ import { hash } from '@node-rs/argon2';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/postgres';
 import { users } from '$lib/db/postgres/schema';
-import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
+import { handleAlreadyLoggedIn, lucia, verifyPasswordStrength } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -40,7 +40,18 @@ export const actions: Actions = {
       });
     }
 
-    const passwordHash = await hash(signupForm.data.password, {
+    const password = signupForm.data.password;
+    const strongPassword = await verifyPasswordStrength(password);
+    if (!strongPassword) {
+      signupForm.errors.password = ['Weak password'];
+      return fail(400, {
+        success: false,
+        message: 'Password found in compromised databases',
+        signupForm
+      });
+    }
+
+    const passwordHash = await hash(password, {
       // recommended minimum parameters
       memoryCost: 19456,
       timeCost: 2,

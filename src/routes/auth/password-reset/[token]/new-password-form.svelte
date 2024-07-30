@@ -18,11 +18,11 @@
   const { form: formData, enhance, delayed } = form;
 </script>
 
-<form class="grid gap-4" method="POST" use:enhance action="?/password-reset">
+<form class="grid gap-4" method="POST" use:enhance action="?/new-password">
   <Form.Field {form} name="password">
     <Form.Control let:attrs>
       <Form.Label>Password</Form.Label>
-      <Input {...attrs} type="password" bind:value={$formData.password} />
+      <Input {...attrs} type="password" autocomplete="on" bind:value={$formData.password} />
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>
@@ -30,7 +30,12 @@
   <Form.Field {form} name="passwordConfirmation">
     <Form.Control let:attrs>
       <Form.Label>Confirm Password</Form.Label>
-      <Input {...attrs} type="password" bind:value={$formData.passwordConfirmation} />
+      <Input
+        {...attrs}
+        type="password"
+        autocomplete="on"
+        bind:value={$formData.passwordConfirmation}
+      />
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>

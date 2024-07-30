@@ -3,7 +3,7 @@ import { users } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { createPasswordResetToken, sendPasswordReset } from '$lib/auth/server/password-reset';
-import { PUBLIC_APP_HOST } from '$env/static/public';
+import { PUBLIC_APP_ORIGIN } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
@@ -24,7 +24,7 @@ export const actions: Actions = {
     }
 
     const verificationToken = await createPasswordResetToken({ userId: user.id });
-    const verificationLink = `${PUBLIC_APP_HOST}/auth/reset-password/${verificationToken}`;
+    const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });
     return { success: true, passwordResetForm };

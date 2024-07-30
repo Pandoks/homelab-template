@@ -6,7 +6,7 @@ import { db } from '$lib/db/postgres';
 import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
-import { lucia, handleAlreadyLoggedIn } from '$lib/auth/server';
+import { lucia, handleAlreadyLoggedIn, verifyPasswordStrength } from '$lib/auth/server';
 import { hash } from '@node-rs/argon2';
 import { users } from '$lib/db/postgres/schema';
 import { superValidate } from 'sveltekit-superforms';
@@ -45,7 +45,19 @@ export const actions: Actions = {
     }
 
     await lucia.invalidateUserSessions(token.userId);
-    const passwordHash = await hash(newPasswordForm.data.password, {
+
+    const password = newPasswordForm.data.password;
+    const strongPassword = await verifyPasswordStrength(password);
+    if (!strongPassword) {
+      newPasswordForm.errors.password = ['Weak password'];
+      return fail(400, {
+        success: false,
+        message: 'Password found in compromised databases',
+        newPasswordForm
+      });
+    }
+
+    const passwordHash = await hash(password, {
       memoryCost: 19456,
       timeCost: 2,
       outputLen: 32,
