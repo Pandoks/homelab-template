@@ -66,7 +66,7 @@ export const actions: Actions = {
     if (!user.isEmailVerified) {
       return redirect(302, '/auth/email-verification');
     } else if (user.twoFactorSecret) {
-      return redirect(302, '/auth/otp');
+      return redirect(302, '/auth/2fa/otp');
     }
 
     return redirect(302, '/');
