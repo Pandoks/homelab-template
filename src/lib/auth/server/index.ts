@@ -5,6 +5,8 @@ import { users } from '$lib/db/postgres/schema';
 import { sessions } from '$lib/db/postgres/schema/auth';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit';
+import { encodeHex } from 'oslo/encoding';
+import { sha1 } from '@oslojs/crypto/sha1';
 
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
@@ -63,4 +65,21 @@ export const handleAlreadyLoggedIn = (event: ServerLoadEvent | RequestEvent): vo
       return redirect(302, '/auth/email-verification');
     }
   }
+};
+
+export const verifyPasswordStrength = async (password: string) => {
+  const hash = encodeHex(sha1(new TextEncoder().encode(password)));
+  const hashPrefix = hash.slice(0, 5);
+
+  const response = await fetch(`https://api.pwnedpasswords.com/range/${hashPrefix}`);
+  const data = await response.text();
+
+  const items = data.split('\n');
+  for (const item of items) {
+    const hashSuffix = item.slice(0, 35).toLowerCase();
+    if (hash === hashPrefix + hashSuffix) {
+      return false;
+    }
+  }
+  return true;
 };
