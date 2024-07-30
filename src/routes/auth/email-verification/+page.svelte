@@ -8,6 +8,12 @@
 
   export let data: PageData;
   export let form: ActionData;
+
+  $: if (form) {
+    formInteracted = false;
+  }
+
+  let formInteracted = false;
 </script>
 
 <div class="w-full h-screen">
@@ -16,12 +22,15 @@
       <div class="grid gap-2 text-center">
         <h1 class="text-3xl font-bold">Email Verification</h1>
         <p class="text-balance text-muted-foreground">Enter your code to activate your account</p>
-        {#if form && !form.success}
+        {#if form && !form.success && !formInteracted}
           <p class="text-balance text-red-600">{form.message}</p>
         {/if}
       </div>
 
-      <VerificationForm data={data.emailVerificationForm} />
+      <VerificationForm
+        on:interacted={() => (formInteracted = true)}
+        data={data.emailVerificationForm}
+      />
 
       <LinkCountdown class="text-center text-sm" method="POST" action="?/resend">
         Resend
