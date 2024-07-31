@@ -40,17 +40,18 @@ export class ConstantRefillTokenBucketLimiter {
         count: this.max - cost,
         refilledAt: now
       };
-      await this.storage.hSet(`name:${key}`, newBucket);
+      await this.storage.hSet(redisQuery, newBucket);
       return true;
     }
 
-    const count = parseInt(bucket.count);
+    let count = parseInt(bucket.count);
     const refilledAt = parseInt(bucket.refilledAt);
     const refillAmount = Math.floor((now - refilledAt) / (this.refillIntervalSeconds * 1000)); // Time ellapsed over refill interval
 
     if (refillAmount > 0) {
+      count = Math.min(count + refillAmount, this.max);
       const updatedBucket: Bucket<number> = {
-        count: Math.min(count + refillAmount, this.max),
+        count: count,
         refilledAt: now
       };
       await this.storage.hSet(redisQuery, updatedBucket);
@@ -239,6 +240,81 @@ export class Throttler {
           return;
       }
     }
+  }
+}
+
+/**
+ * RATE LIMITER
+ * After a certain period, the entire bucket is refilled with tokens
+ */
+export class FixedRefillTokenBucketLimiter {
+  public max: number;
+  public refillIntervalSeconds: number;
+
+  private name: string;
+  private storage: RedisClientType | RedisClusterType;
+
+  constructor({
+    name,
+    max,
+    refillIntervalSeconds,
+    storage
+  }: {
+    name: string;
+    max: number;
+    refillIntervalSeconds: number;
+    storage: RedisClientType | RedisClusterType;
+  }) {
+    this.max = max;
+    this.refillIntervalSeconds = refillIntervalSeconds;
+    this.storage = storage;
+    this.name = name;
+  }
+
+  public async check({ key, cost }: { key: string; cost: number }): Promise<boolean> {
+    const redisQuery = `${this.name}:${key}`;
+    const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
+    const now = Date.now();
+
+    if (!bucket) {
+      const newBucket: Bucket<number> = {
+        count: this.max - cost,
+        refilledAt: now
+      };
+      await this.storage.hSet(redisQuery, newBucket);
+      return true;
+    }
+
+    const count = parseInt(bucket.count);
+    let refilled = false;
+    if (now - parseInt(bucket.refilledAt) >= this.refillIntervalSeconds * 1000) {
+      refilled = true;
+    }
+
+    if (count < cost) {
+      if (refilled) {
+        const updatedBucket: Bucket<number> = {
+          count: this.max,
+          refilledAt: now
+        };
+        this.storage.hSet(redisQuery, updatedBucket);
+      }
+      return false;
+    }
+
+    if (refilled) {
+      const updatedBucket: Bucket<number> = {
+        count: this.max - cost,
+        refilledAt: now
+      };
+      this.storage.hSet(redisQuery, updatedBucket);
+    }
+    return true;
+  }
+
+  public async reset(key: string): Promise<void> {
+    const redisQuery = `${this.name}:${key}`;
+    await this.storage.del(redisQuery);
   }
 }
 
