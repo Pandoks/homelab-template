@@ -59,12 +59,12 @@ export const actions: Actions = {
       parallelism: 1
     });
     const userId = generateIdFromEntropySize(10); // 16 characters long
-    const email = signupForm.data.email;
+    const email = signupForm.data.email.toLowerCase();
 
     try {
       await db.insert(users).values({
         id: userId,
-        username: signupForm.data.username,
+        username: signupForm.data.username.toLowerCase(),
         email: email,
         passwordHash: passwordHash,
         isEmailVerified: false,
@@ -161,12 +161,12 @@ export const actions: Actions = {
 
     try {
       const userId = generateIdFromEntropySize(10);
-      const email = signupForm.data.email;
+      const email = signupForm.data.email.toLowerCase();
 
       await db.transaction(async (transaction) => {
         await transaction.insert(users).values({
           id: userId,
-          username: signupForm.data.username,
+          username: signupForm.data.username.toLowerCase(),
           email: email,
           passwordHash: null,
           isEmailVerified: false,
