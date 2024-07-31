@@ -48,19 +48,26 @@ export class ConstantRefillTokenBucketLimiter {
     const refilledAt = parseInt(bucket.refilledAt);
     const refillAmount = Math.floor((now - refilledAt) / (this.refillIntervalSeconds * 1000)); // Time ellapsed over refill interval
 
+    if (count < cost) {
+      if (refillAmount > 0) {
+        count = Math.min(count + refillAmount, this.max);
+        const updatedBucket: Bucket<number> = {
+          count: count,
+          refilledAt: now
+        };
+        await this.storage.hSet(redisQuery, updatedBucket);
+      }
+      return false;
+    }
+
     if (refillAmount > 0) {
       count = Math.min(count + refillAmount, this.max);
       const updatedBucket: Bucket<number> = {
-        count: count,
+        count: count - cost,
         refilledAt: now
       };
       await this.storage.hSet(redisQuery, updatedBucket);
     }
-    if (count < cost) {
-      return false;
-    }
-
-    await this.storage.hIncrBy(redisQuery, 'count', -cost);
     return true;
   }
 
