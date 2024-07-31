@@ -17,6 +17,8 @@
   import { createEventDispatcher, tick } from 'svelte';
   import { get } from 'svelte/store';
 
+  // TODO: add show and hide password
+
   export let data: {
     signupForm: SuperValidated<Infer<SignupSchema>>;
     passkeyForm: SuperValidated<Infer<SignupPasskeySchema>>;
