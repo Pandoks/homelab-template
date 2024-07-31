@@ -32,14 +32,15 @@ export class ConstantRefillTokenBucketLimiter {
 
   public async check({ key, cost }: { key: string; cost: number }): Promise<boolean> {
     const redisQuery = `${this.name}:${key}`;
-    const bucket = await this.storage.hGetAll(redisQuery);
+    const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
     if (!bucket) {
-      await this.storage.hSet(`name:${key}`, {
+      const newBucket: Bucket<number> = {
         count: this.max - cost,
         refilledAt: now
-      });
+      };
+      await this.storage.hSet(`name:${key}`, newBucket);
       return true;
     }
 
@@ -48,10 +49,11 @@ export class ConstantRefillTokenBucketLimiter {
     const refillAmount = Math.floor((now - refilledAt) / (this.refillIntervalSeconds * 1000)); // Time ellapsed over refill interval
 
     if (refillAmount > 0) {
-      await this.storage.hSet(redisQuery, {
+      const updatedBucket: Bucket<number> = {
         count: Math.min(count + refillAmount, this.max),
         refilledAt: now
-      });
+      };
+      await this.storage.hSet(redisQuery, updatedBucket);
     }
     if (count < cost) {
       return false;
@@ -115,34 +117,51 @@ export class Throttler {
   public async check(key: string): Promise<boolean> {
     await this.cutoffReset(key);
     const redisQuery = `${this.name}:${key}`;
-    const counter = await this.storage.hGetAll(redisQuery);
+    const counter = (await this.storage.hGetAll(redisQuery)) as ThrottlingCounter<string>;
     if (!counter || parseInt(counter.graceCounter) > 0) {
       return true;
     }
 
     const now = Date.now();
     return (
-      now - parseInt(counter.updatedAt) >= this.timeoutSeconds[parseInt(counter.timeout)] * 1000
+      now - parseInt(counter.updatedAt) >=
+      this.timeoutSeconds[parseInt(counter.timeoutIndex)] * 1000
     );
   }
 
   public async increment(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
-    const counter = await this.storage.hGetAll(redisQuery);
+    const counter = (await this.storage.hGetAll(redisQuery)) as ThrottlingCounter<string>;
     const now = Date.now();
     if (!counter) {
-      this.storage.hSet(redisQuery, {
+      const newCounter: ThrottlingCounter<number> = {
         timeoutIndex: 0, // first index of timeoutSeconds[]
         graceCounter: this.grace,
         updatedAt: now
-      });
+      };
+      this.storage.hSet(redisQuery, newCounter);
     } else if (parseInt(counter.graceCounter) > 0) {
       this.storage.hSet(redisQuery, 'graceCounter', parseInt(counter.graceCounter) - 1);
     } else {
-      this.storage.hSet(redisQuery, {
-        timeoutIndex: Math.min(parseInt(counter.timeoutIndex + 1), this.timeoutSeconds.length - 1),
-        updatedAt: now
-      });
+      const updatedCounter: ThrottlingCounter<number> = counter.checkedAt
+        ? {
+            timeoutIndex: Math.min(
+              parseInt(counter.timeoutIndex + 1),
+              this.timeoutSeconds.length - 1
+            ),
+            graceCounter: parseInt(counter.graceCounter),
+            updatedAt: now,
+            checkedAt: parseInt(counter.checkedAt)
+          }
+        : {
+            timeoutIndex: Math.min(
+              parseInt(counter.timeoutIndex + 1),
+              this.timeoutSeconds.length - 1
+            ),
+            graceCounter: parseInt(counter.graceCounter),
+            updatedAt: now
+          };
+      this.storage.hSet(redisQuery, updatedCounter);
     }
   }
 
@@ -157,12 +176,15 @@ export class Throttler {
     }
 
     const redisQuery = `${this.name}:${key}`;
-    const counter = await this.storage.hGetAll(redisQuery);
-    if (!counter || !counter.checkedAt) {
+    const now = Date.now();
+    const counter = (await this.storage.hGetAll(redisQuery)) as ThrottlingCounter<string>;
+    if (!counter) {
+      return;
+    } else if (!counter.checkedAt) {
+      this.storage.hSet(redisQuery, 'checkedAt', now);
       return;
     }
 
-    const now = Date.now();
     const timeDifference = now - parseInt(counter.checkedAt);
     if (timeDifference >= this.cutoffMilli) {
       switch (this.resetType) {
@@ -204,12 +226,13 @@ export class Throttler {
             }
           }
 
-          this.storage.hSet(redisQuery, {
+          const updatedCounter: ThrottlingCounter<number> = {
             timeoutIndex: timeoutIndex,
             graceCounter: graceCounter,
-            updatedAt: counter.updatedAt,
+            updatedAt: parseInt(counter.updatedAt),
             checkedAt: now
-          });
+          };
+          this.storage.hSet(redisQuery, updatedCounter);
           break;
 
         default:
@@ -218,3 +241,21 @@ export class Throttler {
     }
   }
 }
+
+type Bucket<T> =
+  | {
+      count: T;
+      refilledAt: T;
+    }
+  | null
+  | undefined;
+
+type ThrottlingCounter<T> =
+  | {
+      timeoutIndex: T;
+      graceCounter: T;
+      updatedAt: T;
+      checkedAt?: T;
+    }
+  | null
+  | undefined;
