@@ -26,6 +26,16 @@ import {
   verifyChallenge,
   verifyClientData
 } from '$lib/auth/passkey/utils';
+import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
+import { redis } from '$lib/db/redis';
+import type { RedisClientType } from 'redis';
+
+const bucket = new ConstantRefillTokenBucketLimiter({
+  name: 'signup-limiter',
+  max: 10,
+  refillIntervalSeconds: 5,
+  storage: redis.main as RedisClientType
+});
 
 export const actions: Actions = {
   signup: async (event) => {
@@ -36,6 +46,15 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         message: '',
+        signupForm
+      });
+    }
+
+    const ipAddress = event.getClientAddress();
+    if (!(await bucket.check({ key: ipAddress, cost: 1 }))) {
+      return fail(429, {
+        success: false,
+        message: 'Signing Up Too Many Times. Try Later',
         signupForm
       });
     }
