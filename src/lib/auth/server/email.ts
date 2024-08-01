@@ -5,6 +5,7 @@ import { db } from '$lib/db/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 
+// TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
   userId,
   email

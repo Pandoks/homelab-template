@@ -8,26 +8,52 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
+import { redis } from '$lib/db/redis';
+import type { RedisClientType } from 'redis';
+
+const bucket = new ConstantRefillTokenBucketLimiter({
+  name: 'password-reset-request',
+  max: 3,
+  refillIntervalSeconds: 30,
+  storage: redis.main as RedisClientType
+});
 
 export const actions: Actions = {
   'password-reset': async (event) => {
     const passwordResetForm = await superValidate(event, zod(passwordResetSchema));
     if (!passwordResetForm.valid) {
-      return { success: false, passwordResetForm };
+      return fail(400, {
+        success: false,
+        throttled: false,
+        passwordResetForm: passwordResetForm
+      });
     }
 
     const email = passwordResetForm.data.email;
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!user) {
-      return { success: true, passwordResetForm };
+      return {
+        success: true,
+        throttled: false,
+        passowrdResetForm: passwordResetForm
+      };
+    }
+
+    if (!(await bucket.check({ key: email, cost: 1 }))) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        passwordResetForm: passwordResetForm
+      });
     }
 
     const verificationToken = await createPasswordResetToken({ userId: user.id });
     const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });
-    return { success: true, passwordResetForm };
+    return { success: true, throttled: false, passwordResetForm: passwordResetForm };
   }
 };
 

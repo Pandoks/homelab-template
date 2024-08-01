@@ -20,6 +20,8 @@
         <p class="text-balance text-muted-foreground">Enter your email to reset your password</p>
         {#if form && form.success && !formInteracted}
           <p class="text-green-600">Password reset instructions sent to email!</p>
+        {:else if form && !form.success && !formInteracted && form.throttled}
+          <p class="text-balance text-red-600">Too Many Requests. Try Later.</p>
         {/if}
       </div>
 
