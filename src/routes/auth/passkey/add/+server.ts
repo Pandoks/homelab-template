@@ -1,8 +1,3 @@
-import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { passkeyRegistrationSchema } from '../schema';
-import { base64url } from 'oslo/encoding';
 import {
   AttestationStatementFormat,
   ClientDataType,
@@ -17,6 +12,11 @@ import {
   verifyChallenge,
   verifyClientData
 } from '$lib/auth/passkey/utils';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
+import { error, json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { passkeyRegistrationSchema } from '../schema';
+import { base64url } from 'oslo/encoding';
 import { db } from '$lib/db/postgres';
 import { passkeys } from '$lib/db/postgres/schema/auth';
 

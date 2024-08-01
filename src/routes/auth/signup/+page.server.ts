@@ -1,3 +1,17 @@
+import {
+  AttestationStatementFormat,
+  ClientDataType,
+  coseAlgorithmES256,
+  coseAlgorithmRS256,
+  parseAttestationObject,
+  parseClientDataJSON
+} from '@oslojs/webauthn';
+import {
+  getPublicKeyFromCredential,
+  verifyAuthenticatorData,
+  verifyChallenge,
+  verifyClientData
+} from '$lib/auth/passkey/utils';
 import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
@@ -11,21 +25,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
 import { emailVerifications, passkeys } from '$lib/db/postgres/schema/auth';
-import {
-  AttestationStatementFormat,
-  ClientDataType,
-  coseAlgorithmES256,
-  coseAlgorithmRS256,
-  parseAttestationObject,
-  parseClientDataJSON
-} from '@oslojs/webauthn';
 import { base64url } from 'oslo/encoding';
-import {
-  getPublicKeyFromCredential,
-  verifyAuthenticatorData,
-  verifyChallenge,
-  verifyClientData
-} from '$lib/auth/passkey/utils';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
 import type { RedisClientType } from 'redis';

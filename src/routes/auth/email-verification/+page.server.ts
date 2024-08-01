@@ -1,14 +1,14 @@
+import {
+  generateEmailVerification,
+  sendVerification,
+  verifyVerificationCode
+} from '$lib/auth/server/email';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { lucia } from '$lib/auth/server';
 import { db } from '$lib/db/postgres';
 import { users } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
-import {
-  generateEmailVerification,
-  sendVerification,
-  verifyVerificationCode
-} from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
