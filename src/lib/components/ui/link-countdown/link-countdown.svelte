@@ -29,7 +29,6 @@
 </script>
 
 <form {method} {action} class={className} {...$$restProps} use:enhance on:submit={handleSubmit}>
-  Didn&apos;t get a code?
   {#if sent}
     {time}
   {:else}

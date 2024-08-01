@@ -11,9 +11,18 @@
 
   $: if (form) {
     formInteracted = false;
+    resendLimited = form.limited || false;
+    if (resendLimited) {
+      clearTimeout(resendTimeout);
+      resendTimeout = setTimeout(() => {
+        resendLimited = false;
+      }, 25000); // get rid of limit errors after 25 seconds
+    }
   }
 
   let formInteracted = false;
+  let resendLimited = false;
+  let resendTimeout: NodeJS.Timeout;
 </script>
 
 <div class="w-full h-screen">
@@ -32,9 +41,16 @@
         data={data.emailVerificationForm}
       />
 
-      <LinkCountdown class="text-center text-sm" method="POST" action="?/resend">
-        Resend
-      </LinkCountdown>
+      <div>
+        {#if form && form.limited}
+          <p class="text-red-600">Too many requests. Try later.</p>
+        {:else}
+          Didn&apos;t get a code?
+          <LinkCountdown class="text-center text-sm" method="POST" action="?/resend">
+            Resend
+          </LinkCountdown>
+        {/if}
+      </div>
     </div>
   </div>
 </div>

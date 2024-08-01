@@ -26,7 +26,7 @@ const verificationBucket = new FixedRefillTokenBucketLimiter({
 const resendBucket = new FixedRefillTokenBucketLimiter({
   name: 'email-resend',
   max: 5,
-  refillIntervalSeconds: 60 * 30, // 30 minutes
+  refillIntervalSeconds: 60, // 1 minute
   storage: redis.main as RedisClientType
 });
 
@@ -101,13 +101,15 @@ export const actions: Actions = {
     const user = event.locals.user;
     if (!user || user.isEmailVerified) {
       return fail(400, {
-        success: false
+        success: false,
+        limited: false
       });
     }
 
     if (!(await resendBucket.check({ key: user.id, cost: 1 }))) {
       return fail(429, {
-        success: false
+        success: false,
+        limited: true
       });
     }
     const verificationCode = await generateEmailVerification({
@@ -117,7 +119,8 @@ export const actions: Actions = {
     await sendVerification({ email: user.email, code: verificationCode });
 
     return {
-      success: true
+      success: true,
+      limited: false
     };
   }
 };

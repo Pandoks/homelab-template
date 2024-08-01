@@ -19,7 +19,11 @@
         <h1 class="text-3xl font-bold">2 Factor Recovery</h1>
         <p class="text-balance text-muted-foreground">Enter your recovery code</p>
         {#if form && !form.success && !formInteracted}
-          <p class="text-balance text-red-600">Invalid Code</p>
+          {#if form.throttled}
+            <p class="text-balance text-red-600">Too Many Attempts. Try Later.</p>
+          {:else}
+            <p class="text-balance text-red-600">Invalid Code</p>
+          {/if}
         {/if}
       </div>
 
