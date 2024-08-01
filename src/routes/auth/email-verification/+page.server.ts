@@ -13,6 +13,22 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
 import type { Session, User } from 'lucia';
+import { FixedRefillTokenBucketLimiter } from '$lib/rate-limit/server';
+import { redis } from '$lib/db/redis';
+import type { RedisClientType } from 'redis';
+
+const verificationBucket = new FixedRefillTokenBucketLimiter({
+  name: 'email-verification',
+  max: 5,
+  refillIntervalSeconds: 60 * 30, // 30 minutes
+  storage: redis.main as RedisClientType
+});
+const resendBucket = new FixedRefillTokenBucketLimiter({
+  name: 'email-resend',
+  max: 5,
+  refillIntervalSeconds: 60 * 30, // 30 minutes
+  storage: redis.main as RedisClientType
+});
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {
@@ -31,6 +47,14 @@ export const actions: Actions = {
       return fail(400, {
         success: false,
         message: 'Invalid code',
+        emailVerificationForm
+      });
+    }
+
+    if (!(await verificationBucket.check({ key: user.id, cost: 1 }))) {
+      return fail(429, {
+        success: false,
+        message: 'Too many attempts. Try again later.',
         emailVerificationForm
       });
     }
@@ -81,6 +105,11 @@ export const actions: Actions = {
       });
     }
 
+    if (!(await resendBucket.check({ key: user.id, cost: 1 }))) {
+      return fail(429, {
+        success: false
+      });
+    }
     const verificationCode = await generateEmailVerification({
       userId: user.id,
       email: user.email
