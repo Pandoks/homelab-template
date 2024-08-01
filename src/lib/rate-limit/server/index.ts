@@ -197,7 +197,7 @@ export class Throttler {
     if (timeDifference >= this.cutoffMilli) {
       switch (this.resetType) {
         case 'instant':
-          this.reset(key);
+          await this.reset(key);
           break;
 
         case 'gradual':
@@ -210,7 +210,7 @@ export class Throttler {
 
           while (increments > 0) {
             if (graceCounter === this.grace && timeoutIndex === 0) {
-              this.reset(key);
+              await this.reset(key);
               return;
             }
 
@@ -220,7 +220,7 @@ export class Throttler {
                 graceCounter += increments;
                 increments = 0;
               } else {
-                this.reset(key);
+                await this.reset(key);
                 return;
               }
             } else {

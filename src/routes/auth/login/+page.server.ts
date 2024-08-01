@@ -84,7 +84,7 @@ export const actions: Actions = {
       });
     }
 
-    throttler.reset(throttleKey);
+    await throttler.reset(throttleKey);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
@@ -161,7 +161,7 @@ export const actions: Actions = {
       });
     }
 
-    throttler.reset(throttleKey);
+    await throttler.reset(throttleKey);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: true

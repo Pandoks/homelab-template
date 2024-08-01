@@ -85,6 +85,7 @@ export const actions: Actions = {
       });
     }
 
+    await verificationBucket.reset(user.id);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: event.locals.session.isPasskeyVerified
@@ -118,6 +119,7 @@ export const actions: Actions = {
     });
     await sendVerification({ email: user.email, code: verificationCode });
 
+    await resendBucket.reset(user.id);
     return {
       success: true,
       limited: false
