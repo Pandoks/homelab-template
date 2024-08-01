@@ -22,7 +22,11 @@
           Enter your credentials to login to your account
         </p>
         {#if form && !form.success && !formInteracted}
-          <p class="text-balance text-red-600">Invalid Credentials</p>
+          {#if form.throttled}
+            <p class="text-balance text-red-600">Too Many Attempts. Try Later.</p>
+          {:else}
+            <p class="text-balance text-red-600">Invalid Credentials</p>
+          {/if}
         {/if}
       </div>
 

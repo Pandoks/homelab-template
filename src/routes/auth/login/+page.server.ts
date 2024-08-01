@@ -10,6 +10,18 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
 import { verifyPasskey } from '$lib/auth/passkey/server';
+import { Throttler } from '$lib/rate-limit/server';
+import { redis } from '$lib/db/redis';
+import type { RedisClientType } from 'redis';
+
+const throttler = new Throttler({
+  name: 'login-throttle',
+  storage: redis.main as RedisClientType,
+  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+  resetType: 'instant',
+  cutoffMilli: 24 * 60 * 60 * 1000,
+  grace: 5
+});
 
 export const actions: Actions = {
   login: async (event) => {
@@ -19,6 +31,7 @@ export const actions: Actions = {
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
+        throttled: false,
         loginForm
       });
     }
@@ -46,13 +59,32 @@ export const actions: Actions = {
       });
     }
     // NOTE: don't return incorrect user before hashing the password as it gives information to hackers
-    if (!user || !validPassword) {
+    if (!user) {
       return fail(400, {
         success: false,
+        throttled: false,
         loginForm
       });
     }
 
+    const ipAddress = event.getClientAddress();
+    const throttleKey = `${user.id}:${ipAddress}`;
+    if (!(await throttler.check(throttleKey))) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        loginForm
+      });
+    } else if (!validPassword) {
+      throttler.increment(throttleKey);
+      return fail(400, {
+        success: false,
+        throttled: false,
+        loginForm
+      });
+    }
+
+    throttler.reset(throttleKey);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
@@ -78,6 +110,7 @@ export const actions: Actions = {
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
+        throttled: false,
         loginForm
       });
     }
@@ -97,6 +130,7 @@ export const actions: Actions = {
     if (!user) {
       return fail(400, {
         success: false,
+        throttled: false,
         loginForm
       });
     }
@@ -109,13 +143,25 @@ export const actions: Actions = {
       encodedAuthenticatorData: loginForm.data.encodedAuthenticatorData,
       clientDataJSON: loginForm.data.clientDataJSON
     });
-    if (!isValidPasskey) {
+
+    const ipAddress = event.getClientAddress();
+    const throttleKey = `${user.id}:${ipAddress}`;
+    if (!(await throttler.check(throttleKey))) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        loginForm
+      });
+    } else if (!isValidPasskey) {
+      throttler.increment(throttleKey);
       return fail(400, {
         success: false,
+        throttled: false,
         loginForm
       });
     }
 
+    throttler.reset(throttleKey);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: true
