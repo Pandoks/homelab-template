@@ -6,23 +6,23 @@ import {
   parseAuthenticatorData,
   parseClientDataJSON
 } from '@oslojs/webauthn';
-import { base64url } from 'oslo/encoding';
-import { verifyAuthenticatorData, verifyChallenge, verifyClientData } from '../utils';
-import { db } from '$lib/db/postgres';
-import { passkeys } from '$lib/db/postgres/schema/auth';
-import { and, eq } from 'drizzle-orm';
 import {
   decodePKIXECDSASignature,
   decodeSEC1PublicKey,
   p256,
   verifyECDSASignature
 } from '@oslojs/crypto/ecdsa';
-import { sha256 } from '@oslojs/crypto/sha2';
 import {
   decodePKCS1RSAPublicKey,
   sha256ObjectIdentifier,
   verifyRSASSAPKCS1v15Signature
 } from '@oslojs/crypto/rsa';
+import { base64url } from 'oslo/encoding';
+import { verifyAuthenticatorData, verifyChallenge, verifyClientData } from '../utils';
+import { db } from '$lib/db/postgres';
+import { passkeys } from '$lib/db/postgres/schema/auth';
+import { and, eq } from 'drizzle-orm';
+import { sha256 } from '@oslojs/crypto/sha2';
 
 export const verifyPasskey = async ({
   userId,
