@@ -151,6 +151,15 @@ export const actions: Actions = {
       });
     }
 
+    const ipAddress = event.getClientAddress();
+    if (!(await bucket.check({ key: ipAddress, cost: 1 }))) {
+      return fail(429, {
+        success: false,
+        message: 'Signing Up Too Many Times. Try Later',
+        signupForm
+      });
+    }
+
     const { attestationStatement, authenticatorData } = parseAttestationObject(
       base64url.decode(signupForm.data.attestationObject)
     );
