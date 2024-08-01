@@ -71,6 +71,7 @@ export const actions: Actions = {
       .set({ twoFactorSecret: null, twoFactorRecoveryHash: null, hasTwoFactor: false })
       .where(eq(users.id, user.id));
 
+    throttler.reset(throttleKey);
     await lucia.invalidateUserSessions(user.id);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,

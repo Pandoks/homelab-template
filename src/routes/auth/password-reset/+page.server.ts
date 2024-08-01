@@ -49,6 +49,7 @@ export const actions: Actions = {
       });
     }
 
+    await bucket.reset(email);
     const verificationToken = await createPasswordResetToken({ userId: user.id });
     const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;
 

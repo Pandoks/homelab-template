@@ -9,6 +9,18 @@ import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
+import { redis } from '$lib/db/redis';
+import type { RedisClientType } from 'redis';
+import { Throttler } from '$lib/rate-limit/server';
+
+const throttler = new Throttler({
+  name: '2fa-otp',
+  storage: redis.main as RedisClientType,
+  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+  resetType: 'instant',
+  cutoffMilli: 24 * 60 * 60 * 1000,
+  grace: 5
+});
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -16,6 +28,7 @@ export const actions: Actions = {
     if (!otpForm.valid) {
       return fail(400, {
         success: false,
+        throttled: false,
         otpForm
       });
     }
@@ -25,13 +38,25 @@ export const actions: Actions = {
     if (!user || !session) {
       return fail(400, {
         success: false,
+        throttled: false,
         otpForm
       });
     }
+
+    const throttleKey = `${user.id}`;
+    if (!(await throttler.check(throttleKey))) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        otpForm
+      });
+    }
+
     const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
     if (!userInfo || !userInfo.twoFactorSecret) {
       return fail(400, {
         success: false,
+        throttled: false,
         otpForm
       });
     }
@@ -40,25 +65,28 @@ export const actions: Actions = {
       otpForm.data.otp,
       decodeHex(userInfo.twoFactorSecret)
     );
-    if (validOTP) {
-      const session = await lucia.createSession(user.id, {
-        isTwoFactorVerified: true,
-        isPasskeyVerified: false
+    if (!validOTP) {
+      throttler.increment(throttleKey);
+      otpForm.errors.otp = ['Invalid code'];
+      return fail(400, {
+        success: false,
+        throttled: false,
+        otpForm
       });
-      const sessionCookie = lucia.createSessionCookie(session.id);
-      event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '/',
-        ...sessionCookie.attributes
-      });
-
-      return redirect(302, '/');
     }
 
-    otpForm.errors.otp = ['Invalid code'];
-    return fail(400, {
-      success: false,
-      otpForm
+    await throttler.reset(throttleKey);
+    const newSession = await lucia.createSession(user.id, {
+      isTwoFactorVerified: true,
+      isPasskeyVerified: false
     });
+    const sessionCookie = lucia.createSessionCookie(newSession.id);
+    event.cookies.set(sessionCookie.name, sessionCookie.value, {
+      path: '/',
+      ...sessionCookie.attributes
+    });
+
+    return redirect(302, '/');
   }
 };
 
