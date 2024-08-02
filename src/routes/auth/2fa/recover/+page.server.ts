@@ -24,6 +24,16 @@ const throttler = new Throttler({
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {
+    const existingSession = event.locals.session;
+    const user = event.locals.user;
+    if (!existingSession || !user) {
+      return redirect(302, '/auth/login');
+    } else if (existingSession.isTwoFactorVerified || !user.hasTwoFactor) {
+      return redirect(302, '/');
+    } else if (!user.isEmailVerified) {
+      return redirect(302, '/auth/email-verification');
+    }
+
     const recoveryForm = await superValidate(event, zod(twoFactorRecoverySchema));
     if (!recoveryForm.valid) {
       return fail(400, {
@@ -31,11 +41,6 @@ export const actions: Actions = {
         throttled: false,
         recoveryForm
       });
-    }
-
-    const user = event.locals.user;
-    if (!user || !user.hasTwoFactor) {
-      return redirect(302, '/');
     }
 
     const ipAddress = event.getClientAddress();

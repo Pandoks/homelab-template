@@ -15,8 +15,15 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 export const actions: Actions = {
   'new-password': async (event) => {
+    handleAlreadyLoggedIn(event);
     const newPasswordForm = await superValidate(event, zod(newPasswordSchema));
-    if (!newPasswordForm.valid) {
+    if (event.locals.session) {
+      return fail(400, {
+        success: false,
+        message: 'You are already logged in.',
+        newPasswordForm
+      });
+    } else if (!newPasswordForm.valid) {
       return fail(400, {
         success: false,
         message: '',

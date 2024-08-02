@@ -40,6 +40,9 @@ const bucket = new ConstantRefillTokenBucketLimiter({
 export const actions: Actions = {
   signup: async (event) => {
     handleAlreadyLoggedIn(event);
+    if (event.locals.session) {
+      return redirect(302, '/');
+    }
 
     const signupForm = await superValidate(event, zod(signupSchema));
     if (!signupForm.valid) {
@@ -141,6 +144,9 @@ export const actions: Actions = {
   },
   'signup-passkey': async (event) => {
     handleAlreadyLoggedIn(event);
+    if (event.locals.session) {
+      return redirect(302, '/');
+    }
 
     const signupForm = await superValidate(event, zod(signupPasskeySchema));
     if (!signupForm.valid) {
@@ -263,7 +269,7 @@ export const load: PageServerLoad = async (event) => {
       return redirect(302, '/');
     }
 
-    // not email verified delete account if signing up again
+    // not email verified: delete account if signing up again
     await lucia.invalidateSession(session.id);
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

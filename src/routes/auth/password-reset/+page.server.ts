@@ -22,6 +22,11 @@ const bucket = new ConstantRefillTokenBucketLimiter({
 
 export const actions: Actions = {
   'password-reset': async (event) => {
+    handleAlreadyLoggedIn(event);
+    if (event.locals.session) {
+      return redirect(302, '/');
+    }
+
     const passwordResetForm = await superValidate(event, zod(passwordResetSchema));
     if (!passwordResetForm.valid) {
       return fail(400, {

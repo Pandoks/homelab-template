@@ -12,7 +12,6 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
-import type { Session, User } from 'lucia';
 import { FixedRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
 import type { RedisClientType } from 'redis';
@@ -32,18 +31,21 @@ const resendBucket = new FixedRefillTokenBucketLimiter({
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {
-    const emailVerificationForm = await superValidate(event, zod(verificationSchema));
-    if (!emailVerificationForm.valid) {
-      return fail(400, {
-        success: false,
-        message: 'Invalid code',
-        emailVerificationForm
-      });
+    // Don't use handleLoggedIn as we're verifying emails now
+    const existingSession = event.locals.session;
+    const user = event.locals.user;
+    if (existingSession && user) {
+      if (!existingSession.isTwoFactorVerified && user.hasTwoFactor) {
+        return redirect(302, '/auth/2fa/otp');
+      } else if (user.isEmailVerified) {
+        return redirect(302, '/');
+      }
+    } else {
+      return redirect(302, '/auth/login');
     }
 
-    const user = event.locals.user;
-    if (!user || !event.locals.session) {
-      emailVerificationForm.errors.code = ['Invalid'];
+    const emailVerificationForm = await superValidate(event, zod(verificationSchema));
+    if (!emailVerificationForm.valid) {
       return fail(400, {
         success: false,
         message: 'Invalid code',
@@ -88,7 +90,7 @@ export const actions: Actions = {
     await verificationBucket.reset(user.id);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
-      isPasskeyVerified: event.locals.session.isPasskeyVerified
+      isPasskeyVerified: existingSession.isPasskeyVerified
     });
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
@@ -99,12 +101,17 @@ export const actions: Actions = {
     redirect(302, '/');
   },
   resend: async (event) => {
+    // Don't use handleLoggedIn as we're verifying emails now
+    const existingSession = event.locals.session;
     const user = event.locals.user;
-    if (!user || user.isEmailVerified) {
-      return fail(400, {
-        success: false,
-        limited: false
-      });
+    if (existingSession && user) {
+      if (!existingSession.isTwoFactorVerified && user.hasTwoFactor) {
+        return redirect(302, '/auth/2fa/otp');
+      } else if (user.isEmailVerified) {
+        return redirect(302, '/');
+      }
+    } else {
+      return redirect(302, '/auth/login');
     }
 
     if (!(await resendBucket.check({ key: user.id, cost: 1 }))) {
@@ -129,10 +136,10 @@ export const actions: Actions = {
 
 export const load: PageServerLoad = async (event) => {
   // Don't use handleLoggedIn as we're verifying emails now
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
+  const session = event.locals.session;
+  const user = event.locals.user;
   if (session && user) {
-    if (!session.isTwoFactorVerified && user!.hasTwoFactor) {
+    if (!session.isTwoFactorVerified && user.hasTwoFactor) {
       return redirect(302, '/auth/2fa/otp');
     } else if (user.isEmailVerified) {
       return redirect(302, '/');

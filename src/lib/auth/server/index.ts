@@ -1,4 +1,4 @@
-import { Lucia, type Session, type User } from 'lucia';
+import { Lucia } from 'lucia';
 import { dev } from '$app/environment';
 import { db } from '$lib/db/postgres';
 import { users } from '$lib/db/postgres/schema';
@@ -56,8 +56,8 @@ interface DatabaseSessionAttributes {
 }
 
 export const handleAlreadyLoggedIn = (event: ServerLoadEvent | RequestEvent): void => {
-  const session: Session | null = event.locals.session;
-  const user: User | null = event.locals.user;
+  const session = event.locals.session;
+  const user = event.locals.user;
   if (session && user) {
     if (user.hasTwoFactor && !session.isTwoFactorVerified && !session.isPasskeyVerified) {
       return redirect(302, '/auth/2fa/otp');

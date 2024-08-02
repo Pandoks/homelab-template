@@ -29,15 +29,14 @@ export const POST: RequestHandler = async (event) => {
     return error(401);
   }
 
-  const passkeyRegistration = await event.request.json();
-  if (!passkeyRegistrationSchema.safeParse(passkeyRegistration).success) {
+  let passkeyRegistrationJSON = await event.request.json();
+  const parseResult = passkeyRegistrationSchema.safeParse(passkeyRegistrationJSON);
+  if (!parseResult.success) {
     return error(415);
   }
+  const data = parseResult.data;
 
-  const id = passkeyRegistration.id;
-  const name = passkeyRegistration.name;
-  const attestationObject = base64url.decode(passkeyRegistration.attestationObject);
-  const clientDataJSON = base64url.decode(passkeyRegistration.clientDataJSON);
+  const attestationObject = base64url.decode(data.attestationObject);
 
   const { attestationStatement, authenticatorData } = parseAttestationObject(attestationObject);
   if (attestationStatement.format !== AttestationStatementFormat.None) {
@@ -56,9 +55,10 @@ export const POST: RequestHandler = async (event) => {
     return error(406, { message: 'Unsupported algorithm' });
   }
 
+  const clientDataJSON = base64url.decode(data.clientDataJSON);
   const clientData = parseClientDataJSON(clientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Create });
-  await verifyChallenge({ id: id, challenge: clientData.challenge });
+  await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
 
   try {
     await db.insert(passkeys).values({
@@ -66,7 +66,7 @@ export const POST: RequestHandler = async (event) => {
       credentialId: base64url.encode(credential.id),
       algorithm: algorithm,
       encodedPublicKey: publicKey,
-      name: name
+      name: data.name
     });
   } catch (err) {
     // @ts-ignore

@@ -12,9 +12,12 @@ export const ssr = false;
 
 export const actions: Actions = {
   'activate-2fa': async (event) => {
+    handleAlreadyLoggedIn(event);
     const user = event.locals.user;
     if (!user) {
       return redirect(302, '/auth/login');
+    } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
+      return redirect(302, '/');
     }
 
     db.update(users)
@@ -35,9 +38,12 @@ export const actions: Actions = {
     return redirect(302, '/');
   },
   'generate-new': async (event) => {
+    handleAlreadyLoggedIn(event);
     const user = event.locals.user;
     if (!user) {
       return redirect(302, '/auth/login');
+    } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
+      return redirect(302, '/');
     }
 
     const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
@@ -59,7 +65,7 @@ export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');
-  } else if (event.locals.session?.isTwoFactorVerified) {
+  } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
     return redirect(302, '/');
   }
 

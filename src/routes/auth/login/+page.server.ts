@@ -26,6 +26,9 @@ const throttler = new Throttler({
 export const actions: Actions = {
   login: async (event) => {
     handleAlreadyLoggedIn(event);
+    if (event.locals.session) {
+      return redirect(302, '/');
+    }
 
     const loginForm = await superValidate(event, zod(loginSchema));
     if (!loginForm.valid) {
@@ -105,6 +108,9 @@ export const actions: Actions = {
   },
   'login-passkey': async (event) => {
     handleAlreadyLoggedIn(event);
+    if (event.locals.session) {
+      return redirect(302, '/');
+    }
 
     const loginForm = await superValidate(event, zod(loginPasskeySchema));
     if (!loginForm.valid) {

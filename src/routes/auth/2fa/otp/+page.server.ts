@@ -24,18 +24,16 @@ const throttler = new Throttler({
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
-    const otpForm = await superValidate(event, zod(oneTimePasswordSchema));
-    if (!otpForm.valid) {
-      return fail(400, {
-        success: false,
-        throttled: false,
-        otpForm
-      });
+    const session = event.locals.session;
+    const user = event.locals.user;
+    if (!session || !user) {
+      return redirect(302, '/auth/login');
+    } else if (!user.hasTwoFactor || (user.hasTwoFactor && session.isTwoFactorVerified)) {
+      return redirect(302, '/');
     }
 
-    const user = event.locals.user;
-    const session = event.locals.session;
-    if (!user || !session) {
+    const otpForm = await superValidate(event, zod(oneTimePasswordSchema));
+    if (!otpForm.valid) {
       return fail(400, {
         success: false,
         throttled: false,

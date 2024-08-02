@@ -11,24 +11,23 @@ import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
-import { TimeSpan, type User } from 'lucia';
+import { TimeSpan } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
-    const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
-    if (!otpForm.valid) {
-      return fail(400, {
-        success: false,
-        message: 'Invalid otp code',
-        otpForm
-      });
+    handleAlreadyLoggedIn(event);
+    const user = event.locals.user;
+    if (!user) {
+      return redirect(302, '/auth/login');
+    } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
+      return redirect(302, '/');
     }
 
-    const user: User | null = event.locals.user;
-    if (!user) {
+    const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
+    if (!otpForm.valid) {
       return fail(400, {
         success: false,
         message: 'Invalid otp code',
@@ -69,7 +68,7 @@ export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
   if (!user) {
     return redirect(302, '/auth/login');
-  } else if (event.locals.session?.isTwoFactorVerified) {
+  } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
     return redirect(302, '/');
   }
 
