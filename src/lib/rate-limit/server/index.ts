@@ -35,7 +35,7 @@ export class ConstantRefillTokenBucketLimiter {
     const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
-    if (!bucket) {
+    if (!Object.keys(bucket).length) {
       const newBucket: Bucket<number> = {
         count: this.max - cost,
         refilledAt: now
@@ -47,27 +47,24 @@ export class ConstantRefillTokenBucketLimiter {
     let count = parseInt(bucket.count);
     const refilledAt = parseInt(bucket.refilledAt);
     const refillAmount = Math.floor((now - refilledAt) / (this.refillIntervalSeconds * 1000)); // Time ellapsed over refill interval
-
-    if (count < cost) {
-      if (refillAmount > 0) {
-        count = Math.min(count + refillAmount, this.max);
-        const updatedBucket: Bucket<number> = {
-          count: count,
-          refilledAt: now
-        };
-        await this.storage.hSet(redisQuery, updatedBucket);
-      }
-      return false;
-    }
-
     if (refillAmount > 0) {
       count = Math.min(count + refillAmount, this.max);
+    }
+
+    if (count < cost) {
       const updatedBucket: Bucket<number> = {
-        count: count - cost,
+        count: count,
         refilledAt: now
       };
       await this.storage.hSet(redisQuery, updatedBucket);
+      return false;
     }
+
+    const updatedBucket: Bucket<number> = {
+      count: count - cost,
+      refilledAt: now
+    };
+    await this.storage.hSet(redisQuery, updatedBucket);
     return true;
   }
 
@@ -325,20 +322,14 @@ export class FixedRefillTokenBucketLimiter {
   }
 }
 
-type Bucket<T> =
-  | {
-      count: T;
-      refilledAt: T;
-    }
-  | null
-  | undefined;
+type Bucket<T> = {
+  count: T;
+  refilledAt: T;
+};
 
-type ThrottlingCounter<T> =
-  | {
-      timeoutIndex: T;
-      graceCounter: T;
-      updatedAt: T;
-      checkedAt?: T;
-    }
-  | null
-  | undefined;
+type ThrottlingCounter<T> = {
+  timeoutIndex: T;
+  graceCounter: T;
+  updatedAt: T;
+  checkedAt?: T;
+};
