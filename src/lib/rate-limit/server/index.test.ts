@@ -1,6 +1,6 @@
 import { type RedisClientType } from 'redis';
 import { vi, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { ConstantRefillTokenBucketLimiter } from '.';
+import { ConstantRefillTokenBucketLimiter, Throttler } from '.';
 import { redis } from '$lib/db/redis';
 
 describe('ConstantRefillTokenBucketLimiter', () => {
@@ -34,8 +34,7 @@ describe('ConstantRefillTokenBucketLimiter', () => {
   it('should block requests that exceed the limit', async () => {
     const results = [];
     for (let i = 0; i < 8; i++) {
-      const check = await limiter.check({ key: 'user', cost: 1 });
-      results.push(check);
+      results.push(await limiter.check({ key: 'user', cost: 1 }));
     }
 
     expect(results).toEqual([true, true, true, true, true, false, false, false]);
@@ -98,5 +97,274 @@ describe('ConstantRefillTokenBucketLimiter', () => {
     }
 
     expect(results2).toEqual([true, true, true, true, true, false, false, false]);
+  });
+});
+
+describe('Throttler', () => {
+  let redisClient: RedisClientType;
+  let throttler: Throttler;
+
+  afterEach(async () => {
+    await redisClient.flushAll();
+  });
+
+  describe('default cutoff mode (none)', () => {
+    beforeAll(async () => {
+      redisClient = redis.test as RedisClientType;
+      throttler = new Throttler({
+        name: 'test-throttler',
+        storage: redisClient,
+        timeoutSeconds: [1, 2, 4, 8, 16],
+        grace: 3
+      });
+    });
+
+    describe('check', () => {
+      it('should return true if there are no increments', async () => {
+        const results = [];
+        for (let i = 0; i < 10; i++) {
+          results.push(await throttler.check('user'));
+        }
+
+        expect(results).toEqual([true, true, true, true, true, true, true, true, true, true]);
+      });
+
+      it('should respect grace counter', async () => {
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+        await throttler.increment('user');
+        const result2 = await throttler.check('user');
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+
+        expect(result1).toBeTruthy();
+        expect(result2).toBeFalsy();
+        expect(result3).toBeFalsy();
+      });
+
+      it('should respect the timeout', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 3 * 1000);
+        const result1 = await throttler.check('user');
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 30 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+      });
+    });
+
+    describe('increment', () => {
+      it('should not increment over limit', async () => {
+        for (let i = 0; i < 100; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+      });
+
+      it('should not reset over time', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 100 * 24 * 60 * 60 * 1000);
+
+        const result = await throttler.check('user');
+
+        expect(result).toBeTruthy();
+      });
+    });
+
+    describe('reset', () => {
+      it('should reset with grace', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+
+        await throttler.reset('user');
+        const result2 = await throttler.check('user');
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+        expect(result3).toBeTruthy();
+      });
+    });
+  });
+
+  describe('gradual cutoff mode', () => {
+    beforeAll(async () => {
+      redisClient = redis.test as RedisClientType;
+      throttler = new Throttler({
+        name: 'test-throttler',
+        storage: redisClient,
+        timeoutSeconds: [1, 2, 4, 8, 16],
+        resetType: 'gradual',
+        cutoffSeconds: 30,
+        grace: 3
+      });
+    });
+
+    describe('check', () => {
+      it('should return true if there are no increments', async () => {
+        const results = [];
+        for (let i = 0; i < 10; i++) {
+          results.push(await throttler.check('user'));
+        }
+
+        expect(results).toEqual([true, true, true, true, true, true, true, true, true, true]);
+      });
+
+      it('should respect grace counter', async () => {
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+        await throttler.increment('user');
+        const result2 = await throttler.check('user');
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+
+        expect(result1).toBeTruthy();
+        expect(result2).toBeFalsy();
+        expect(result3).toBeFalsy();
+      });
+
+      it('should respect the timeout', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 3 * 1000);
+        const result1 = await throttler.check('user');
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+      });
+
+      it('should gradually decrease timeout', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+
+        let now = Date.now();
+        now += 16 * 1000; // maximum timout
+        vi.spyOn(Date, 'now').mockImplementation(() => now);
+        const result2 = await throttler.check('user');
+
+        now += 14 * 1000; // wait for decrement at 30 seconds
+        vi.spyOn(Date, 'now').mockImplementation(() => now);
+        const result3 = await throttler.check('user');
+        console.log(result3);
+
+        now += 1000;
+        vi.spyOn(Date, 'now').mockImplementation(() => now);
+        const result4 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+        expect(result3).toBeTruthy();
+        expect(result4).toBeFalsy();
+      });
+    });
+
+    describe('increment', () => {
+      it('should not increment over limit', async () => {
+        for (let i = 0; i < 100; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+      });
+
+      it('should slowly reset over time', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 100 * 24 * 60 * 60 * 1000);
+      });
+    });
+
+    describe('reset', () => {
+      it('should reset with grace', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+
+        await throttler.reset('user');
+        const result2 = await throttler.check('user');
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+
+        expect(result1).toBeFalsy();
+        expect(result2).toBeTruthy();
+        expect(result3).toBeTruthy();
+      });
+    });
+  });
+
+  describe('instant cutoff mode', () => {
+    beforeAll(async () => {
+      redisClient = redis.test as RedisClientType;
+      throttler = new Throttler({
+        name: 'test-throttler',
+        storage: redisClient,
+        timeoutSeconds: [1, 2, 4, 8, 16],
+        resetType: 'instant',
+        cutoffSeconds: 1,
+        grace: 3
+      });
+    });
+
+    describe('check', () => {});
+
+    describe('increment', () => {});
   });
 });
