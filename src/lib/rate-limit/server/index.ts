@@ -89,13 +89,12 @@ export class ConstantRefillTokenBucketLimiter {
  * Grace: how many times you increment before the throttling actually starts
  */
 export class Throttler {
-  public timeoutSeconds: number[];
-
   private name: string;
-  private resetType: 'gradual' | 'instant' | undefined;
-  private cutoffSeconds: number | undefined;
-  private grace: number | undefined;
   private storage: RedisClientType | RedisClusterType;
+  private timeoutSeconds: number[];
+  private resetType?: 'gradual' | 'instant';
+  private cutoffSeconds?: number;
+  private grace: number;
 
   constructor({
     name,
@@ -117,9 +116,9 @@ export class Throttler {
     this.timeoutSeconds = timeoutSeconds;
     this.resetType = resetType;
     if (cutoffSeconds && timeoutSeconds[timeoutSeconds.length - 1] < cutoffSeconds) {
-      throw new Error('Cutoff seconds needs to be longer than the longest time in timeout seconds')
+      throw new Error('Cutoff seconds needs to be longer than the longest time in timeout seconds');
     } else {
-    this.cutoffSeconds = cutoffSeconds; // 1 day
+      this.cutoffSeconds = cutoffSeconds;
     }
     this.grace = grace || 0;
   }
@@ -168,9 +167,12 @@ export class Throttler {
   }
 
   /**
-   * Run inside of increment because check should always work 
+   * Run inside of increment because check should always work if cutoff time is longer than the last
+   * element in timeout seconds
+   */
   private async cutoffReset(key: string): Promise<void> {
-    if (!this.resetType) {
+    // reset type will be paired with cut off seconds
+    if (!this.resetType || !this.cutoffSeconds) {
       return;
     }
 
