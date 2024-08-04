@@ -273,57 +273,59 @@ describe('Throttler', () => {
         expect(result1).toBeFalsy();
         expect(result2).toBeTruthy();
       });
-
-      it('should gradually decrease timeout', async () => {
-        for (let i = 0; i < 8; i++) {
-          await throttler.increment('user');
-        }
-        const result1 = await throttler.check('user');
-
-        let now = Date.now();
-        now += 16 * 1000; // maximum timout
-        vi.spyOn(Date, 'now').mockImplementation(() => now);
-        const result2 = await throttler.check('user');
-
-        now += 14 * 1000; // wait for decrement at 30 seconds
-        vi.spyOn(Date, 'now').mockImplementation(() => now);
-        const result3 = await throttler.check('user');
-        console.log(result3);
-
-        now += 1000;
-        vi.spyOn(Date, 'now').mockImplementation(() => now);
-        const result4 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
-        expect(result2).toBeTruthy();
-        expect(result3).toBeTruthy();
-        expect(result4).toBeFalsy();
-      });
     });
 
     describe('increment', () => {
-      it('should not increment over limit', async () => {
-        for (let i = 0; i < 100; i++) {
-          await throttler.increment('user');
-        }
-
-        const result1 = await throttler.check('user');
-
-        const now = Date.now();
-        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
-        const result2 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
-        expect(result2).toBeTruthy();
-      });
-
-      it('should slowly reset over time', async () => {
+      it('should gradually decrease throttle over time', async () => {
         for (let i = 0; i < 8; i++) {
           await throttler.increment('user');
         }
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
-        const now = Date.now();
-        vi.spyOn(Date, 'now').mockImplementation(() => now + 100 * 24 * 60 * 60 * 1000);
+        let now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
+
+        // should decrement twice and then increment once
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 60 * 1000);
+        await throttler.increment('user');
+        const result3 = await throttler.check('user');
+        expect(result3).toBeFalsy();
+
+        // should be 8 seconds after the increment
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 60 * 1000 + 7 * 1000);
+        const result4 = await throttler.check('user');
+        expect(result4).toBeFalsy();
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 60 * 1000 + 8 * 1000);
+        const result5 = await throttler.check('user');
+        expect(result5).toBeTruthy();
+      });
+
+      it('should reset grace counters over time', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        let now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 2000 * 1000);
+        await throttler.increment('user');
+        const result3 = await throttler.check('user');
+        expect(result3).toBeTruthy();
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result4 = await throttler.check('user');
+        expect(result4).toBeFalsy();
       });
     });
 
@@ -358,7 +360,7 @@ describe('Throttler', () => {
         storage: redisClient,
         timeoutSeconds: [1, 2, 4, 8, 16],
         resetType: 'instant',
-        cutoffSeconds: 1,
+        cutoffSeconds: 30,
         grace: 3
       });
     });

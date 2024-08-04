@@ -115,7 +115,7 @@ export class Throttler {
     this.storage = storage;
     this.timeoutSeconds = timeoutSeconds;
     this.resetType = resetType;
-    if (cutoffSeconds && timeoutSeconds[timeoutSeconds.length - 1] < cutoffSeconds) {
+    if (cutoffSeconds && cutoffSeconds < timeoutSeconds[timeoutSeconds.length - 1]) {
       throw new Error('Cutoff seconds needs to be longer than the longest time in timeout seconds');
     } else {
       this.cutoffSeconds = cutoffSeconds;
@@ -198,99 +198,26 @@ export class Throttler {
       }
     }
 
+    let updatedCounter: ThrottlingCounter<number>;
     if (graceCounter > 0) {
-      // don't need to update time on updatedAt because it's grace anyways
-      this.storage.hSet(redisQuery, 'graceCounter', graceCounter - 1);
-      return;
+      updatedCounter = {
+        timeoutIndex: timeoutIndex,
+        graceCounter: graceCounter - 1,
+        updatedAt: now
+      };
     } else {
-      const updatedCounter: ThrottlingCounter<number> = {
+      updatedCounter = {
         timeoutIndex: Math.min(timeoutIndex + 1, this.timeoutSeconds.length - 1),
         graceCounter: graceCounter,
         updatedAt: now
       };
-      this.storage.hSet(redisQuery, updatedCounter);
     }
+    this.storage.hSet(redisQuery, updatedCounter);
   }
 
   public async reset(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
     await this.storage.del(redisQuery);
-  }
-
-  /**
-   * Run inside of increment because check should always work if cutoff time is longer than the last
-   * element in timeout seconds
-   */
-  private async cutoffReset(key: string): Promise<void> {
-    // reset type will be paired with cut off seconds
-    if (!this.resetType || !this.cutoffSeconds) {
-      return;
-    }
-
-    const redisQuery = `${this.name}:${key}`;
-    const now = Date.now();
-    const counter = (await this.storage.hGetAll(redisQuery)) as ThrottlingCounter<string>;
-    if (!Object.keys(counter).length) {
-      return;
-    }
-
-    const cutoffMilli = this.cutoffSeconds * 1000;
-    const timeDifference = now - parseInt(counter.updatedAt);
-    console.log('cuttoffReset timeDifference:', timeDifference);
-    if (timeDifference >= cutoffMilli) {
-      switch (this.resetType) {
-        case 'instant':
-          await this.reset(key);
-          break;
-
-        case 'gradual':
-          const increments = Math.floor(timeDifference / cutoffMilli);
-          console.log('increments:', increments);
-          if (!increments) {
-            return;
-          }
-          let graceCounter = parseInt(counter.graceCounter);
-          let timeoutIndex = parseInt(counter.timeoutIndex);
-
-          let i = increments;
-          while (i > 0) {
-            if (graceCounter === this.grace && timeoutIndex === 0) {
-              await this.reset(key);
-              return;
-            }
-
-            if (timeoutIndex === 0) {
-              const graceDifference = this.grace - graceCounter;
-              if (graceDifference >= i) {
-                graceCounter += i;
-                i = 0;
-              } else {
-                await this.reset(key);
-                return;
-              }
-            } else {
-              if (timeoutIndex >= i) {
-                timeoutIndex -= i;
-                i = 0;
-              } else {
-                i -= timeoutIndex;
-                timeoutIndex = 0;
-              }
-            }
-          }
-
-          const updatedCounter: ThrottlingCounter<number> = {
-            timeoutIndex: timeoutIndex,
-            graceCounter: graceCounter,
-            updatedAt: parseInt(counter.updatedAt)
-          };
-          this.storage.hSet(redisQuery, updatedCounter);
-          break;
-
-        default:
-          return;
-      }
-    }
   }
 }
 
