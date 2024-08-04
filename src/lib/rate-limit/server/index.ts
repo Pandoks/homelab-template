@@ -137,7 +137,6 @@ export class Throttler {
   }
 
   public async increment(key: string): Promise<void> {
-    await this.cutoffReset(key);
     const redisQuery = `${this.name}:${key}`;
     const counter = (await this.storage.hGetAll(redisQuery)) as ThrottlingCounter<string>;
     const now = Date.now();
@@ -148,13 +147,65 @@ export class Throttler {
         updatedAt: now
       };
       this.storage.hSet(redisQuery, newCounter);
-    } else if (parseInt(counter.graceCounter) > 0) {
+      return;
+    }
+
+    let graceCounter = parseInt(counter.graceCounter);
+    let timeoutIndex = parseInt(counter.timeoutIndex);
+
+    const timeDifference = now - parseInt(counter.updatedAt);
+    const cutoffMilli = this.cutoffSeconds ? this.cutoffSeconds * 1000 : null;
+    if (this.resetType && cutoffMilli && timeDifference >= cutoffMilli) {
+      const reset = () => {
+        graceCounter = this.grace;
+        timeoutIndex = 0;
+      };
+
+      switch (this.resetType) {
+        case 'instant':
+          reset();
+          break;
+
+        case 'gradual':
+          let increments = Math.floor(timeDifference / cutoffMilli);
+          if (!increments) {
+            break;
+          }
+
+          if (timeoutIndex && timeoutIndex >= increments) {
+            timeoutIndex -= increments;
+            break;
+          }
+
+          if (timeoutIndex && timeoutIndex < increments) {
+            increments -= timeoutIndex;
+            timeoutIndex = 0;
+          }
+
+          const graceDifference = this.grace - graceCounter;
+          if (!timeoutIndex && graceDifference >= increments) {
+            graceCounter += increments;
+            break;
+          }
+
+          if (!timeoutIndex && (graceCounter >= this.grace || graceDifference < increments)) {
+            reset();
+            break;
+          }
+
+        default:
+          break;
+      }
+    }
+
+    if (graceCounter > 0) {
       // don't need to update time on updatedAt because it's grace anyways
-      this.storage.hSet(redisQuery, 'graceCounter', parseInt(counter.graceCounter) - 1);
+      this.storage.hSet(redisQuery, 'graceCounter', graceCounter - 1);
+      return;
     } else {
       const updatedCounter: ThrottlingCounter<number> = {
-        timeoutIndex: Math.min(parseInt(counter.timeoutIndex + 1), this.timeoutSeconds.length - 1),
-        graceCounter: parseInt(counter.graceCounter),
+        timeoutIndex: Math.min(timeoutIndex + 1, this.timeoutSeconds.length - 1),
+        graceCounter: graceCounter,
         updatedAt: now
       };
       this.storage.hSet(redisQuery, updatedCounter);
