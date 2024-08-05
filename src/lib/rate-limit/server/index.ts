@@ -225,6 +225,7 @@ export class Throttler {
 /**
  * RATE LIMITER
  * After a certain period, the entire bucket is refilled with tokens
+ * Each token is a single check so the max is how many checks or usages you can do before the limit
  */
 export class FixedRefillTokenBucketLimiter {
   public max: number;

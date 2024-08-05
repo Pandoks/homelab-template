@@ -544,7 +544,6 @@ describe('FixedRefillTokenBucketLimiter', () => {
     const now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now + 1 * 1000);
 
-    console.log('-------------------');
     const laterResult = await limiter.check({ key: 'user', cost: 5 });
     expect(laterResult).toBeTruthy();
   });
