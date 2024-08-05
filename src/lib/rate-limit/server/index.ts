@@ -35,13 +35,15 @@ export class ConstantRefillTokenBucketLimiter {
     const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
-    if (!Object.keys(bucket).length) {
+    if (!Object.keys(bucket).length && cost <= this.max) {
       const newBucket: Bucket<number> = {
         count: this.max - cost,
         refilledAt: now
       };
       await this.storage.hSet(redisQuery, newBucket);
       return true;
+    } else if (cost > this.max) {
+      return false;
     }
 
     let count = parseInt(bucket.count);
@@ -253,39 +255,35 @@ export class FixedRefillTokenBucketLimiter {
     const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
-    if (!bucket) {
+    if (!Object.keys(bucket).length && cost <= this.max) {
       const newBucket: Bucket<number> = {
         count: this.max - cost,
         refilledAt: now
       };
       await this.storage.hSet(redisQuery, newBucket);
       return true;
-    }
-
-    const count = parseInt(bucket.count);
-    let refilled = false;
-    if (now - parseInt(bucket.refilledAt) >= this.refillIntervalSeconds * 1000) {
-      refilled = true;
-    }
-
-    if (count < cost) {
-      if (refilled) {
-        const updatedBucket: Bucket<number> = {
-          count: this.max,
-          refilledAt: now
-        };
-        this.storage.hSet(redisQuery, updatedBucket);
-      }
+    } else if (cost > this.max) {
       return false;
     }
 
-    if (refilled) {
-      const updatedBucket: Bucket<number> = {
+    const count = parseInt(bucket.count);
+    if (count < cost) {
+      return false;
+    }
+
+    let updatedBucket: Bucket<number>;
+    if (now - parseInt(bucket.refilledAt) >= this.refillIntervalSeconds * 1000) {
+      updatedBucket = {
         count: this.max - cost,
         refilledAt: now
       };
-      this.storage.hSet(redisQuery, updatedBucket);
+    } else {
+      updatedBucket = {
+        count: count - cost,
+        refilledAt: now
+      };
     }
+    this.storage.hSet(redisQuery, updatedBucket);
     return true;
   }
 

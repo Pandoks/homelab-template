@@ -1,6 +1,6 @@
 import { type RedisClientType } from 'redis';
 import { vi, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { ConstantRefillTokenBucketLimiter, Throttler } from '.';
+import { ConstantRefillTokenBucketLimiter, FixedRefillTokenBucketLimiter, Throttler } from '.';
 import { redis } from '$lib/db/redis';
 
 describe('ConstantRefillTokenBucketLimiter', () => {
@@ -97,6 +97,11 @@ describe('ConstantRefillTokenBucketLimiter', () => {
     }
 
     expect(results2).toEqual([true, true, true, true, true, false, false, false]);
+  });
+
+  it('should not accept cost exceeding max initially', async () => {
+    const result = await limiter.check({ key: 'user', cost: 100 });
+    expect(result).toBeFalsy();
   });
 });
 
@@ -501,5 +506,56 @@ describe('Throttler', () => {
         expect(result4).toBeFalsy();
       });
     });
+  });
+});
+
+describe('FixedRefillTokenBucketLimiter', () => {
+  let redisClient: RedisClientType;
+  let limiter: FixedRefillTokenBucketLimiter;
+
+  beforeAll(async () => {
+    redisClient = redis.test as RedisClientType;
+    limiter = new FixedRefillTokenBucketLimiter({
+      name: 'test-limiter',
+      max: 5,
+      refillIntervalSeconds: 1,
+      storage: redisClient
+    });
+  });
+
+  afterEach(async () => {
+    await redisClient.flushAll();
+  });
+
+  it('should allow requests within the limit', async () => {
+    const result1 = await limiter.check({ key: 'user', cost: 1 });
+    const result2 = await limiter.check({ key: 'user', cost: 1 });
+    const result3 = await limiter.check({ key: 'user', cost: 1 });
+
+    expect(result1).toBeTruthy();
+    expect(result2).toBeTruthy();
+    expect(result3).toBeTruthy();
+  });
+
+  it('should block requests that exceed the limit', async () => {
+    const results = [];
+    for (let i = 0; i < 8; i++) {
+      results.push(await limiter.check({ key: 'user', cost: 1 }));
+    }
+
+    expect(results).toEqual([true, true, true, true, true, false, false, false]);
+  });
+
+  it('should refill entire bucket after interval', async () => {
+    await limiter.check({ key: 'user', cost: 5 });
+    const initialResult = await limiter.check({ key: 'user', cost: 1 });
+    expect(initialResult).toBeFalsy();
+
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockImplementation(() => now + 1 * 1000);
+
+    console.log('before here');
+    const laterResult = await limiter.check({ key: 'user', cost: 4 });
+    expect(laterResult).toBeTruthy();
   });
 });
