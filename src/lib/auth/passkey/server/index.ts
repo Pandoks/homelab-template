@@ -60,7 +60,6 @@ export const verifyPasskey = async ({
     return false;
   }
 
-  let valid = false;
   try {
     if (passkeyInfo.algorithm === coseAlgorithmES256) {
       const ecdsaPublicKey = decodeSEC1PublicKey(
@@ -72,13 +71,15 @@ export const verifyPasskey = async ({
       );
       // Decode DER-encoded signature
       const ecdsaSignature = decodePKIXECDSASignature(decodedSignature);
-      valid = verifyECDSASignature(ecdsaPublicKey, hash, ecdsaSignature);
+
+      return verifyECDSASignature(ecdsaPublicKey, hash, ecdsaSignature);
     } else if (passkeyInfo.algorithm === coseAlgorithmRS256) {
       const rsaPublicKey = decodePKCS1RSAPublicKey(base64url.decode(passkeyInfo.encodedPublicKey));
       const hash = sha256(
         createAssertionSignatureMessage(decodedAuthenticatorData, decodedClientDataJSON)
       );
-      valid = verifyRSASSAPKCS1v15Signature(
+
+      return verifyRSASSAPKCS1v15Signature(
         rsaPublicKey,
         sha256ObjectIdentifier,
         hash,
@@ -91,10 +92,4 @@ export const verifyPasskey = async ({
     console.error(err);
     return false;
   }
-
-  if (!valid) {
-    return false;
-  }
-
-  return true;
 };

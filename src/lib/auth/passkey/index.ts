@@ -43,15 +43,15 @@ export const registerPasskey = async ({ username, name }: { username: string; na
       throw new Error('Unexpected error');
     }
 
-    const clientDataJSON: ArrayBuffer = response.clientDataJSON;
-    const attestationObject: ArrayBuffer = response.attestationObject;
     return {
       challengeId: challengeData.id as string,
-      clientDataJSON: base64url.encode(new Uint8Array(clientDataJSON)),
-      attestationObject: base64url.encode(new Uint8Array(attestationObject))
+      clientDataJSON: base64url.encode(new Uint8Array(response.clientDataJSON)),
+      attestationObject: base64url.encode(new Uint8Array(response.attestationObject))
     };
   } catch (err) {
     if (err instanceof DOMException) {
+      // They're all returning the same thing but this is templated so you can change behavior
+      // depending on what you want
       switch (err.name) {
         case 'NotAllowedError':
           // User cancelled the operation or it timed out
@@ -119,19 +119,17 @@ export const authenticatePasskey = async () => {
       throw new Error('Unexpected error');
     }
 
-    const credentialId: ArrayBuffer = credential.rawId;
-    const signature: ArrayBuffer = response.signature;
-    const authenticatorData: ArrayBuffer = response.authenticatorData;
-    const clientDataJSON: ArrayBuffer = response.clientDataJSON;
     return {
       id: challengeData.id as string,
-      credentialId: base64url.encode(new Uint8Array(credentialId)),
-      signature: base64url.encode(new Uint8Array(signature)),
-      authenticatorData: base64url.encode(new Uint8Array(authenticatorData)),
-      clientDataJSON: base64url.encode(new Uint8Array(clientDataJSON))
+      credentialId: base64url.encode(new Uint8Array(credential.rawId)),
+      signature: base64url.encode(new Uint8Array(response.signature)),
+      authenticatorData: base64url.encode(new Uint8Array(response.authenticatorData)),
+      clientDataJSON: base64url.encode(new Uint8Array(response.clientDataJSON))
     };
   } catch (err) {
     if (err instanceof DOMException) {
+      // They're all returning the same thing but this is templated so you can change behavior
+      // depending on what you want
       switch (err.name) {
         case 'NotAllowedError':
           // User cancelled the operation or it timed out

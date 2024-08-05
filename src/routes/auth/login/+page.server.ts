@@ -19,7 +19,7 @@ const throttler = new Throttler({
   storage: redis.main as RedisClientType,
   timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
   resetType: 'instant',
-  cutoffMilli: 24 * 60 * 60 * 1000,
+  cutoffSeconds: 24 * 60 * 60,
   grace: 5
 });
 
