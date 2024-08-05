@@ -267,22 +267,22 @@ export class FixedRefillTokenBucketLimiter {
     }
 
     const count = parseInt(bucket.count);
-    if (count < cost) {
-      return false;
-    }
-
     let updatedBucket: Bucket<number>;
-    if (now - parseInt(bucket.refilledAt) >= this.refillIntervalSeconds * 1000) {
+    const needsRefill = now - parseInt(bucket.refilledAt) >= this.refillIntervalSeconds * 1000;
+    if (needsRefill) {
       updatedBucket = {
         count: this.max - cost,
         refilledAt: now
       };
-    } else {
+    } else if (count >= cost) {
       updatedBucket = {
         count: count - cost,
         refilledAt: now
       };
+    } else {
+      return false;
     }
+
     this.storage.hSet(redisQuery, updatedBucket);
     return true;
   }

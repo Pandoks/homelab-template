@@ -1,3 +1,7 @@
+/**
+ * vi.spy(Date, 'now').mockImplementation(() => now + ...) is used to mimic time skip since
+ * the implementation uses Date.now() to detect time span
+ */
 import { type RedisClientType } from 'redis';
 import { vi, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConstantRefillTokenBucketLimiter, FixedRefillTokenBucketLimiter, Throttler } from '.';
@@ -554,8 +558,8 @@ describe('FixedRefillTokenBucketLimiter', () => {
     const now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now + 1 * 1000);
 
-    console.log('before here');
-    const laterResult = await limiter.check({ key: 'user', cost: 4 });
+    console.log('-------------------');
+    const laterResult = await limiter.check({ key: 'user', cost: 5 });
     expect(laterResult).toBeTruthy();
   });
 });
