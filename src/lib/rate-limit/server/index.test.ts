@@ -279,6 +279,21 @@ describe('Throttler', () => {
     });
 
     describe('increment', () => {
+      it('should not increment over limit', async () => {
+        for (let i = 0; i < 100; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result2).toBeTruthy();
+      });
+
       it('should gradually decrease throttle over time', async () => {
         for (let i = 0; i < 8; i++) {
           await throttler.increment('user');
@@ -378,8 +393,113 @@ describe('Throttler', () => {
       });
     });
 
-    describe('check', () => {});
+    describe('check', () => {
+      it('should return true if there are no increments', async () => {
+        const results = [];
+        for (let i = 0; i < 10; i++) {
+          results.push(await throttler.check('user'));
+        }
 
-    describe('increment', () => {});
+        expect(results).toEqual([true, true, true, true, true, true, true, true, true, true]);
+      });
+
+      it('should respect grace counter', async () => {
+        for (let i = 0; i < 2; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+        expect(result1).toBeTruthy();
+
+        await throttler.increment('user');
+        const result2 = await throttler.check('user');
+        expect(result2).toBeFalsy();
+
+        for (let i = 0; i < 3; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+
+        expect(result3).toBeFalsy();
+      });
+
+      it('should respect the timeout', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 3 * 1000);
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
+      });
+    });
+
+    describe('increment', () => {
+      it('should not increment over limit', async () => {
+        for (let i = 0; i < 100; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+
+        expect(result2).toBeTruthy();
+      });
+
+      it('should instantly reset over time', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        let now = Date.now();
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
+        const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 30 * 1000);
+        const result3 = await throttler.check('user');
+        expect(result3).toBeTruthy();
+
+        // in the grace
+        await throttler.increment('user');
+        const result4 = await throttler.check('user');
+        expect(result4).toBeTruthy();
+      });
+    });
+
+    describe('reset', () => {
+      it('should reset with grace', async () => {
+        for (let i = 0; i < 8; i++) {
+          await throttler.increment('user');
+        }
+
+        const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
+
+        await throttler.reset('user');
+        const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
+
+        for (let i = 0; i < 2; i++) {
+          await throttler.increment('user');
+        }
+        const result3 = await throttler.check('user');
+        expect(result3).toBeTruthy();
+
+        await throttler.increment('user');
+        const result4 = await throttler.check('user');
+        expect(result4).toBeFalsy();
+      });
+    });
   });
 });
