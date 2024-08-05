@@ -12,7 +12,10 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
-import { FixedRefillTokenBucketLimiter } from '$lib/rate-limit/server';
+import {
+  ConstantRefillTokenBucketLimiter,
+  FixedRefillTokenBucketLimiter
+} from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
 import type { RedisClientType } from 'redis';
 
@@ -22,7 +25,7 @@ const verificationBucket = new FixedRefillTokenBucketLimiter({
   refillIntervalSeconds: 60 * 30, // 30 minutes
   storage: redis.main as RedisClientType
 });
-const resendBucket = new FixedRefillTokenBucketLimiter({
+const resendBucket = new ConstantRefillTokenBucketLimiter({
   name: 'email-resend',
   max: 5,
   refillIntervalSeconds: 60, // 1 minute
@@ -88,6 +91,7 @@ export const actions: Actions = {
     }
 
     await verificationBucket.reset(user.id);
+    await resendBucket.reset(user.id);
     const session = await lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: existingSession.isPasskeyVerified
@@ -126,7 +130,6 @@ export const actions: Actions = {
     });
     await sendVerification({ email: user.email, code: verificationCode });
 
-    await resendBucket.reset(user.id);
     return {
       success: true,
       limited: false

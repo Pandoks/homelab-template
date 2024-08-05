@@ -6,8 +6,6 @@
   import type { ActionData, PageData } from './$types';
   import VerificationForm from './verification-form.svelte';
   import { errorShake } from '$lib/components/animation/function';
-  import { onMount } from 'svelte';
-  import { fly } from 'svelte/transition';
 
   export let data: PageData;
   export let form: ActionData;
