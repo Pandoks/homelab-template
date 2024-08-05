@@ -129,7 +129,6 @@ export class Throttler {
     if (!Object.keys(counter).length || parseInt(counter.graceCounter) > 0) {
       return true;
     }
-
     return (
       Date.now() - parseInt(counter.updatedAt) >=
       this.timeoutSeconds[parseInt(counter.timeoutIndex)] * 1000
@@ -143,7 +142,7 @@ export class Throttler {
     if (!Object.keys(counter).length) {
       const newCounter: ThrottlingCounter<number> = {
         timeoutIndex: 0, // first index of timeoutSeconds[]
-        graceCounter: this.grace,
+        graceCounter: this.grace - 1,
         updatedAt: now
       };
       this.storage.hSet(redisQuery, newCounter);

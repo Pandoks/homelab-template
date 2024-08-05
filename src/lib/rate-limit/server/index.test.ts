@@ -130,20 +130,21 @@ describe('Throttler', () => {
       });
 
       it('should respect grace counter', async () => {
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
           await throttler.increment('user');
         }
         const result1 = await throttler.check('user');
+        expect(result1).toBeTruthy();
+
         await throttler.increment('user');
         const result2 = await throttler.check('user');
+        expect(result2).toBeFalsy();
 
         for (let i = 0; i < 3; i++) {
           await throttler.increment('user');
         }
         const result3 = await throttler.check('user');
 
-        expect(result1).toBeTruthy();
-        expect(result2).toBeFalsy();
         expect(result3).toBeFalsy();
       });
 
@@ -155,11 +156,10 @@ describe('Throttler', () => {
         const now = Date.now();
         vi.spyOn(Date, 'now').mockImplementation(() => now + 3 * 1000);
         const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
         vi.spyOn(Date, 'now').mockImplementation(() => now + 30 * 1000);
         const result2 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
         expect(result2).toBeTruthy();
       });
     });
@@ -171,12 +171,12 @@ describe('Throttler', () => {
         }
 
         const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
         const now = Date.now();
         vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
         const result2 = await throttler.check('user');
 
-        expect(result1).toBeFalsy();
         expect(result2).toBeTruthy();
       });
 
@@ -201,18 +201,21 @@ describe('Throttler', () => {
         }
 
         const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
         await throttler.reset('user');
         const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
           await throttler.increment('user');
         }
         const result3 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
-        expect(result2).toBeTruthy();
         expect(result3).toBeTruthy();
+
+        await throttler.increment('user');
+        const result4 = await throttler.check('user');
+        expect(result4).toBeFalsy();
       });
     });
   });
@@ -241,20 +244,21 @@ describe('Throttler', () => {
       });
 
       it('should respect grace counter', async () => {
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
           await throttler.increment('user');
         }
         const result1 = await throttler.check('user');
+        expect(result1).toBeTruthy();
+
         await throttler.increment('user');
         const result2 = await throttler.check('user');
+        expect(result2).toBeFalsy();
 
         for (let i = 0; i < 3; i++) {
           await throttler.increment('user');
         }
         const result3 = await throttler.check('user');
 
-        expect(result1).toBeTruthy();
-        expect(result2).toBeFalsy();
         expect(result3).toBeFalsy();
       });
 
@@ -266,11 +270,10 @@ describe('Throttler', () => {
         const now = Date.now();
         vi.spyOn(Date, 'now').mockImplementation(() => now + 3 * 1000);
         const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
         vi.spyOn(Date, 'now').mockImplementation(() => now + 16 * 1000);
         const result2 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
         expect(result2).toBeTruthy();
       });
     });
@@ -317,15 +320,22 @@ describe('Throttler', () => {
         expect(result2).toBeTruthy();
 
         vi.spyOn(Date, 'now').mockImplementation(() => now + 2000 * 1000);
+        // fully reset - 1
         await throttler.increment('user');
         const result3 = await throttler.check('user');
         expect(result3).toBeTruthy();
 
-        for (let i = 0; i < 3; i++) {
+        // get rid of grace
+        for (let i = 0; i < 2; i++) {
           await throttler.increment('user');
         }
         const result4 = await throttler.check('user');
         expect(result4).toBeFalsy();
+
+        // wait for 1 second: timeoutSeconds[0]
+        vi.spyOn(Date, 'now').mockImplementation(() => now + 2000 * 1000 + 1000);
+        const result5 = await throttler.check('user');
+        expect(result5).toBeTruthy();
       });
     });
 
@@ -336,18 +346,21 @@ describe('Throttler', () => {
         }
 
         const result1 = await throttler.check('user');
+        expect(result1).toBeFalsy();
 
         await throttler.reset('user');
         const result2 = await throttler.check('user');
+        expect(result2).toBeTruthy();
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
           await throttler.increment('user');
         }
         const result3 = await throttler.check('user');
-
-        expect(result1).toBeFalsy();
-        expect(result2).toBeTruthy();
         expect(result3).toBeTruthy();
+
+        await throttler.increment('user');
+        const result4 = await throttler.check('user');
+        expect(result4).toBeFalsy();
       });
     });
   });
