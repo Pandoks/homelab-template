@@ -1,7 +1,15 @@
+import { db } from '$lib/db/postgres';
+import { users } from '$lib/db/postgres/schema';
+import { redis } from '$lib/db/redis';
 import { resetTestDatabases } from '$lib/test';
 import { test } from '@playwright/test';
 
 test.describe('Sign up', () => {
+  test.beforeEach(async () => {
+    const test = await db.test!.select().from(users);
+    const test1 = await redis.test?.instance.flushAll();
+  });
+
   test('should allow a user to sign up', async ({ page }) => {
     await page.goto('/auth/signup');
 

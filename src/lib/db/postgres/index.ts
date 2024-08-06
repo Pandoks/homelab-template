@@ -1,13 +1,13 @@
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import {
-  TEST_DB_URL,
-  USER_DB_DATABASE,
-  USER_DB_HOST,
-  USER_DB_PASSWORD,
-  USER_DB_PORT,
-  USER_DB_USERNAME
-} from '$env/static/private';
+
+// didn't use $env because test suite can't handle it
+const TEST_DB_URL = process.env.TEST_DB_URL;
+const USER_DB_DATABASE = process.env.USER_DB_DATABASE;
+const USER_DB_HOST = process.env.USER_DB_HOST;
+const USER_DB_PASSWORD = process.env.USER_DB_PASSWORD;
+const USER_DB_PORT = process.env.USER_DB_PORT;
+const USER_DB_USERNAME = process.env.USER_DB_USERNAME;
 
 const testEnv = process.env.NODE_ENV === 'test';
 
@@ -33,7 +33,7 @@ if (!testEnv) {
     username: USER_DB_USERNAME,
     password: USER_DB_PASSWORD,
     host: USER_DB_HOST,
-    port: parseInt(USER_DB_PORT),
+    port: parseInt(USER_DB_PORT!),
     database: USER_DB_DATABASE
   });
 
@@ -41,5 +41,5 @@ if (!testEnv) {
 }
 
 export const db = testEnv
-  ? { main: drizzle(postgres(TEST_DB_URL)), test: drizzle(postgres(TEST_DB_URL)) }
+  ? { main: drizzle(postgres(TEST_DB_URL!)), test: drizzle(postgres(TEST_DB_URL!)) }
   : { main: dbInstances[0] };
