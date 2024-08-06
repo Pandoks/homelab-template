@@ -41,5 +41,8 @@ if (!testEnv) {
 }
 
 export const db = testEnv
-  ? { main: drizzle(postgres(TEST_DB_URL!)), test: drizzle(postgres(TEST_DB_URL!)) }
+  ? {
+      main: drizzle(postgres(TEST_DB_URL!, { onnotice: () => {} })),
+      test: drizzle(postgres(TEST_DB_URL!, { onnotice: () => {} }))
+    }
   : { main: dbInstances[0] };
