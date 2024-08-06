@@ -5,6 +5,8 @@ import { db } from '$lib/db/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 
+const testEnv = process.env.NODE_ENV === 'test';
+
 // TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
   userId,
@@ -15,7 +17,7 @@ export const generateEmailVerification = async ({
 }): Promise<string> => {
   await db.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
 
-  const code = generateRandomString(6, alphabet('0-9', 'A-Z'));
+  const code = testEnv ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
   await db.insert(emailVerifications).values({
     userId: userId,
     email: email,

@@ -42,5 +42,8 @@ if (!testEnv) {
 const [mainClient] = await Promise.all(redisInstances);
 
 export const redis = testEnv
-  ? { test: await createClient({ url: TEST_REDIS_URL }).connect() }
+  ? {
+      main: await createClient({ url: TEST_REDIS_URL }).connect(),
+      test: await createClient({ url: TEST_REDIS_URL }).connect()
+    }
   : { main: mainClient };
