@@ -39,6 +39,7 @@ if (!testEnv) {
     .connect();
   redisInstances.push(main as Promise<RedisClientType>);
 }
+// can add more later
 const [mainClient] = await Promise.all(redisInstances);
 
 export const redis: { [key: string]: RedisInstance } = testEnv
@@ -56,7 +57,7 @@ export const redis: { [key: string]: RedisInstance } = testEnv
     }
   : { main: { instance: mainClient as RedisClientType, type: 'client' } };
 
-type RedisInstance = {
+export type RedisInstance = {
   instance: RedisClientType | RedisClusterType;
   type: 'client' | 'cluster';
 };

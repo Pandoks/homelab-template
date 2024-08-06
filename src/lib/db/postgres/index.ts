@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import {
   TEST_DB_URL,
@@ -27,13 +27,19 @@ if (
 
 // add {prepare: false} if using "Transaction" pool mode in Supabase (serverless hosting)
 // otherwise nothing needs to be changed for "Session" (long running hosting)
-const queryClient = testEnv
-  ? postgres(TEST_DB_URL)
-  : postgres({
-      username: USER_DB_USERNAME,
-      password: USER_DB_PASSWORD,
-      host: USER_DB_HOST,
-      port: parseInt(USER_DB_PORT),
-      database: USER_DB_DATABASE
-    });
-export const db = drizzle(queryClient);
+let dbInstances: PostgresJsDatabase[] = [];
+if (!testEnv) {
+  const mainQueryClient = postgres({
+    username: USER_DB_USERNAME,
+    password: USER_DB_PASSWORD,
+    host: USER_DB_HOST,
+    port: parseInt(USER_DB_PORT),
+    database: USER_DB_DATABASE
+  });
+
+  dbInstances = [drizzle(mainQueryClient)];
+}
+
+export const db: { [key: string]: PostgresJsDatabase } = testEnv
+  ? { main: drizzle(postgres(TEST_DB_URL)), test: drizzle(postgres(TEST_DB_URL)) }
+  : { main: dbInstances[0] };
