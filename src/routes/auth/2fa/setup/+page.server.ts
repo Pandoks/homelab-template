@@ -3,7 +3,7 @@
  * NOTE: Should not EVER be used unless the user has NEVER initialized 2FA or is resetting their 2FA settings
  */
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from '../$types';
+import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { db } from '$lib/db/postgres';
 import { users } from '$lib/db/postgres/schema';
@@ -35,7 +35,7 @@ export const actions: Actions = {
       });
     }
 
-    const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
     if (!userInfo || !userInfo.twoFactorSecret) {
       return fail(400, {
         success: false,
@@ -72,12 +72,12 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+  const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
 
   let twoFactorSecret = userInfo.twoFactorSecret;
   if (!twoFactorSecret) {
     twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
-    await db.update(users).set({
+    await db.main.update(users).set({
       twoFactorSecret: twoFactorSecret
     });
   }

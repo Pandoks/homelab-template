@@ -46,13 +46,13 @@ export const verifyChallenge = async ({
 }): Promise<void> => {
   const redisQuery = `passkey-challenge:${challengeId}`;
   const clientChallengeHash = encodeHex(sha256(challenge));
-  const challengeHash = await redis.main?.get(redisQuery);
+  const challengeHash = await redis.main.instance.get(redisQuery);
   if (!challengeHash) {
     return error(404);
   } else if (challengeHash !== clientChallengeHash) {
     return error(406, { message: 'Invalid challenge' });
   }
-  await redis.main!.del(redisQuery);
+  await redis.main.instance.del(redisQuery);
 };
 
 // Parse the COSE key depending on the algorithm. The structure depends on the algorithm.

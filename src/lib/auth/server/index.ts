@@ -8,7 +8,7 @@ import { redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit
 import { encodeHex } from 'oslo/encoding';
 import { sha1 } from '@oslojs/crypto/sha1';
 
-const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
+const adapter = new DrizzlePostgreSQLAdapter(db.main, sessions, users);
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {

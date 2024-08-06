@@ -61,7 +61,7 @@ export const POST: RequestHandler = async (event) => {
   await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
 
   try {
-    await db.insert(passkeys).values({
+    await db.main.insert(passkeys).values({
       userId: event.locals.user.id,
       credentialId: base64url.encode(credential.id),
       algorithm: algorithm,

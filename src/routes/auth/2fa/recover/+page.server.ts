@@ -15,10 +15,10 @@ import { redis } from '$lib/db/redis';
 
 const throttler = new Throttler({
   name: '2fa-recovery',
-  storage: redis.main as RedisClientType,
+  storage: redis.main.instance as RedisClientType,
   timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
   resetType: 'instant',
-  cutoffMilli: 24 * 60 * 60 * 1000,
+  cutoffSeconds: 24 * 60 * 60,
   grace: 5
 });
 
@@ -56,7 +56,7 @@ export const actions: Actions = {
     const twoFactorRecoveryCodeHash = encodeHex(
       await sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
     );
-    const [userInfo] = await db
+    const [userInfo] = await db.main
       .select()
       .from(users)
       .where(eq(users.twoFactorRecoveryHash, twoFactorRecoveryCodeHash))
@@ -71,7 +71,7 @@ export const actions: Actions = {
       });
     }
 
-    await db
+    await db.main
       .update(users)
       .set({ twoFactorSecret: null, twoFactorRecoveryHash: null, hasTwoFactor: false })
       .where(eq(users.id, user.id));

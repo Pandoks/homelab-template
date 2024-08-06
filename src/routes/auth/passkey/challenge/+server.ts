@@ -17,7 +17,7 @@ export const POST: RequestHandler = async (event) => {
   const token = getRandomValues(new Uint8Array(32));
   const tokenHash = encodeHex(await sha256(token));
 
-  await redis.main.set(`passkey-challenge:${id}`, tokenHash, {
+  await redis.main.instance.set(`passkey-challenge:${id}`, tokenHash, {
     EX: new TimeSpan(5, 'm').seconds()
   });
 

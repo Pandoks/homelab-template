@@ -15,10 +15,10 @@ import { Throttler } from '$lib/rate-limit/server';
 
 const throttler = new Throttler({
   name: '2fa-otp',
-  storage: redis.main as RedisClientType,
+  storage: redis.main.instance as RedisClientType,
   timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
   resetType: 'instant',
-  cutoffMilli: 24 * 60 * 60 * 1000,
+  cutoffSeconds: 24 * 60 * 60,
   grace: 5
 });
 
@@ -50,7 +50,7 @@ export const actions: Actions = {
       });
     }
 
-    const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
     if (!userInfo || !userInfo.twoFactorSecret) {
       return fail(400, {
         success: false,

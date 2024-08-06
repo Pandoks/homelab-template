@@ -20,7 +20,8 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    db.update(users)
+    db.main
+      .update(users)
       .set({ hasTwoFactor: true })
       .where(eq(users.id, user.id))
       .catch((error) => console.error(error));
@@ -69,7 +70,7 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+  const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
   if (userInfo.twoFactorRecoveryHash) {
     return {
       twoFactorRecoveryCode: null
@@ -97,7 +98,7 @@ const updateDatabase = async ({
   user: User;
 }) => {
   const twoFactorRecoveryCodeHash = encodeHex(await twoFactorRecoveryCodeHashBuffer);
-  await db
+  await db.main
     .update(users)
     .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash })
     .where(eq(users.id, user!.id));

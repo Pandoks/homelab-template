@@ -17,7 +17,7 @@ const bucket = new ConstantRefillTokenBucketLimiter({
   name: 'password-reset-request',
   max: 3,
   refillIntervalSeconds: 30,
-  storage: redis.main as RedisClientType
+  storage: redis.main.instance as RedisClientType
 });
 
 export const actions: Actions = {
@@ -37,7 +37,7 @@ export const actions: Actions = {
     }
 
     const email = passwordResetForm.data.email;
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [user] = await db.main.select().from(users).where(eq(users.email, email)).limit(1);
     if (!user) {
       return {
         success: true,

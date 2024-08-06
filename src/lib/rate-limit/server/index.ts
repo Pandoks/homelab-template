@@ -1,5 +1,4 @@
-import type { RedisClusterType } from '@redis/client';
-import type { RedisClientType } from 'redis';
+import type { RedisClientType, RedisClusterType } from 'redis';
 
 /**
  * RATE LIMITER
@@ -225,6 +224,7 @@ export class Throttler {
 /**
  * RATE LIMITER
  * After a certain period, the entire bucket is refilled with tokens
+ * Each token is a single check so the max is how many checks or usages you can do before the limit
  */
 export class FixedRefillTokenBucketLimiter {
   public max: number;
