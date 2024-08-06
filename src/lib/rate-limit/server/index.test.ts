@@ -6,7 +6,6 @@ import { type RedisClientType } from 'redis';
 import { vi, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConstantRefillTokenBucketLimiter, FixedRefillTokenBucketLimiter, Throttler } from '.';
 import { redis } from '$lib/db/redis';
-import { resetTestDatabases } from '$lib/test/utils';
 
 describe('ConstantRefillTokenBucketLimiter', () => {
   let redisClient: RedisClientType;
