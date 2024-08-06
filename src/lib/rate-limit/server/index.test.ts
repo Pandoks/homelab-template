@@ -23,7 +23,7 @@ describe('ConstantRefillTokenBucketLimiter', () => {
   });
 
   afterEach(async () => {
-    await resetTestDatabases();
+    await redis.test!.instance.flushAll();
   });
 
   it('should allow requests within the limit', async () => {
@@ -101,7 +101,7 @@ describe('Throttler', () => {
   let throttler: Throttler;
 
   afterEach(async () => {
-    await resetTestDatabases();
+    await redis.test!.instance.flushAll();
   });
 
   describe('default cutoff mode (none)', () => {
@@ -515,7 +515,7 @@ describe('FixedRefillTokenBucketLimiter', () => {
   });
 
   afterEach(async () => {
-    await resetTestDatabases();
+    await redis.test!.instance.flushAll();
   });
 
   it('should allow requests within the limit', async () => {
