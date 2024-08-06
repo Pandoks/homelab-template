@@ -9,7 +9,7 @@ test.describe('Sign up', () => {
     await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
-    await page.waitForURL('/auth/email-verification');
+    await page.waitForURL('/auth/emailverification');
     await page.getByLabel('Verification Code').fill('TEST');
     await page.getByRole('button', { name: 'Activate' }).click();
   });
