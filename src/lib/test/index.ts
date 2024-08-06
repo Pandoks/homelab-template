@@ -10,6 +10,10 @@ export const resetTestDatabases = async ({
   dbs?: { [id: string]: PostgresJsDatabase };
   redises?: { [id: string]: RedisInstance };
 }) => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('You should only be using this in test environments');
+  }
+
   let cemetary: Promise<any>[] = [];
 
   const redisIds = redises ? Object.keys(redises) : [];
