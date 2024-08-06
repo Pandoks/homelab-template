@@ -17,7 +17,7 @@ const bucket = new ConstantRefillTokenBucketLimiter({
   name: 'password-reset-request',
   max: 3,
   refillIntervalSeconds: 30,
-  storage: redis.main as RedisClientType
+  storage: redis.main.instance as RedisClientType
 });
 
 export const actions: Actions = {

@@ -1,5 +1,4 @@
-import type { RedisClusterType } from '@redis/client';
-import type { RedisClientType } from 'redis';
+import type { RedisClientType, RedisClusterType } from 'redis';
 
 /**
  * RATE LIMITER

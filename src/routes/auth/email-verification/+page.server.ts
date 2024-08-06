@@ -23,13 +23,13 @@ const verificationBucket = new FixedRefillTokenBucketLimiter({
   name: 'email-verification',
   max: 5,
   refillIntervalSeconds: 60 * 30, // 30 minutes
-  storage: redis.main as RedisClientType
+  storage: redis.main.instance as RedisClientType
 });
 const resendBucket = new ConstantRefillTokenBucketLimiter({
   name: 'email-resend',
   max: 5,
   refillIntervalSeconds: 60, // 1 minute
-  storage: redis.main as RedisClientType
+  storage: redis.main.instance as RedisClientType
 });
 
 export const actions: Actions = {

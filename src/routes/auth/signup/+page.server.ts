@@ -34,7 +34,7 @@ const bucket = new ConstantRefillTokenBucketLimiter({
   name: 'signup-limiter',
   max: 10,
   refillIntervalSeconds: 5,
-  storage: redis.main as RedisClientType
+  storage: redis.main.instance as RedisClientType
 });
 
 export const actions: Actions = {

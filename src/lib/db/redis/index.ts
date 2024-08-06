@@ -41,9 +41,22 @@ if (!testEnv) {
 }
 const [mainClient] = await Promise.all(redisInstances);
 
-export const redis = testEnv
+export const redis: { [key: string]: RedisInstance } = testEnv
   ? {
-      main: await createClient({ url: TEST_REDIS_URL }).connect(),
-      test: await createClient({ url: TEST_REDIS_URL }).connect()
+      // inject application code to use test db
+      main: {
+        instance: (await createClient({ url: TEST_REDIS_URL }).connect()) as RedisClientType,
+        type: 'client'
+      },
+      // better to use so you don't accidentally delete dev db
+      test: {
+        instance: (await createClient({ url: TEST_REDIS_URL }).connect()) as RedisClientType,
+        type: 'client'
+      }
     }
-  : { main: mainClient };
+  : { main: { instance: mainClient as RedisClientType, type: 'client' } };
+
+type RedisInstance = {
+  instance: RedisClientType | RedisClusterType;
+  type: 'client' | 'cluster';
+};

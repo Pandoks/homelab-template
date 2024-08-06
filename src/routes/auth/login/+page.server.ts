@@ -16,7 +16,7 @@ import type { RedisClientType } from 'redis';
 
 const throttler = new Throttler({
   name: 'login-throttle',
-  storage: redis.main as RedisClientType,
+  storage: redis.main.instance as RedisClientType,
   timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
   resetType: 'instant',
   cutoffSeconds: 24 * 60 * 60,
