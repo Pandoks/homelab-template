@@ -42,7 +42,7 @@ if (!testEnv) {
 // can add more later
 const [mainClient] = await Promise.all(redisInstances);
 
-export const redis: { [key: string]: RedisInstance } = testEnv
+export const redis = testEnv
   ? {
       // inject application code to use test db
       main: {

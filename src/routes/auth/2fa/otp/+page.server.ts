@@ -50,7 +50,7 @@ export const actions: Actions = {
       });
     }
 
-    const [userInfo] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
     if (!userInfo || !userInfo.twoFactorSecret) {
       return fail(400, {
         success: false,

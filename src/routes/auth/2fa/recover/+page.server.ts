@@ -56,7 +56,7 @@ export const actions: Actions = {
     const twoFactorRecoveryCodeHash = encodeHex(
       await sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
     );
-    const [userInfo] = await db
+    const [userInfo] = await db.main
       .select()
       .from(users)
       .where(eq(users.twoFactorRecoveryHash, twoFactorRecoveryCodeHash))
@@ -71,7 +71,7 @@ export const actions: Actions = {
       });
     }
 
-    await db
+    await db.main
       .update(users)
       .set({ twoFactorSecret: null, twoFactorRecoveryHash: null, hasTwoFactor: false })
       .where(eq(users.id, user.id));

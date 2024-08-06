@@ -79,7 +79,7 @@ export const actions: Actions = {
       }
 
       await lucia.invalidateUserSessions(user.id);
-      await db.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
+      await db.main.update(users).set({ isEmailVerified: true }).where(eq(users.id, user.id));
     } catch (err) {
       console.error(err);
       emailVerificationForm.errors.code = ['Invalid'];

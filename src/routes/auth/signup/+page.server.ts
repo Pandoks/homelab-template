@@ -84,7 +84,7 @@ export const actions: Actions = {
     const email = signupForm.data.email.toLowerCase();
 
     try {
-      await db.insert(users).values({
+      await db.main.insert(users).values({
         id: userId,
         username: signupForm.data.username.toLowerCase(),
         email: email,
@@ -197,7 +197,7 @@ export const actions: Actions = {
       const userId = generateIdFromEntropySize(10);
       const email = signupForm.data.email.toLowerCase();
 
-      await db.transaction(async (transaction) => {
+      await db.main.transaction(async (transaction) => {
         await transaction.insert(users).values({
           id: userId,
           username: signupForm.data.username.toLowerCase(),
@@ -277,9 +277,9 @@ export const load: PageServerLoad = async (event) => {
       ...sessionCookie.attributes
     });
 
-    await db.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
-    await db.delete(passkeys).where(eq(passkeys.userId, user.id));
-    await db.delete(users).where(eq(users.id, user.id));
+    await db.main.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
+    await db.main.delete(passkeys).where(eq(passkeys.userId, user.id));
+    await db.main.delete(users).where(eq(users.id, user.id));
   }
 
   return {

@@ -15,10 +15,10 @@ export const generateEmailVerification = async ({
   userId: string;
   email: string;
 }): Promise<string> => {
-  await db.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
+  await db.main.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
 
   const code = testEnv ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
-  await db.insert(emailVerifications).values({
+  await db.main.insert(emailVerifications).values({
     userId: userId,
     email: email,
     code: code,
@@ -34,7 +34,7 @@ export const sendVerification = async ({ email, code }: { email: string; code: s
 };
 
 export const verifyVerificationCode = async ({ user, code }: { user: User; code: string }) => {
-  const isValidVerificationCode: boolean = await db.transaction(async (transaction) => {
+  const isValidVerificationCode: boolean = await db.main.transaction(async (transaction) => {
     const [emailVerificationCode] = await transaction
       .select()
       .from(emailVerifications)

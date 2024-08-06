@@ -47,9 +47,13 @@ export const actions: Actions = {
 
     let user: DbUser | null = null;
     if (isUsername) {
-      [user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
+      [user] = await db.main
+        .select()
+        .from(users)
+        .where(eq(users.username, usernameOrEmail))
+        .limit(1);
     } else {
-      [user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+      [user] = await db.main.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
     }
 
     let validPassword = false;
@@ -129,9 +133,13 @@ export const actions: Actions = {
 
     let user: DbUser | null = null;
     if (isUsername) {
-      [user] = await db.select().from(users).where(eq(users.username, usernameOrEmail)).limit(1);
+      [user] = await db.main
+        .select()
+        .from(users)
+        .where(eq(users.username, usernameOrEmail))
+        .limit(1);
     } else {
-      [user] = await db.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+      [user] = await db.main.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
     }
     if (!user) {
       return fail(400, {

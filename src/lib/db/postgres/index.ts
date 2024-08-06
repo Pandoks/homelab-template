@@ -40,6 +40,6 @@ if (!testEnv) {
   dbInstances = [drizzle(mainQueryClient)];
 }
 
-export const db: { [key: string]: PostgresJsDatabase } = testEnv
+export const db = testEnv
   ? { main: drizzle(postgres(TEST_DB_URL)), test: drizzle(postgres(TEST_DB_URL)) }
   : { main: dbInstances[0] };

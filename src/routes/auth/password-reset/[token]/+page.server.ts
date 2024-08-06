@@ -35,13 +35,15 @@ export const actions: Actions = {
     const passwordResetTokenHash = encodeHex(
       await sha256(new TextEncoder().encode(passwordResetToken))
     );
-    const [token] = await db
+    const [token] = await db.main
       .select()
       .from(passwordResets)
       .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
       .limit(1);
     if (token) {
-      await db.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetTokenHash));
+      await db.main
+        .delete(passwordResets)
+        .where(eq(passwordResets.tokenHash, passwordResetTokenHash));
     }
     if (!token || !isWithinExpirationDate(token.expiresAt)) {
       return fail(400, {
@@ -70,8 +72,11 @@ export const actions: Actions = {
       outputLen: 32,
       parallelism: 1
     });
-    await db.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
-    const [user] = await db.select().from(users).where(eq(users.id, token.userId)).limit(1);
+    await db.main
+      .update(users)
+      .set({ passwordHash: passwordHash })
+      .where(eq(users.id, token.userId));
+    const [user] = await db.main.select().from(users).where(eq(users.id, token.userId)).limit(1);
 
     const session = await lucia.createSession(token.userId, {
       isTwoFactorVerified: false,
@@ -115,7 +120,7 @@ export const load: PageServerLoad = async (event) => {
   const passwordResetTokenHash = encodeHex(
     await sha256(new TextEncoder().encode(passwordResetToken))
   );
-  const [token] = await db
+  const [token] = await db.main
     .select()
     .from(passwordResets)
     .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
@@ -127,7 +132,7 @@ export const load: PageServerLoad = async (event) => {
       newPasswordForm
     };
   } else if (!isWithinExpirationDate(token.expiresAt)) {
-    await db.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetToken));
+    await db.main.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetToken));
     return {
       success: false,
       message: 'Password reset link has expired',

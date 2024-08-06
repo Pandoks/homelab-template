@@ -2,10 +2,6 @@ import { resetTestDatabases } from '$lib/test';
 import { test } from '@playwright/test';
 
 test.describe('Sign up', () => {
-  test.beforeEach(async () => {
-    await resetTestDatabases();
-  });
-
   test('should allow a user to sign up', async ({ page }) => {
     await page.goto('/auth/signup');
 
