@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
 
 test.describe('Sign up', () => {
-  test.beforeEach(async () => {
+  test.afterEach(async () => {
     resetTestDatabases();
   });
 
