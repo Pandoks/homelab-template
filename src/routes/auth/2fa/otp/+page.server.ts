@@ -12,6 +12,7 @@ import { oneTimePasswordSchema } from './schema';
 import { redis } from '$lib/db/redis';
 import type { RedisClientType } from 'redis';
 import { Throttler } from '$lib/rate-limit/server';
+import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 
 const throttler = new Throttler({
   name: '2fa-otp',
@@ -32,8 +33,20 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const otpForm = await superValidate(event, zod(oneTimePasswordSchema));
-    if (!otpForm.valid) {
+    const throttleKey = `${user.id}`;
+
+    const otpFormValidation = superValidate(event, zod(oneTimePasswordSchema));
+    const throttlerCheck = throttler.check(throttleKey);
+
+    const [otpForm, throttleValid] = await Promise.all([otpFormValidation, throttlerCheck]);
+
+    if (!throttleValid) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        otpForm
+      });
+    } else if (!otpForm.valid) {
       return fail(400, {
         success: false,
         throttled: false,
@@ -41,17 +54,14 @@ export const actions: Actions = {
       });
     }
 
-    const throttleKey = `${user.id}`;
-    if (!(await throttler.check(throttleKey))) {
-      return fail(429, {
-        success: false,
-        throttled: true,
-        otpForm
-      });
-    }
-
-    const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
-    if (!userInfo || !userInfo.twoFactorSecret) {
+    const [{ twoFactorSecret }] = await db.main
+      .select({
+        twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+      })
+      .from(twoFactorAuthenticationCredentials)
+      .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
+      .limit(1);
+    if (!twoFactorSecret) {
       return fail(400, {
         success: false,
         throttled: false,
@@ -61,10 +71,10 @@ export const actions: Actions = {
 
     const validOTP = await new TOTPController().verify(
       otpForm.data.otp,
-      decodeHex(userInfo.twoFactorSecret)
+      decodeHex(twoFactorSecret)
     );
     if (!validOTP) {
-      throttler.increment(throttleKey);
+      await throttler.increment(throttleKey);
       otpForm.errors.otp = ['Invalid code'];
       return fail(400, {
         success: false,
@@ -73,11 +83,12 @@ export const actions: Actions = {
       });
     }
 
-    await throttler.reset(throttleKey);
-    const newSession = await lucia.createSession(user.id, {
+    const throttleReset = throttler.reset(throttleKey);
+    const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: true,
       isPasskeyVerified: false
     });
+    const [newSession] = await Promise.all([sessionCreation, throttleReset]);
     const sessionCookie = lucia.createSessionCookie(newSession.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',

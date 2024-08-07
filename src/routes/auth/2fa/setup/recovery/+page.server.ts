@@ -1,12 +1,12 @@
-import { generateIdFromEntropySize, type User } from 'lucia';
+import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db/postgres';
-import { users } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
+import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 
 export const ssr = false;
 
@@ -20,16 +20,18 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    db.main
-      .update(users)
-      .set({ hasTwoFactor: true })
-      .where(eq(users.id, user.id))
-      .catch((error) => console.error(error));
+    const dbUpdate = db.main
+      .update(twoFactorAuthenticationCredentials)
+      .set({
+        activated: true
+      })
+      .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
-    const session = await lucia.createSession(user.id, {
+    const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: true,
       isPasskeyVerified: false
     });
+    const [session] = await Promise.all([sessionCreation, dbUpdate]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
@@ -48,12 +50,14 @@ export const actions: Actions = {
     }
 
     const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-    const twoFactorRecoveryCodeHashBuffer = sha256(new TextEncoder().encode(twoFactorRecoveryCode));
+    const twoFactorRecoveryCodeHashBuffer = await sha256(
+      new TextEncoder().encode(twoFactorRecoveryCode)
+    );
 
-    updateDatabase({
-      twoFactorRecoveryCodeHashBuffer: twoFactorRecoveryCodeHashBuffer,
-      user: user
-    });
+    await db.main
+      .update(twoFactorAuthenticationCredentials)
+      .set({ twoFactorRecoveryHash: encodeHex(twoFactorRecoveryCodeHashBuffer) })
+      .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
     return {
       twoFactorRecoveryCode: twoFactorRecoveryCode
@@ -70,36 +74,29 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
-  if (userInfo.twoFactorRecoveryHash) {
+  const [{ twoFactorRecoveryHash }] = await db.main
+    .select({ twoFactorRecoveryHash: twoFactorAuthenticationCredentials.twoFactorRecoveryHash })
+    .from(twoFactorAuthenticationCredentials)
+    .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
+    .limit(1);
+  if (twoFactorRecoveryHash) {
+    // user already has recovery code (should only show them once)
     return {
       twoFactorRecoveryCode: null
     };
   }
 
   const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-  const twoFactorRecoveryCodeHashBuffer = sha256(new TextEncoder().encode(twoFactorRecoveryCode));
+  const twoFactorRecoveryCodeHash = encodeHex(
+    await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
+  );
 
-  updateDatabase({
-    twoFactorRecoveryCodeHashBuffer: twoFactorRecoveryCodeHashBuffer,
-    user: user
-  });
+  await db.main
+    .update(twoFactorAuthenticationCredentials)
+    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash })
+    .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
   return {
     twoFactorRecoveryCode: twoFactorRecoveryCode
   };
-};
-
-const updateDatabase = async ({
-  twoFactorRecoveryCodeHashBuffer,
-  user
-}: {
-  twoFactorRecoveryCodeHashBuffer: Promise<ArrayBuffer>;
-  user: User;
-}) => {
-  const twoFactorRecoveryCodeHash = encodeHex(await twoFactorRecoveryCodeHashBuffer);
-  await db.main
-    .update(users)
-    .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash })
-    .where(eq(users.id, user!.id));
 };

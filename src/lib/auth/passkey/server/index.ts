@@ -51,8 +51,8 @@ export const verifyPasskey = async ({
 
   await verifyChallenge({ challengeId: challengeId, challenge: clientData.challenge });
 
-  const [passkeyInfo] = await db
-    .select()
+  const [passkeyInfo] = await db.main
+    .select({ algorithm: passkeys.algorithm, encodedPublicKey: passkeys.encodedPublicKey })
     .from(passkeys)
     .where(and(eq(passkeys.credentialId, credentialId), eq(passkeys.userId, userId)))
     .limit(1);

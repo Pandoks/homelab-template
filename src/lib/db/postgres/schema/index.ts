@@ -31,7 +31,9 @@ export const userRelations = relations(users, ({ one, many }) => ({
 export const emails = pgTable('emails', {
   email: text('email').primaryKey(),
   isVerified: boolean('is_verified').default(false).notNull(),
-  userId: text('user_id').references(() => users.id)
+  userId: text('user_id')
+    .references(() => users.id)
+    .notNull()
 });
 export const emailRelations = relations(emails, ({ one }) => ({
   user: one(users, {

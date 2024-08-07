@@ -1,5 +1,5 @@
 import { db } from '$lib/db/postgres';
-import { users } from '$lib/db/postgres/schema';
+import { emails } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { createPasswordResetToken, sendPasswordReset } from '$lib/auth/server/password-reset';
@@ -37,8 +37,12 @@ export const actions: Actions = {
     }
 
     const email = passwordResetForm.data.email;
-    const [user] = await db.main.select().from(users).where(eq(users.email, email)).limit(1);
-    if (!user) {
+    const [emailInfo] = await db.main
+      .select({ email: emails.email, userId: emails.userId })
+      .from(emails)
+      .where(eq(emails.email, email))
+      .limit(1);
+    if (!emailInfo) {
       return {
         success: true,
         throttled: false,
@@ -54,8 +58,9 @@ export const actions: Actions = {
       });
     }
 
-    await bucket.reset(email);
-    const verificationToken = await createPasswordResetToken({ userId: user.id });
+    const bucketReset = bucket.reset(email);
+    const verificationTokenCreation = createPasswordResetToken({ userId: emailInfo.userId });
+    const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
     const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });

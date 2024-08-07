@@ -17,14 +17,19 @@ import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/postgres';
-import { users } from '$lib/db/postgres/schema';
+import { emails, users } from '$lib/db/postgres/schema';
 import { handleAlreadyLoggedIn, lucia, verifyPasswordStrength } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import { emailVerifications, passkeys } from '$lib/db/postgres/schema/auth';
+import {
+  emailVerifications,
+  passkeys,
+  sessions,
+  twoFactorAuthenticationCredentials
+} from '$lib/db/postgres/schema/auth';
 import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
@@ -44,17 +49,17 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const signupForm = await superValidate(event, zod(signupSchema));
+    const ipAddress = event.getClientAddress();
+    const formValidation = await superValidate(event, zod(signupSchema));
+    const bucketCheck = bucket.check({ key: ipAddress, cost: 1 });
+    const [validBucket, signupForm] = await Promise.all([bucketCheck, formValidation]);
     if (!signupForm.valid) {
       return fail(400, {
         success: false,
         message: '',
         signupForm
       });
-    }
-
-    const ipAddress = event.getClientAddress();
-    if (!(await bucket.check({ key: ipAddress, cost: 1 }))) {
+    } else if (!validBucket) {
       return fail(429, {
         success: false,
         message: 'Signing Up Too Many Times. Try Later',
@@ -84,27 +89,36 @@ export const actions: Actions = {
     const email = signupForm.data.email.toLowerCase();
 
     try {
-      await db.main.insert(users).values({
-        id: userId,
-        username: signupForm.data.username.toLowerCase(),
-        email: email,
-        passwordHash: passwordHash,
-        isEmailVerified: false,
-        hasTwoFactor: false,
-        twoFactorSecret: null,
-        twoFactorRecoveryHash: null
+      await db.main.transaction(async (transaction) => {
+        await transaction.insert(users).values({
+          id: userId,
+          username: signupForm.data.username.toLowerCase(),
+          passwordHash: passwordHash
+        });
+        await transaction.insert(emails).values({
+          email: email,
+          isVerified: false,
+          userId: userId
+        });
+        await transaction.insert(twoFactorAuthenticationCredentials).values({
+          twoFactorSecret: null,
+          twoFactorRecoveryHash: null,
+          activated: false,
+          userId: userId
+        });
       });
 
       const verificationCode = await generateEmailVerification({
         userId: userId,
         email: email
       });
-      await sendVerification({ email: email, code: verificationCode });
-
-      const session = await lucia.createSession(userId, {
+      const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
+      const sessionCreation = lucia.createSession(userId, {
         isTwoFactorVerified: false,
         isPasskeyVerified: false
       });
+      const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
+
       const sessionCookie = lucia.createSessionCookie(session.id);
       event.cookies.set(sessionCookie.name, sessionCookie.value, {
         path: '/',
@@ -148,17 +162,17 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const signupForm = await superValidate(event, zod(signupPasskeySchema));
+    const ipAddress = event.getClientAddress();
+    const formValidation = superValidate(event, zod(signupPasskeySchema));
+    const bucketCheck = bucket.check({ key: ipAddress, cost: 1 });
+    const [signupForm, validBucket] = await Promise.all([formValidation, bucketCheck]);
     if (!signupForm.valid) {
       return fail(400, {
         success: false,
         message: '',
         signupForm
       });
-    }
-
-    const ipAddress = event.getClientAddress();
-    if (!(await bucket.check({ key: ipAddress, cost: 1 }))) {
+    } else if (!validBucket) {
       return fail(429, {
         success: false,
         message: 'Signing Up Too Many Times. Try Later',
@@ -197,16 +211,22 @@ export const actions: Actions = {
       const userId = generateIdFromEntropySize(10);
       const email = signupForm.data.email.toLowerCase();
 
-      await db.main.transaction(async (transaction) => {
+      const insertNewUser = db.main.transaction(async (transaction) => {
         await transaction.insert(users).values({
           id: userId,
           username: signupForm.data.username.toLowerCase(),
+          passwordHash: null
+        });
+        await transaction.insert(emails).values({
           email: email,
-          passwordHash: null,
-          isEmailVerified: false,
-          hasTwoFactor: false,
+          isVerified: false,
+          userId: userId
+        });
+        await transaction.insert(twoFactorAuthenticationCredentials).values({
           twoFactorSecret: null,
-          twoFactorRecoveryHash: null
+          twoFactorRecoveryHash: null,
+          activated: false,
+          userId: userId
         });
         await transaction.insert(passkeys).values({
           credentialId: base64url.encode(credential.id),
@@ -217,16 +237,20 @@ export const actions: Actions = {
         });
       });
 
-      const verificationCode = await generateEmailVerification({
+      const createEmailCode = generateEmailVerification({
         userId: userId,
         email: email
       });
-      await sendVerification({ email: email, code: verificationCode });
 
-      const session = await lucia.createSession(userId, {
+      const [verificationCode] = await Promise.all([createEmailCode, insertNewUser]);
+
+      const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
+      const sessionCreation = lucia.createSession(userId, {
         isTwoFactorVerified: false,
         isPasskeyVerified: true
       });
+      const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
+
       const sessionCookie = lucia.createSessionCookie(session.id);
       event.cookies.set(sessionCookie.name, sessionCookie.value, {
         path: '/',
@@ -270,16 +294,22 @@ export const load: PageServerLoad = async (event) => {
     }
 
     // not email verified: delete account if signing up again
-    await lucia.invalidateSession(session.id);
+    await db.main.transaction(async (transaction) => {
+      await transaction.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
+      await transaction.delete(passkeys).where(eq(passkeys.userId, user.id));
+      await transaction
+        .delete(twoFactorAuthenticationCredentials)
+        .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
+      await transaction.delete(emails).where(eq(emails.userId, user.id));
+      await transaction.delete(sessions).where(eq(sessions.userId, user.id));
+      await transaction.delete(users).where(eq(users.id, user.id));
+    });
+
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
       ...sessionCookie.attributes
     });
-
-    await db.main.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
-    await db.main.delete(passkeys).where(eq(passkeys.userId, user.id));
-    await db.main.delete(users).where(eq(users.id, user.id));
   }
 
   return {

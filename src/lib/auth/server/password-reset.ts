@@ -10,18 +10,17 @@ import { encodeHex } from 'oslo/encoding';
 // Token should be hashed before storage as it's essentially a password
 // SHA256 because token is long and random unlike use passwords
 export const createPasswordResetToken = async ({ userId }: { userId: string }): Promise<string> => {
-  await db.main.delete(passwordResets).where(eq(passwordResets.userId, userId)); // invalidate existing tokens
   const token = generateIdFromEntropySize(25); // 40 characters
-  const tokenHash = encodeHex(await sha256(new TextEncoder().encode(token)));
-  const [passwordResetToken] = await db.main
-    .insert(passwordResets)
-    .values({ tokenHash: tokenHash, userId: userId, expiresAt: createDate(new TimeSpan(2, 'h')) })
-    .onConflictDoNothing()
-    .returning();
 
-  if (!passwordResetToken) {
-    return '';
-  }
+  await db.main.transaction(async (transaction) => {
+    const tokenHash = encodeHex(await sha256(new TextEncoder().encode(token)));
+    await transaction.delete(passwordResets).where(eq(passwordResets.userId, userId)); // invalidate existing tokens
+    await transaction.insert(passwordResets).values({
+      tokenHash: tokenHash,
+      userId: userId,
+      expiresAt: createDate(new TimeSpan(2, 'h'))
+    });
+  });
 
   return token;
 };

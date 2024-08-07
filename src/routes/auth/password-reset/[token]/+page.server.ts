@@ -3,12 +3,12 @@ import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db/postgres';
-import { passwordResets } from '$lib/db/postgres/schema/auth';
+import { passwordResets, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
 import { lucia, handleAlreadyLoggedIn, verifyPasswordStrength } from '$lib/auth/server';
 import { hash } from '@node-rs/argon2';
-import { users } from '$lib/db/postgres/schema';
+import { emails, users } from '$lib/db/postgres/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -16,14 +16,12 @@ import { zod } from 'sveltekit-superforms/adapters';
 export const actions: Actions = {
   'new-password': async (event) => {
     handleAlreadyLoggedIn(event);
-    const newPasswordForm = await superValidate(event, zod(newPasswordSchema));
     if (event.locals.session) {
-      return fail(400, {
-        success: false,
-        message: 'You are already logged in.',
-        newPasswordForm
-      });
-    } else if (!newPasswordForm.valid) {
+      return redirect(302, '/');
+    }
+
+    const newPasswordForm = await superValidate(event, zod(newPasswordSchema));
+    if (!newPasswordForm.valid) {
       return fail(400, {
         success: false,
         message: '',
@@ -36,7 +34,10 @@ export const actions: Actions = {
       await sha256(new TextEncoder().encode(passwordResetToken))
     );
     const [token] = await db.main
-      .select()
+      .select({
+        expiresAt: passwordResets.expiresAt,
+        userId: passwordResets.userId
+      })
       .from(passwordResets)
       .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
       .limit(1);
@@ -53,10 +54,11 @@ export const actions: Actions = {
       });
     }
 
-    await lucia.invalidateUserSessions(token.userId);
+    const sessionInvalidation = lucia.invalidateUserSessions(token.userId);
 
     const password = newPasswordForm.data.password;
-    const strongPassword = await verifyPasswordStrength(password);
+    const passwordCheck = verifyPasswordStrength(password);
+    const [strongPassword] = await Promise.all([passwordCheck, sessionInvalidation]);
     if (!strongPassword) {
       newPasswordForm.errors.password = ['Weak password'];
       return fail(400, {
@@ -72,16 +74,27 @@ export const actions: Actions = {
       outputLen: 32,
       parallelism: 1
     });
-    await db.main
+    const updateUser = db.main
       .update(users)
       .set({ passwordHash: passwordHash })
       .where(eq(users.id, token.userId));
-    const [user] = await db.main.select().from(users).where(eq(users.id, token.userId)).limit(1);
-
-    const session = await lucia.createSession(token.userId, {
+    const sessionCreation = lucia.createSession(token.userId, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
     });
+    const getUserInfo = db.main
+      .select({
+        isEmailVerified: emails.isVerified,
+        twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+      })
+      .from(emails)
+      .innerJoin(
+        twoFactorAuthenticationCredentials,
+        eq(twoFactorAuthenticationCredentials.userId, emails.userId)
+      )
+      .where(eq(emails.userId, token.userId))
+      .limit(1);
+    const [[user], session] = await Promise.all([getUserInfo, sessionCreation, updateUser]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
@@ -113,18 +126,20 @@ export const load: PageServerLoad = async (event) => {
     'Referrer-Policy': 'strict-origin'
   });
 
-  const newPasswordForm = await superValidate(zod(newPasswordSchema));
+  const formValidation = superValidate(zod(newPasswordSchema));
 
   // Check if the token is valid let the user know
   const passwordResetToken = event.params.token;
   const passwordResetTokenHash = encodeHex(
     await sha256(new TextEncoder().encode(passwordResetToken))
   );
-  const [token] = await db.main
-    .select()
+  const tokenQuery = db.main
+    .select({ expiresAt: passwordResets.expiresAt })
     .from(passwordResets)
     .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
     .limit(1);
+
+  const [newPasswordForm, [token]] = await Promise.all([formValidation, tokenQuery]);
   if (!token) {
     return {
       success: false,

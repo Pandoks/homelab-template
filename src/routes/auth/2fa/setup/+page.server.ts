@@ -10,11 +10,12 @@ import { users } from '$lib/db/postgres/schema';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { TimeSpan } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
+import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -30,22 +31,27 @@ export const actions: Actions = {
     if (!otpForm.valid) {
       return fail(400, {
         success: false,
-        message: 'Invalid otp code',
+        message: 'Internal Server Error',
         otpForm
       });
     }
 
-    const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
-    if (!userInfo || !userInfo.twoFactorSecret) {
+    const [{ twoFactorSecret }] = await db.main
+      .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
+      .from(twoFactorAuthenticationCredentials)
+      .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
+      .limit(1);
+    if (!twoFactorSecret) {
       return fail(400, {
         success: false,
-        message: 'Internal server error',
+        message: 'Internal Server Error',
         otpForm
       });
     }
+
     const isValidOtp = await new TOTPController().verify(
       otpForm.data.otp,
-      decodeHex(userInfo.twoFactorSecret)
+      decodeHex(twoFactorSecret)
     );
     if (!isValidOtp) {
       return fail(400, {
@@ -72,13 +78,18 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  const [userInfo] = await db.main.select().from(users).where(eq(users.id, user.id)).limit(1);
+  let [{ twoFactorSecret }] = await db.main
+    .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
+    .from(twoFactorAuthenticationCredentials)
+    .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
+    .limit(1);
 
-  let twoFactorSecret = userInfo.twoFactorSecret;
   if (!twoFactorSecret) {
     twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
-    await db.main.update(users).set({
-      twoFactorSecret: twoFactorSecret
+    await db.main.insert(twoFactorAuthenticationCredentials).values({
+      userId: user.id,
+      twoFactorSecret: twoFactorSecret,
+      activated: false
     });
   }
 

@@ -28,9 +28,20 @@ export class DatabaseAdapter implements Adapter {
   ): Promise<[session: DatabaseSession | null, user: DatabaseUser | null]> {
     const results = await this.db
       .select({
-        user: users,
-        session: sessions,
-        email: emails,
+        user: {
+          id: users.id,
+          username: users.username
+        },
+        session: {
+          id: sessions.id,
+          expiresAt: sessions.expiresAt,
+          isTwoFactorVerified: sessions.isTwoFactorVerified,
+          isPasskeyVerified: sessions.isPasskeyVerified
+        },
+        email: {
+          email: emails.email,
+          isVerified: emails.isVerified
+        },
         twoFactorCredential: twoFactorAuthenticationCredentials.twoFactorSecret
       })
       .from(sessions)
@@ -40,29 +51,30 @@ export class DatabaseAdapter implements Adapter {
         twoFactorAuthenticationCredentials,
         eq(twoFactorAuthenticationCredentials.userId, users.id)
       )
-      .where(eq(sessions.id, sessionId));
-    if (results.length !== 1) return [null, null];
-    const result = results[0];
-
-    const { id: sessionDatabaseId, userId, expiresAt, ...sessionAttributes } = result.session;
-    const { id, ...userDatabaseAttributes } = result.user;
-    const { email, isVerified: isEmailVerified } = result.email;
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+    if (!results.length) return [null, null];
+    const { user, session, email, twoFactorCredential } = results[0];
 
     const userAttributes = {
-      email,
-      isEmailVerified,
-      hasTwoFactor: !!result.twoFactorCredential,
-      ...userDatabaseAttributes
+      username: user.username,
+      email: email.email,
+      isEmailVerified: email.isVerified,
+      hasTwoFactor: !!twoFactorCredential
+    };
+    const sessionAttributes = {
+      isTwoFactorVerified: session.isTwoFactorVerified,
+      isPasskeyVerified: session.isPasskeyVerified
     };
 
     const sessionData = {
-      userId,
-      id: sessionDatabaseId,
-      expiresAt,
+      id: session.id,
+      userId: user.id,
+      expiresAt: session.expiresAt,
       attributes: sessionAttributes
     };
     const userData = {
-      id,
+      id: user.id,
       attributes: userAttributes
     };
     return [sessionData, userData];

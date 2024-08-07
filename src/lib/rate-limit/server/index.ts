@@ -146,7 +146,7 @@ export class Throttler {
         graceCounter: this.grace - 1,
         updatedAt: now
       };
-      this.storage.hSet(redisQuery, newCounter);
+      await this.storage.hSet(redisQuery, newCounter);
       return;
     }
 
@@ -212,7 +212,7 @@ export class Throttler {
         updatedAt: now
       };
     }
-    this.storage.hSet(redisQuery, updatedCounter);
+    await this.storage.hSet(redisQuery, updatedCounter);
   }
 
   public async reset(key: string): Promise<void> {
@@ -283,7 +283,7 @@ export class FixedRefillTokenBucketLimiter {
       return false;
     }
 
-    this.storage.hSet(redisQuery, updatedBucket);
+    await this.storage.hSet(redisQuery, updatedBucket);
     return true;
   }
 

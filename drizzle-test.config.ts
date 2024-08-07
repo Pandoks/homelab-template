@@ -1,4 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.test' });
 
 const TEST_DB_URL = process.env.TEST_DB_URL;
 

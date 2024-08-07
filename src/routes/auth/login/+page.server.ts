@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { verify } from '@node-rs/argon2';
 import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { db } from '$lib/db/postgres';
-import { users, type User as DbUser } from '$lib/db/postgres/schema';
+import { emails, users } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -13,6 +13,7 @@ import { verifyPasskey } from '$lib/auth/passkey/server';
 import { Throttler } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
 import type { RedisClientType } from 'redis';
+import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 
 const throttler = new Throttler({
   name: 'login-throttle',
@@ -30,11 +31,20 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const loginForm = await superValidate(event, zod(loginSchema));
+    const ipAddress = event.getClientAddress();
+    const throttleCheck = throttler.check(ipAddress);
+    const formValidation = superValidate(event, zod(loginSchema));
+    const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
         throttled: false,
+        loginForm
+      });
+    } else if (!validThrottle) {
+      return fail(429, {
+        success: false,
+        throttled: true,
         loginForm
       });
     }
@@ -45,28 +55,50 @@ export const actions: Actions = {
       isUsername = false;
     }
 
-    let user: DbUser | null = null;
+    let userInfo: {
+      user: { id: string; passwordHash: string | null };
+      isEmailVerified: boolean;
+      twoFactorSecret: string | null;
+    } | null = null;
     if (isUsername) {
-      [user] = await db.main
-        .select()
+      [userInfo] = await db.main
+        .select({
+          user: {
+            id: users.id,
+            passwordHash: users.passwordHash
+          },
+          isEmailVerified: emails.isVerified,
+          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+        })
         .from(users)
+        .innerJoin(emails, eq(emails.userId, users.id))
+        .innerJoin(
+          twoFactorAuthenticationCredentials,
+          eq(twoFactorAuthenticationCredentials.userId, users.id)
+        )
         .where(eq(users.username, usernameOrEmail))
         .limit(1);
     } else {
-      [user] = await db.main.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+      [userInfo] = await db.main
+        .select({
+          user: {
+            id: users.id,
+            passwordHash: users.passwordHash
+          },
+          isEmailVerified: emails.isVerified,
+          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+        })
+        .from(emails)
+        .innerJoin(users, eq(users.id, emails.userId))
+        .innerJoin(
+          twoFactorAuthenticationCredentials,
+          eq(twoFactorAuthenticationCredentials.userId, users.id)
+        )
+        .where(eq(emails.email, usernameOrEmail))
+        .limit(1);
     }
 
-    let validPassword = false;
-    if (user && user.passwordHash) {
-      validPassword = await verify(user.passwordHash, loginForm.data.password, {
-        memoryCost: 19456,
-        timeCost: 2,
-        outputLen: 32,
-        parallelism: 1
-      });
-    }
-    // NOTE: don't return incorrect user before hashing the password as it gives information to hackers
-    if (!user) {
+    if (!userInfo || !userInfo.user.passwordHash) {
       return fail(400, {
         success: false,
         throttled: false,
@@ -74,16 +106,14 @@ export const actions: Actions = {
       });
     }
 
-    const ipAddress = event.getClientAddress();
-    const throttleKey = `${user.id}:${ipAddress}`;
-    if (!(await throttler.check(throttleKey))) {
-      return fail(429, {
-        success: false,
-        throttled: true,
-        loginForm
-      });
-    } else if (!validPassword) {
-      throttler.increment(throttleKey);
+    const validPassword = await verify(userInfo.user.passwordHash, loginForm.data.password, {
+      memoryCost: 19456,
+      timeCost: 2,
+      outputLen: 32,
+      parallelism: 1
+    });
+    if (!validPassword) {
+      throttler.increment(ipAddress);
       return fail(400, {
         success: false,
         throttled: false,
@@ -91,20 +121,21 @@ export const actions: Actions = {
       });
     }
 
-    await throttler.reset(throttleKey);
-    const session = await lucia.createSession(user.id, {
+    const throttleReset = throttler.reset(ipAddress);
+    const sessionCreation = lucia.createSession(userInfo.user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
     });
+    const [session] = await Promise.all([sessionCreation, throttleReset]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
       ...sessionCookie.attributes
     });
 
-    if (!user.isEmailVerified) {
+    if (!userInfo.isEmailVerified) {
       return redirect(302, '/auth/email-verification');
-    } else if (user.twoFactorSecret) {
+    } else if (userInfo.twoFactorSecret) {
       return redirect(302, '/auth/2fa/otp');
     }
 
@@ -116,32 +147,58 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const loginForm = await superValidate(event, zod(loginPasskeySchema));
+    const ipAddress = event.getClientAddress();
+    const throttleCheck = throttler.check(ipAddress);
+    const formValidation = await superValidate(event, zod(loginPasskeySchema));
+    const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
         throttled: false,
         loginForm
       });
+    } else if (!validThrottle) {
+      return fail(429, {
+        success: false,
+        throttled: true,
+        loginForm
+      });
     }
 
     let isUsername = true;
-    const usernameOrEmail = loginForm.data.usernameOrEmail;
+    const usernameOrEmail = loginForm.data.usernameOrEmail.toLowerCase();
     if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }
 
-    let user: DbUser | null = null;
+    let userInfo: { user: { id: string }; isEmailVerified: boolean } | null = null;
     if (isUsername) {
-      [user] = await db.main
-        .select()
+      [userInfo] = await db.main
+        .select({
+          user: {
+            id: users.id
+          },
+          isEmailVerified: emails.isVerified
+        })
         .from(users)
+        .innerJoin(emails, eq(emails.userId, users.id))
         .where(eq(users.username, usernameOrEmail))
         .limit(1);
     } else {
-      [user] = await db.main.select().from(users).where(eq(users.email, usernameOrEmail)).limit(1);
+      [userInfo] = await db.main
+        .select({
+          user: {
+            id: users.id
+          },
+          isEmailVerified: emails.isVerified
+        })
+        .from(emails)
+        .innerJoin(users, eq(users.id, emails.userId))
+        .where(eq(emails.email, usernameOrEmail))
+        .limit(1);
     }
-    if (!user) {
+
+    if (!userInfo) {
       return fail(400, {
         success: false,
         throttled: false,
@@ -150,24 +207,15 @@ export const actions: Actions = {
     }
 
     const isValidPasskey = await verifyPasskey({
-      userId: user.id,
+      userId: userInfo.user.id,
       challengeId: loginForm.data.challengeId,
       credentialId: loginForm.data.credentialId,
       signature: loginForm.data.signature,
       encodedAuthenticatorData: loginForm.data.encodedAuthenticatorData,
       clientDataJSON: loginForm.data.clientDataJSON
     });
-
-    const ipAddress = event.getClientAddress();
-    const throttleKey = `${user.id}:${ipAddress}`;
-    if (!(await throttler.check(throttleKey))) {
-      return fail(429, {
-        success: false,
-        throttled: true,
-        loginForm
-      });
-    } else if (!isValidPasskey) {
-      throttler.increment(throttleKey);
+    if (!isValidPasskey) {
+      throttler.increment(ipAddress);
       return fail(400, {
         success: false,
         throttled: false,
@@ -175,18 +223,19 @@ export const actions: Actions = {
       });
     }
 
-    await throttler.reset(throttleKey);
-    const session = await lucia.createSession(user.id, {
+    const throttleReset = throttler.reset(ipAddress);
+    const sessionCreation = lucia.createSession(userInfo.user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: true
     });
+    const [session] = await Promise.all([sessionCreation, throttleReset]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
       ...sessionCookie.attributes
     });
 
-    if (!user.isEmailVerified) {
+    if (!userInfo.isEmailVerified) {
       return redirect(302, '/auth/email-verification');
     }
 

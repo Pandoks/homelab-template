@@ -75,7 +75,8 @@ export const twoFactorAuthenticationCredentials = pgTable('two_factor_authentica
     .primaryKey()
     .references(() => users.id),
   twoFactorSecret: text('two_factor_secret'),
-  twoFactorRecoveryHash: text('two_factor_recovery_hash')
+  twoFactorRecoveryHash: text('two_factor_recovery_hash'),
+  activated: boolean('activated').default(false).notNull()
 });
 export const twoFactorAuthenticationCredentialRelations = relations(
   twoFactorAuthenticationCredentials,
