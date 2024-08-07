@@ -69,3 +69,20 @@ export const passkeyRelations = relations(passkeys, ({ one }) => ({
     references: [users.id]
   })
 }));
+
+export const twoFactorAuthenticationCredentials = pgTable('two_factor_authentication_credentials', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  twoFactorSecret: text('two_factor_secret'),
+  twoFactorRecoveryHash: text('two_factor_recovery_hash')
+});
+export const twoFactorAuthenticationCredentialRelations = relations(
+  twoFactorAuthenticationCredentials,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [twoFactorAuthenticationCredentials.userId],
+      references: [users.id]
+    })
+  })
+);
