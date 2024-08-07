@@ -50,7 +50,7 @@ export const actions: Actions = {
     }
 
     const ipAddress = event.getClientAddress();
-    const formValidation = await superValidate(event, zod(signupSchema));
+    const formValidation = superValidate(event, zod(signupSchema));
     const bucketCheck = bucket.check({ key: ipAddress, cost: 1 });
     const [validBucket, signupForm] = await Promise.all([bucketCheck, formValidation]);
     if (!signupForm.valid) {
@@ -294,16 +294,7 @@ export const load: PageServerLoad = async (event) => {
     }
 
     // not email verified: delete account if signing up again
-    await db.main.transaction(async (transaction) => {
-      await transaction.delete(emailVerifications).where(eq(emailVerifications.userId, user.id));
-      await transaction.delete(passkeys).where(eq(passkeys.userId, user.id));
-      await transaction
-        .delete(twoFactorAuthenticationCredentials)
-        .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
-      await transaction.delete(emails).where(eq(emails.userId, user.id));
-      await transaction.delete(sessions).where(eq(sessions.userId, user.id));
-      await transaction.delete(users).where(eq(users.id, user.id));
-    });
+    await db.main.delete(users).where(eq(users.id, user.id));
 
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

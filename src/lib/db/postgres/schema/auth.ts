@@ -7,7 +7,7 @@ export const sessions = pgTable('sessions', {
   id: text('id').primaryKey(),
   userId: text('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', {
     withTimezone: true,
     mode: 'date'
@@ -27,7 +27,7 @@ export const emailVerifications = pgTable('email_verifications', {
   code: text('code'),
   userId: text('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   email: text('email')
     .notNull()
     .references(() => emails.email),
@@ -44,7 +44,7 @@ export const passwordResets = pgTable('password_resets', {
   tokenHash: text('token_hash').primaryKey(),
   userId: text('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull()
 });
 export const passwordResetTokenRelations = relations(passwordResets, ({ one }) => ({
@@ -61,7 +61,7 @@ export const passkeys = pgTable('passkeys', {
   encodedPublicKey: text('encoded_public_key').notNull(),
   userId: text('user_id')
     .notNull()
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: 'cascade' })
 });
 export const passkeyRelations = relations(passkeys, ({ one }) => ({
   user: one(users, {
@@ -73,7 +73,7 @@ export const passkeyRelations = relations(passkeys, ({ one }) => ({
 export const twoFactorAuthenticationCredentials = pgTable('two_factor_authentication_credentials', {
   userId: text('user_id')
     .primaryKey()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   twoFactorSecret: text('two_factor_secret'),
   twoFactorRecoveryHash: text('two_factor_recovery_hash'),
   activated: boolean('activated').default(false).notNull()

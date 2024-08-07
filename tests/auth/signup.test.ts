@@ -1,5 +1,5 @@
 import { db } from '$lib/db/postgres';
-import { users } from '$lib/db/postgres/schema';
+import { emails, users } from '$lib/db/postgres/schema';
 import { emailVerifications, sessions } from '$lib/db/postgres/schema/auth';
 import { resetTestDatabases } from '$lib/test/utils';
 import { expect, test } from '@playwright/test';
@@ -23,20 +23,24 @@ test.describe('Sign up', () => {
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
     await page.waitForURL('/auth/email-verification');
-    const user = await db
+    const [result] = await db
       .test!.select()
-      .from(users)
-      .where(and(eq(users.username, 'testuser'), eq(users.email, 'test@example.com')));
-    expect(user.length).toBe(1);
-    expect(user[0].isEmailVerified).toBeFalsy();
+      .from(emails)
+      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, 'testuser')))
+      .where(eq(emails.email, 'test@example.com'))
+      .limit(1);
+    expect(result).toBeTruthy();
+    const user = result.users;
+    const email = result.emails;
+    expect(email.isVerified).toBeFalsy();
 
     const emailVerification = await db
       .test!.select()
       .from(emailVerifications)
-      .where(eq(emailVerifications.userId, user[0].id));
+      .where(eq(emailVerifications.userId, user.id));
     expect(emailVerification.length).toBe(1);
 
-    const session = await db.test!.select().from(sessions).where(eq(sessions.userId, user[0].id));
+    const session = await db.test!.select().from(sessions).where(eq(sessions.userId, user.id));
     expect(session.length).toBe(1);
 
     await page.getByLabel('Verification Code').fill('TEST');
@@ -46,13 +50,14 @@ test.describe('Sign up', () => {
     const afterEmailVerification = await db
       .test!.select()
       .from(emailVerifications)
-      .where(eq(emailVerifications.userId, user[0].id));
+      .where(eq(emailVerifications.userId, user.id));
     expect(afterEmailVerification.length).toBe(0);
-    const verifiedUser = await db
+    const [verifiedEmail] = await db
       .test!.select()
-      .from(users)
-      .where(and(eq(users.username, 'testuser'), eq(users.email, 'test@example.com')));
-    expect(verifiedUser.length).toBe(1);
-    expect(verifiedUser[0].isEmailVerified).toBeTruthy();
+      .from(emails)
+      .where(and(eq(emails.email, 'test@example.com'), eq(emails.userId, 'testuser')))
+      .limit(1);
+    expect(verifiedEmail).toBeTruthy();
+    expect(email.isVerified).toBeTruthy();
   });
 });
