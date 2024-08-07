@@ -1,5 +1,8 @@
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // didn't use $env because test suite can't handle it
 const TEST_DB_URL = process.env.TEST_DB_URL;

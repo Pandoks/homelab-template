@@ -1,4 +1,7 @@
 import { createClient, createCluster, type RedisClientType, type RedisClusterType } from 'redis';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // didn't use $env because test suite can't handle it
 const MAIN_REDIS_HOST = process.env.MAIN_REDIS_HOST;
@@ -18,9 +21,9 @@ if (
     !MAIN_REDIS_HOST ||
     !MAIN_REDIS_PORT)
 ) {
-  throw new Error('Database credentials is required for redis');
+  throw new Error('Database credentials are required for redis');
 } else if (testEnv && !TEST_REDIS_URL) {
-  throw new Error('Test database credentials is required for testing redis');
+  throw new Error('Test database credentials are required for testing redis');
 }
 
 let redisInstances: Promise<RedisClusterType | RedisClientType>[] = [];
