@@ -1,5 +1,5 @@
 import { boolean, pgTable, serial, smallint, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from './index';
+import { emails, users } from './index';
 import { relations } from 'drizzle-orm';
 
 // TODO: setup cron job to clear invalid sessions with lucia
@@ -30,7 +30,7 @@ export const emailVerifications = pgTable('email_verifications', {
     .references(() => users.id),
   email: text('email')
     .notNull()
-    .references(() => users.email),
+    .references(() => emails.email),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull()
 });
 export const emailVerificationCodeRelations = relations(emailVerifications, ({ one }) => ({

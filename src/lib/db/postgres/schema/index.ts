@@ -1,7 +1,13 @@
 import { relations } from 'drizzle-orm';
 import { boolean, pgTable, text } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
-import { emailVerifications, passkeys, sessions, twoFactorAuthenticationCredentials } from './auth';
+import {
+  emailVerifications,
+  passkeys,
+  passwordResets,
+  sessions,
+  twoFactorAuthenticationCredentials
+} from './auth';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -17,12 +23,14 @@ export const userRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   emailVerificationCode: one(emailVerifications),
   passkeys: many(passkeys),
+  passwordReset: one(passwordResets),
+  email: one(emails),
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials)
 }));
 
 export const emails = pgTable('emails', {
   email: text('email').primaryKey(),
-  isVerified: boolean('is_verified').default(false),
+  isVerified: boolean('is_verified').default(false).notNull(),
   userId: text('user_id').references(() => users.id)
 });
 export const emailRelations = relations(emails, ({ one }) => ({

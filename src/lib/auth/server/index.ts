@@ -1,14 +1,12 @@
 import { Lucia } from 'lucia';
 import { dev } from '$app/environment';
 import { db } from '$lib/db/postgres';
-import { users } from '$lib/db/postgres/schema';
-import { sessions } from '$lib/db/postgres/schema/auth';
-import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { error, redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit';
 import { encodeHex } from 'oslo/encoding';
 import { sha1 } from '@oslojs/crypto/sha1';
+import { DatabaseAdapter } from './database-adapter';
 
-const adapter = new DrizzlePostgreSQLAdapter(db.main, sessions, users);
+const adapter = new DatabaseAdapter(db.main);
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
