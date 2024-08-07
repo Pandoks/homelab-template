@@ -12,10 +12,10 @@ import { encodeHex } from 'oslo/encoding';
 export const createPasswordResetToken = async ({ userId }: { userId: string }): Promise<string> => {
   const token = generateIdFromEntropySize(25); // 40 characters
 
-  await db.main.transaction(async (transaction) => {
+  await db.main.transaction(async (tsx) => {
     const tokenHash = encodeHex(await sha256(new TextEncoder().encode(token)));
-    await transaction.delete(passwordResets).where(eq(passwordResets.userId, userId)); // invalidate existing tokens
-    await transaction.insert(passwordResets).values({
+    await tsx.delete(passwordResets).where(eq(passwordResets.userId, userId)); // invalidate existing tokens
+    await tsx.insert(passwordResets).values({
       tokenHash: tokenHash,
       userId: userId,
       expiresAt: createDate(new TimeSpan(2, 'h'))

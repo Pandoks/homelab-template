@@ -16,9 +16,9 @@ export const generateEmailVerification = async ({
   email: string;
 }): Promise<string> => {
   const code = testEnv ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
-  await db.main.transaction(async (transaction) => {
-    await transaction.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
-    await transaction.insert(emailVerifications).values({
+  await db.main.transaction(async (tsx) => {
+    await tsx.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
+    await tsx.insert(emailVerifications).values({
       userId: userId,
       email: email,
       code: code,
@@ -35,8 +35,8 @@ export const sendVerification = async ({ email, code }: { email: string; code: s
 };
 
 export const verifyVerificationCode = async ({ user, code }: { user: User; code: string }) => {
-  const isValidVerificationCode: boolean = await db.main.transaction(async (transaction) => {
-    const [emailVerificationCode] = await transaction
+  const isValidVerificationCode: boolean = await db.main.transaction(async (tsx) => {
+    const [emailVerificationCode] = await tsx
       .select({
         code: emailVerifications.code,
         id: emailVerifications.id,
@@ -49,9 +49,7 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
     if (!emailVerificationCode || emailVerificationCode.code !== code) {
       return false;
     }
-    await transaction
-      .delete(emailVerifications)
-      .where(eq(emailVerifications.id, emailVerificationCode.id));
+    await tsx.delete(emailVerifications).where(eq(emailVerifications.id, emailVerificationCode.id));
 
     if (
       !isWithinExpirationDate(emailVerificationCode.expiresAt) ||

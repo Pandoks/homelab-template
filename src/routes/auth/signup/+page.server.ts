@@ -24,12 +24,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import {
-  emailVerifications,
-  passkeys,
-  sessions,
-  twoFactorAuthenticationCredentials
-} from '$lib/db/postgres/schema/auth';
+import { passkeys, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/redis';
@@ -89,18 +84,18 @@ export const actions: Actions = {
     const email = signupForm.data.email.toLowerCase();
 
     try {
-      await db.main.transaction(async (transaction) => {
-        await transaction.insert(users).values({
+      await db.main.transaction(async (tsx) => {
+        await tsx.insert(users).values({
           id: userId,
           username: signupForm.data.username.toLowerCase(),
           passwordHash: passwordHash
         });
-        await transaction.insert(emails).values({
+        await tsx.insert(emails).values({
           email: email,
           isVerified: false,
           userId: userId
         });
-        await transaction.insert(twoFactorAuthenticationCredentials).values({
+        await tsx.insert(twoFactorAuthenticationCredentials).values({
           twoFactorSecret: null,
           twoFactorRecoveryHash: null,
           activated: false,
@@ -211,24 +206,24 @@ export const actions: Actions = {
       const userId = generateIdFromEntropySize(10);
       const email = signupForm.data.email.toLowerCase();
 
-      const insertNewUser = db.main.transaction(async (transaction) => {
-        await transaction.insert(users).values({
+      const insertNewUser = db.main.transaction(async (tsx) => {
+        await tsx.insert(users).values({
           id: userId,
           username: signupForm.data.username.toLowerCase(),
           passwordHash: null
         });
-        await transaction.insert(emails).values({
+        await tsx.insert(emails).values({
           email: email,
           isVerified: false,
           userId: userId
         });
-        await transaction.insert(twoFactorAuthenticationCredentials).values({
+        await tsx.insert(twoFactorAuthenticationCredentials).values({
           twoFactorSecret: null,
           twoFactorRecoveryHash: null,
           activated: false,
           userId: userId
         });
-        await transaction.insert(passkeys).values({
+        await tsx.insert(passkeys).values({
           credentialId: base64url.encode(credential.id),
           name: 'Main Passkey',
           algorithm: algorithm,
