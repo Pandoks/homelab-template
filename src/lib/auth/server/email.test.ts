@@ -1,4 +1,4 @@
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails, users } from '$lib/db/postgres/schema';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';

@@ -1,4 +1,4 @@
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails, users } from '$lib/db/postgres/schema';
 import {
   emailVerifications,
@@ -7,7 +7,7 @@ import {
   sessions,
   twoFactorAuthenticationCredentials
 } from '$lib/db/postgres/schema/auth';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import { count } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { TimeSpan } from 'lucia';

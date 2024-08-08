@@ -1,4 +1,4 @@
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
@@ -10,7 +10,7 @@ import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 
 const bucket = new ConstantRefillTokenBucketLimiter({

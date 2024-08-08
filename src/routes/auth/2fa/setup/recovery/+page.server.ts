@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';

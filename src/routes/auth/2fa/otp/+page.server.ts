@@ -1,6 +1,6 @@
 import { lucia } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { TOTPController } from 'oslo/otp';
 import { decodeHex } from 'oslo/encoding';
 import { eq } from 'drizzle-orm';
@@ -8,7 +8,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 import { Throttler } from '$lib/rate-limit/server';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';

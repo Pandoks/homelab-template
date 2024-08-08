@@ -1,6 +1,6 @@
 import { Lucia } from 'lucia';
 import { dev } from '$app/environment';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { error, redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit';
 import { encodeHex } from 'oslo/encoding';
 import { sha1 } from '@oslojs/crypto/sha1';

@@ -16,7 +16,7 @@ import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails, users } from '$lib/db/postgres/schema';
 import { handleAlreadyLoggedIn, lucia, verifyPasswordStrength } from '$lib/auth/server';
 import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
@@ -27,7 +27,7 @@ import { eq } from 'drizzle-orm';
 import { passkeys, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 
 const bucket = new ConstantRefillTokenBucketLimiter({

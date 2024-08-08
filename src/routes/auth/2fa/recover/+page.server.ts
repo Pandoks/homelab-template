@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { count, eq } from 'drizzle-orm';
 import { sha256 } from 'oslo/crypto';
 import { encodeHex } from 'oslo/encoding';
@@ -10,7 +10,7 @@ import { twoFactorRecoverySchema } from './schema';
 import { lucia } from '$lib/auth/server';
 import { Throttler } from '$lib/rate-limit/server';
 import type { RedisClientType } from 'redis';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 
 const throttler = new Throttler({

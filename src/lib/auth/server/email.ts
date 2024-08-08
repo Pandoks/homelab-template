@@ -1,7 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { alphabet, generateRandomString } from 'oslo/crypto';
 import { createDate, isWithinExpirationDate, TimeSpan } from 'oslo';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 import { emails, users } from '$lib/db/postgres/schema';

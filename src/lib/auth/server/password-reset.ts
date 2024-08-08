@@ -1,4 +1,4 @@
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { generateIdFromEntropySize } from 'lucia';

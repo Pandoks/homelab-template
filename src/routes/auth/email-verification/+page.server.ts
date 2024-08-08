@@ -6,7 +6,7 @@ import {
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { lucia } from '$lib/auth/server';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
@@ -16,7 +16,7 @@ import {
   ConstantRefillTokenBucketLimiter,
   FixedRefillTokenBucketLimiter
 } from '$lib/rate-limit/server';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 
 const verificationBucket = new FixedRefillTokenBucketLimiter({

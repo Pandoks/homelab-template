@@ -5,7 +5,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';

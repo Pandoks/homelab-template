@@ -8,7 +8,7 @@ import {
   type WebAuthnCredential
 } from '@oslojs/webauthn';
 import { PUBLIC_APP_DOMAIN, PUBLIC_APP_ORIGIN } from '$env/static/public';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import { ECDSAPublicKey, p256 } from '@oslojs/crypto/ecdsa';
 import { RSAPublicKey } from '@oslojs/crypto/rsa';
 import { sha256 } from '@oslojs/crypto/sha2';

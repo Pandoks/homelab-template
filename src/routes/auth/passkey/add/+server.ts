@@ -17,7 +17,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { passkeyRegistrationSchema } from '../schema';
 import { base64url } from 'oslo/encoding';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { passkeys } from '$lib/db/postgres/schema/auth';
 
 /**

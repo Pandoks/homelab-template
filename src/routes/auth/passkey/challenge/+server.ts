@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { getRandomValues } from 'crypto';
 import { base64url, encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
-import { redis } from '$lib/db/redis';
+import { redis } from '$lib/db/server/redis';
 import { json } from '@sveltejs/kit';
 
 /**

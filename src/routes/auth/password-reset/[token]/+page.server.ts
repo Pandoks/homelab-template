@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { passwordResets, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
