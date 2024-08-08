@@ -6,19 +6,23 @@ import { expect, test } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
 
 test.describe('Sign up', () => {
-  // test.beforeAll(async () => {
-  //   await resetTestDatabases();
-  // });
-  //
-  // test.afterEach(async () => {
-  //   await resetTestDatabases();
-  // });
+  const username = 'testuser';
+  const emailInput = 'test@example.com';
+  const emailCode = 'TEST';
+
+  test.beforeAll(async () => {
+    await resetTestDatabases();
+  });
+
+  test.afterEach(async () => {
+    await resetTestDatabases();
+  });
 
   test('should allow a user to sign up', async ({ page }) => {
     await page.goto('/auth/signup');
 
-    await page.getByLabel('Username').fill('testuser');
-    await page.getByLabel('Email').fill('test@example.com');
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').fill(emailInput);
     await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
@@ -26,8 +30,8 @@ test.describe('Sign up', () => {
     const [result] = await db
       .test!.select()
       .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, 'testuser')))
-      .where(eq(emails.email, 'test@example.com'))
+      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
+      .where(eq(emails.email, emailInput))
       .limit(1);
     expect(result).toBeTruthy();
     const user = result.users;
@@ -36,30 +40,29 @@ test.describe('Sign up', () => {
 
     const emailVerification = await db
       .test!.select()
-      .from(emails)
-      .innerJoin(emailVerifications, eq(emails.email, emailVerifications.email))
-      .where(eq(emails.userId, user.id));
+      .from(emailVerifications)
+      .where(eq(emailVerifications.email, emailInput));
     expect(emailVerification.length).toBe(1);
 
     const session = await db.test!.select().from(sessions).where(eq(sessions.userId, user.id));
     expect(session.length).toBe(1);
 
-    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByLabel('Verification Code').fill(emailCode);
     await page.getByRole('button', { name: 'Activate' }).click();
 
     await page.waitForURL('/');
     const afterEmailVerification = await db
       .test!.select()
-      .from(emails)
-      .innerJoin(emailVerifications, eq(emails.email, emailVerifications.email))
-      .where(eq(emails.userId, user.id));
+      .from(emailVerifications)
+      .where(eq(emailVerifications.email, emailInput));
     expect(afterEmailVerification.length).toBe(0);
-    const [verifiedEmail] = await db
+
+    const [verifiedResult] = await db
       .test!.select()
       .from(emails)
-      .where(and(eq(emails.email, 'test@example.com'), eq(emails.userId, 'testuser')))
+      .where(eq(emails.email, emailInput))
       .limit(1);
-    expect(verifiedEmail).toBeTruthy();
-    expect(email.isVerified).toBeTruthy();
+    expect(verifiedResult).toBeTruthy();
+    expect(verifiedResult.isVerified).toBeTruthy();
   });
 });
