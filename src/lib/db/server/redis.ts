@@ -5,6 +5,7 @@ import {
   MAIN_REDIS_PASSWORD,
   MAIN_REDIS_PORT
 } from '$env/static/private';
+import { dev } from '$app/environment';
 
 if (
   MAIN_REDIS_USERNAME === undefined ||
@@ -23,7 +24,7 @@ const main = createClient({
   socket: {
     host: MAIN_REDIS_HOST,
     port: parseInt(MAIN_REDIS_PORT!),
-    tls: process.env.NODE_ENV === 'production'
+    tls: !dev
   }
 })
   .on('error', (err) => console.error('Main redis client error: ', err))
