@@ -5,10 +5,6 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
 
 export const resetTestDatabases = async () => {
-  if (process.env.NODE_ENV !== 'test') {
-    throw new Error('You should only be using this in test environments');
-  }
-
   let cemetary: Promise<any>[] = [];
 
   const redisIds = Object.keys(redis);

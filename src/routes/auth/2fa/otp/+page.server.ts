@@ -12,15 +12,18 @@ import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 import { Throttler } from '$lib/rate-limit/server';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { building } from '$app/environment';
 
-const throttler = new Throttler({
-  name: '2fa-otp',
-  storage: redis.main.instance as RedisClientType,
-  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
-  resetType: 'instant',
-  cutoffSeconds: 24 * 60 * 60,
-  grace: 5
-});
+const throttler = !building
+  ? new Throttler({
+      name: '2fa-otp',
+      storage: redis.main.instance as RedisClientType,
+      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+      resetType: 'instant',
+      cutoffSeconds: 24 * 60 * 60,
+      grace: 5
+    })
+  : undefined;
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -35,7 +38,7 @@ export const actions: Actions = {
     const throttleKey = `${user.id}`;
 
     const otpFormValidation = superValidate(event, zod(oneTimePasswordSchema));
-    const throttlerCheck = throttler.check(throttleKey);
+    const throttlerCheck = throttler?.check(throttleKey);
 
     const [otpForm, throttleValid] = await Promise.all([otpFormValidation, throttlerCheck]);
 
@@ -73,7 +76,7 @@ export const actions: Actions = {
       decodeHex(twoFactorSecret)
     );
     if (!validOTP) {
-      await throttler.increment(throttleKey);
+      await throttler?.increment(throttleKey);
       otpForm.errors.otp = ['Invalid code'];
       return fail(400, {
         success: false,
@@ -82,7 +85,7 @@ export const actions: Actions = {
       });
     }
 
-    const throttleReset = throttler.reset(throttleKey);
+    const throttleReset = throttler?.reset(throttleKey);
     const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: true,
       isPasskeyVerified: false
