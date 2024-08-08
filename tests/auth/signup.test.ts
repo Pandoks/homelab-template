@@ -59,7 +59,6 @@ test.describe('Sign up', () => {
       .from(emails)
       .where(and(eq(emails.email, 'test@example.com'), eq(emails.userId, 'testuser')))
       .limit(1);
-    console.log(verifiedEmail);
     expect(verifiedEmail).toBeTruthy();
     expect(email.isVerified).toBeTruthy();
   });

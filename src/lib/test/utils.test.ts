@@ -90,7 +90,7 @@ describe('resetTestDatabase', () => {
     const userQuery = await database.select({ count: count() }).from(users);
     expect(userQuery[0].count).toBe(10);
 
-    resetTestDatabases();
+    await resetTestDatabases();
 
     const clearedKeys = await redisClient.keys('*');
     expect(clearedKeys.length).toBe(0);
