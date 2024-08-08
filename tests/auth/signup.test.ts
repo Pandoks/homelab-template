@@ -1,4 +1,4 @@
-import { db } from '$lib/db/postgres';
+import { db } from '$lib/db/server/postgres';
 import { emails, users } from '$lib/db/postgres/schema';
 import { emailVerifications, sessions } from '$lib/db/postgres/schema/auth';
 import { resetTestDatabases } from '$lib/test/utils';
