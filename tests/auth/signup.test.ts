@@ -1,9 +1,9 @@
 import { db } from '$lib/db/server/postgres';
 import { emails, users } from '$lib/db/postgres/schema';
 import { emailVerifications, sessions } from '$lib/db/postgres/schema/auth';
-import { resetTestDatabases } from '$lib/test/utils';
 import { expect, test } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
+import { resetTestDatabases } from '../utils';
 
 test.describe('Sign up', () => {
   const username = 'testuser';
