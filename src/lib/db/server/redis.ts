@@ -1,10 +1,10 @@
-import { createClient, createCluster, type RedisClientType, type RedisClusterType } from 'redis';
-
-// didn't use $env because test suite can't handle it
-const MAIN_REDIS_HOST = process.env.MAIN_REDIS_HOST;
-const MAIN_REDIS_PORT = process.env.MAIN_REDIS_PORT;
-const MAIN_REDIS_USERNAME = process.env.MAIN_REDIS_USERNAME;
-const MAIN_REDIS_PASSWORD = process.env.MAIN_REDIS_PASSWORD;
+import { createClient, type RedisClientType, type RedisClusterType } from 'redis';
+import {
+  MAIN_REDIS_HOST,
+  MAIN_REDIS_USERNAME,
+  MAIN_REDIS_PASSWORD,
+  MAIN_REDIS_PORT
+} from '$env/static/private';
 
 if (
   MAIN_REDIS_USERNAME === undefined ||
