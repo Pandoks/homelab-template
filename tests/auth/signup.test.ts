@@ -6,13 +6,13 @@ import { expect, test } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
 
 test.describe('Sign up', () => {
-  test.beforeAll(async () => {
-    resetTestDatabases();
-  });
-
-  test.afterEach(async () => {
-    resetTestDatabases();
-  });
+  // test.beforeAll(async () => {
+  //   await resetTestDatabases();
+  // });
+  //
+  // test.afterEach(async () => {
+  //   await resetTestDatabases();
+  // });
 
   test('should allow a user to sign up', async ({ page }) => {
     await page.goto('/auth/signup');
@@ -36,8 +36,9 @@ test.describe('Sign up', () => {
 
     const emailVerification = await db
       .test!.select()
-      .from(emailVerifications)
-      .where(eq(emailVerifications.userId, user.id));
+      .from(emails)
+      .innerJoin(emailVerifications, eq(emails.email, emailVerifications.email))
+      .where(eq(emails.userId, user.id));
     expect(emailVerification.length).toBe(1);
 
     const session = await db.test!.select().from(sessions).where(eq(sessions.userId, user.id));
@@ -49,14 +50,16 @@ test.describe('Sign up', () => {
     await page.waitForURL('/');
     const afterEmailVerification = await db
       .test!.select()
-      .from(emailVerifications)
-      .where(eq(emailVerifications.userId, user.id));
+      .from(emails)
+      .innerJoin(emailVerifications, eq(emails.email, emailVerifications.email))
+      .where(eq(emails.userId, user.id));
     expect(afterEmailVerification.length).toBe(0);
     const [verifiedEmail] = await db
       .test!.select()
       .from(emails)
       .where(and(eq(emails.email, 'test@example.com'), eq(emails.userId, 'testuser')))
       .limit(1);
+    console.log(verifiedEmail);
     expect(verifiedEmail).toBeTruthy();
     expect(email.isVerified).toBeTruthy();
   });

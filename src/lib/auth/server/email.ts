@@ -1,9 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { alphabet, generateRandomString } from 'oslo/crypto';
 import { createDate, isWithinExpirationDate, TimeSpan } from 'oslo';
 import { db } from '$lib/db/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
+import { emails, users } from '$lib/db/postgres/schema';
 
 const testEnv = process.env.NODE_ENV === 'test';
 
@@ -17,9 +18,13 @@ export const generateEmailVerification = async ({
 }): Promise<string> => {
   const code = testEnv ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
   await db.main.transaction(async (tsx) => {
-    await tsx.delete(emailVerifications).where(eq(emailVerifications.userId, userId));
+    await tsx.execute(sql`
+      DELETE FROM ${emailVerifications}
+      USING ${emails} 
+      WHERE ${emailVerifications.email} = ${emails.email}
+        AND ${emails.userId} = ${userId}
+    `);
     await tsx.insert(emailVerifications).values({
-      userId: userId,
       email: email,
       code: code,
       expiresAt: createDate(new TimeSpan(15, 'm'))
@@ -44,7 +49,8 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
         email: emailVerifications.email
       })
       .from(emailVerifications)
-      .where(eq(emailVerifications.userId, user.id))
+      .innerJoin(emails, eq(emails.email, emailVerifications.email))
+      .innerJoin(users, and(eq(users.id, user.id), eq(users.id, emails.userId)))
       .limit(1);
     if (!emailVerificationCode || emailVerificationCode.code !== code) {
       return false;

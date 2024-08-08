@@ -25,18 +25,15 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
 export const emailVerifications = pgTable('email_verifications', {
   id: serial('id').primaryKey(),
   code: text('code'),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
   email: text('email')
     .notNull()
-    .references(() => emails.email),
+    .references(() => emails.email, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull()
 });
 export const emailVerificationCodeRelations = relations(emailVerifications, ({ one }) => ({
-  user: one(users, {
-    fields: [emailVerifications.userId],
-    references: [users.id]
+  email: one(emails, {
+    fields: [emailVerifications.email],
+    references: [emails.email]
   })
 }));
 
