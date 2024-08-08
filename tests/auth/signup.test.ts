@@ -27,8 +27,8 @@ test.describe('Sign up', () => {
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
     await page.waitForURL('/auth/email-verification');
-    const [result] = await db
-      .test!.select()
+    const [result] = await db.main
+      .select()
       .from(emails)
       .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
       .where(eq(emails.email, emailInput))
@@ -38,27 +38,27 @@ test.describe('Sign up', () => {
     const email = result.emails;
     expect(email.isVerified).toBeFalsy();
 
-    const emailVerification = await db
-      .test!.select()
+    const emailVerification = await db.main
+      .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, emailInput));
     expect(emailVerification.length).toBe(1);
 
-    const session = await db.test!.select().from(sessions).where(eq(sessions.userId, user.id));
+    const session = await db.main.select().from(sessions).where(eq(sessions.userId, user.id));
     expect(session.length).toBe(1);
 
     await page.getByLabel('Verification Code').fill(emailCode);
     await page.getByRole('button', { name: 'Activate' }).click();
 
     await page.waitForURL('/');
-    const afterEmailVerification = await db
-      .test!.select()
+    const afterEmailVerification = await db.main
+      .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, emailInput));
     expect(afterEmailVerification.length).toBe(0);
 
-    const [verifiedResult] = await db
-      .test!.select()
+    const [verifiedResult] = await db.main
+      .select()
       .from(emails)
       .where(eq(emails.email, emailInput))
       .limit(1);

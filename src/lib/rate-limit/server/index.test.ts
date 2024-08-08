@@ -12,7 +12,7 @@ describe('ConstantRefillTokenBucketLimiter', () => {
   let limiter: ConstantRefillTokenBucketLimiter;
 
   beforeAll(async () => {
-    redisClient = redis.test?.instance as RedisClientType;
+    redisClient = redis.main.instance as RedisClientType;
     limiter = new ConstantRefillTokenBucketLimiter({
       name: 'test-limiter',
       max: 5,
@@ -22,7 +22,7 @@ describe('ConstantRefillTokenBucketLimiter', () => {
   });
 
   afterEach(async () => {
-    await redis.test!.instance.flushAll();
+    await redis.main.instance.flushAll();
   });
 
   it('should allow requests within the limit', async () => {
@@ -100,12 +100,12 @@ describe('Throttler', () => {
   let throttler: Throttler;
 
   afterEach(async () => {
-    await redis.test!.instance.flushAll();
+    await redis.main.instance.flushAll();
   });
 
   describe('default cutoff mode (none)', () => {
     beforeAll(async () => {
-      redisClient = redis.test?.instance as RedisClientType;
+      redisClient = redis.main.instance as RedisClientType;
       throttler = new Throttler({
         name: 'test-throttler',
         storage: redisClient,
@@ -217,7 +217,7 @@ describe('Throttler', () => {
 
   describe('gradual cutoff mode', () => {
     beforeAll(async () => {
-      redisClient = redis.test?.instance as RedisClientType;
+      redisClient = redis.main.instance as RedisClientType;
       throttler = new Throttler({
         name: 'test-throttler',
         storage: redisClient,
@@ -377,7 +377,7 @@ describe('Throttler', () => {
 
   describe('instant cutoff mode', () => {
     beforeAll(async () => {
-      redisClient = redis.test?.instance as RedisClientType;
+      redisClient = redis.main.instance as RedisClientType;
       throttler = new Throttler({
         name: 'test-throttler',
         storage: redisClient,
@@ -504,7 +504,7 @@ describe('FixedRefillTokenBucketLimiter', () => {
   let limiter: FixedRefillTokenBucketLimiter;
 
   beforeAll(async () => {
-    redisClient = redis.test?.instance as RedisClientType;
+    redisClient = redis.main.instance as RedisClientType;
     limiter = new FixedRefillTokenBucketLimiter({
       name: 'test-limiter',
       max: 5,
@@ -514,7 +514,7 @@ describe('FixedRefillTokenBucketLimiter', () => {
   });
 
   afterEach(async () => {
-    await redis.test!.instance.flushAll();
+    await redis.main.instance.flushAll();
   });
 
   it('should allow requests within the limit', async () => {

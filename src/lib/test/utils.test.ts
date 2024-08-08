@@ -21,8 +21,8 @@ describe('resetTestDatabase', () => {
   let redisClient: RedisClientType;
 
   beforeAll(async () => {
-    database = db.test!;
-    redisClient = redis.test!.instance;
+    database = db.main;
+    redisClient = redis.main.instance;
   });
 
   beforeEach(async () => {

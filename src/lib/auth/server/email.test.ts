@@ -12,7 +12,7 @@ describe('generateEmailVerification', () => {
   let database: PostgresJsDatabase;
 
   beforeAll(async () => {
-    database = db.test!;
+    database = db.main;
   });
 
   beforeEach(async () => {

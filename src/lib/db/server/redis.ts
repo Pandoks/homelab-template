@@ -32,21 +32,7 @@ const main = createClient({
 // can add more later
 const [mainClient] = await Promise.all([main]);
 
-export const redis =
-  process.env.NODE_ENV === 'test'
-    ? {
-        // inject application code to use test db
-        main: {
-          instance: mainClient as RedisClientType,
-          type: 'client'
-        },
-        // better to use so you don't accidentally delete dev db
-        test: {
-          instance: mainClient as RedisClientType,
-          type: 'client'
-        }
-      }
-    : { main: { instance: mainClient as RedisClientType, type: 'client' } };
+export const redis = { main: { instance: mainClient as RedisClientType, type: 'client' } };
 
 export type RedisInstance = {
   instance: RedisClientType | RedisClusterType;

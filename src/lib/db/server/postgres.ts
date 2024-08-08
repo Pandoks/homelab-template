@@ -31,10 +31,4 @@ const main = drizzle(
   })
 );
 
-export const db =
-  process.env.NODE_ENV === 'test'
-    ? {
-        main: main,
-        test: main
-      }
-    : { main: main };
+export const db = { main: main };
