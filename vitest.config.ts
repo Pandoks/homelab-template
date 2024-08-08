@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [sveltekit()],
   test: {
     include: ['src/**/*.test.{js,ts}'],
-    env: loadEnv('test', process.cwd(), '')
+    env: loadEnv('test', process.cwd(), ''),
+    fileParallelism: false
   }
 });
