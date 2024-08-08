@@ -1,4 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.test' });
 
 const USER_DB_USERNAME = process.env.USER_DB_USERNAME;
 const USER_DB_PASSWORD = process.env.USER_DB_PASSWORD;

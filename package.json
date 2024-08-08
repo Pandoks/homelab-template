@@ -12,7 +12,7 @@
     "test:generate": "playwright codegen",
     "test:integration": "playwright test",
     "test:unit": "vitest",
-    "testdb:push": "drizzle-kit push",
+    "testdb:push": "drizzle-kit push --config=drizzle-test.config.ts",
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "db:push": "drizzle-kit push",
