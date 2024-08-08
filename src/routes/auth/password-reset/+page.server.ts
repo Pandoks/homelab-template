@@ -12,13 +12,16 @@ import { fail, redirect } from '@sveltejs/kit';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
+import { building } from '$app/environment';
 
-const bucket = new ConstantRefillTokenBucketLimiter({
-  name: 'password-reset-request',
-  max: 3,
-  refillIntervalSeconds: 30,
-  storage: redis.main.instance as RedisClientType
-});
+const bucket = !building
+  ? new ConstantRefillTokenBucketLimiter({
+      name: 'password-reset-request',
+      max: 3,
+      refillIntervalSeconds: 30,
+      storage: redis.main.instance as RedisClientType
+    })
+  : undefined;
 
 export const actions: Actions = {
   'password-reset': async (event) => {
@@ -50,7 +53,7 @@ export const actions: Actions = {
       };
     }
 
-    if (!(await bucket.check({ key: email, cost: 1 }))) {
+    if (!(await bucket?.check({ key: email, cost: 1 }))) {
       return fail(429, {
         success: false,
         throttled: true,
@@ -58,7 +61,7 @@ export const actions: Actions = {
       });
     }
 
-    const bucketReset = bucket.reset(email);
+    const bucketReset = bucket?.reset(email);
     const verificationTokenCreation = createPasswordResetToken({ userId: emailInfo.userId });
     const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
     const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;

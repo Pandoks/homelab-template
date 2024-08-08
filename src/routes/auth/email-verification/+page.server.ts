@@ -18,19 +18,24 @@ import {
 } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
+import { building } from '$app/environment';
 
-const verificationBucket = new FixedRefillTokenBucketLimiter({
-  name: 'email-verification',
-  max: 5,
-  refillIntervalSeconds: 60 * 30, // 30 minutes
-  storage: redis.main.instance as RedisClientType
-});
-const resendBucket = new ConstantRefillTokenBucketLimiter({
-  name: 'email-resend',
-  max: 5,
-  refillIntervalSeconds: 60, // 1 minute
-  storage: redis.main.instance as RedisClientType
-});
+const verificationBucket = !building
+  ? new FixedRefillTokenBucketLimiter({
+      name: 'email-verification',
+      max: 5,
+      refillIntervalSeconds: 60 * 30, // 30 minutes
+      storage: redis.main.instance as RedisClientType
+    })
+  : undefined;
+const resendBucket = !building
+  ? new ConstantRefillTokenBucketLimiter({
+      name: 'email-resend',
+      max: 5,
+      refillIntervalSeconds: 60, // 1 minute
+      storage: redis.main.instance as RedisClientType
+    })
+  : undefined;
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {
@@ -48,7 +53,7 @@ export const actions: Actions = {
     }
 
     const formCheck = superValidate(event, zod(verificationSchema));
-    const bucketCheck = verificationBucket.check({ key: user.id, cost: 1 });
+    const bucketCheck = verificationBucket?.check({ key: user.id, cost: 1 });
     const [emailVerificationForm, bucketValid] = await Promise.all([formCheck, bucketCheck]);
     if (!emailVerificationForm.valid) {
       return fail(400, {
@@ -92,8 +97,8 @@ export const actions: Actions = {
       .update(emails)
       .set({ isVerified: true })
       .where(eq(emails.userId, user.id));
-    const verificationBucketReset = verificationBucket.reset(user.id);
-    const resendBucketReset = resendBucket.reset(user.id);
+    const verificationBucketReset = verificationBucket?.reset(user.id);
+    const resendBucketReset = resendBucket?.reset(user.id);
     const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: existingSession.isPasskeyVerified
@@ -127,7 +132,7 @@ export const actions: Actions = {
       return redirect(302, '/auth/login');
     }
 
-    if (!(await resendBucket.check({ key: user.id, cost: 1 }))) {
+    if (!(await resendBucket?.check({ key: user.id, cost: 1 }))) {
       return fail(429, {
         success: false,
         limited: true

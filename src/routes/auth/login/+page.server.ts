@@ -14,15 +14,18 @@ import { Throttler } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { building } from '$app/environment';
 
-const throttler = new Throttler({
-  name: 'login-throttle',
-  storage: redis.main.instance as RedisClientType,
-  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
-  resetType: 'instant',
-  cutoffSeconds: 24 * 60 * 60,
-  grace: 5
-});
+const throttler = !building
+  ? new Throttler({
+      name: 'login-throttle',
+      storage: redis.main.instance as RedisClientType,
+      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+      resetType: 'instant',
+      cutoffSeconds: 24 * 60 * 60,
+      grace: 5
+    })
+  : undefined;
 
 export const actions: Actions = {
   login: async (event) => {
@@ -32,7 +35,7 @@ export const actions: Actions = {
     }
 
     const ipAddress = event.getClientAddress();
-    const throttleCheck = throttler.check(ipAddress);
+    const throttleCheck = throttler?.check(ipAddress);
     const formValidation = superValidate(event, zod(loginSchema));
     const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
     if (!loginForm.valid) {
@@ -113,7 +116,7 @@ export const actions: Actions = {
       parallelism: 1
     });
     if (!validPassword) {
-      throttler.increment(ipAddress);
+      throttler?.increment(ipAddress);
       return fail(400, {
         success: false,
         throttled: false,
@@ -121,7 +124,7 @@ export const actions: Actions = {
       });
     }
 
-    const throttleReset = throttler.reset(ipAddress);
+    const throttleReset = throttler?.reset(ipAddress);
     const sessionCreation = lucia.createSession(userInfo.user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
@@ -148,7 +151,7 @@ export const actions: Actions = {
     }
 
     const ipAddress = event.getClientAddress();
-    const throttleCheck = throttler.check(ipAddress);
+    const throttleCheck = throttler?.check(ipAddress);
     const formValidation = await superValidate(event, zod(loginPasskeySchema));
     const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
     if (!loginForm.valid) {
@@ -215,7 +218,7 @@ export const actions: Actions = {
       clientDataJSON: loginForm.data.clientDataJSON
     });
     if (!isValidPasskey) {
-      throttler.increment(ipAddress);
+      throttler?.increment(ipAddress);
       return fail(400, {
         success: false,
         throttled: false,
@@ -223,7 +226,7 @@ export const actions: Actions = {
       });
     }
 
-    const throttleReset = throttler.reset(ipAddress);
+    const throttleReset = throttler?.reset(ipAddress);
     const sessionCreation = lucia.createSession(userInfo.user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: true

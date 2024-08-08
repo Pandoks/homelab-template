@@ -29,13 +29,16 @@ import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
+import { building } from '$app/environment';
 
-const bucket = new ConstantRefillTokenBucketLimiter({
-  name: 'signup-limiter',
-  max: 10,
-  refillIntervalSeconds: 5,
-  storage: redis.main.instance as RedisClientType
-});
+const bucket = !building
+  ? new ConstantRefillTokenBucketLimiter({
+      name: 'signup-limiter',
+      max: 10,
+      refillIntervalSeconds: 5,
+      storage: redis.main.instance as RedisClientType
+    })
+  : undefined;
 
 export const actions: Actions = {
   signup: async (event) => {
@@ -46,7 +49,7 @@ export const actions: Actions = {
 
     const ipAddress = event.getClientAddress();
     const formValidation = superValidate(event, zod(signupSchema));
-    const bucketCheck = bucket.check({ key: ipAddress, cost: 1 });
+    const bucketCheck = bucket?.check({ key: ipAddress, cost: 1 });
     const [validBucket, signupForm] = await Promise.all([bucketCheck, formValidation]);
     if (!signupForm.valid) {
       return fail(400, {
@@ -159,7 +162,7 @@ export const actions: Actions = {
 
     const ipAddress = event.getClientAddress();
     const formValidation = superValidate(event, zod(signupPasskeySchema));
-    const bucketCheck = bucket.check({ key: ipAddress, cost: 1 });
+    const bucketCheck = bucket?.check({ key: ipAddress, cost: 1 });
     const [signupForm, validBucket] = await Promise.all([formValidation, bucketCheck]);
     if (!signupForm.valid) {
       return fail(400, {

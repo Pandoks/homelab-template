@@ -12,15 +12,18 @@ import { Throttler } from '$lib/rate-limit/server';
 import type { RedisClientType } from 'redis';
 import { redis } from '$lib/db/server/redis';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { building } from '$app/environment';
 
-const throttler = new Throttler({
-  name: '2fa-recovery',
-  storage: redis.main.instance as RedisClientType,
-  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
-  resetType: 'instant',
-  cutoffSeconds: 24 * 60 * 60,
-  grace: 5
-});
+const throttler = !building
+  ? new Throttler({
+      name: '2fa-recovery',
+      storage: redis.main.instance as RedisClientType,
+      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+      resetType: 'instant',
+      cutoffSeconds: 24 * 60 * 60,
+      grace: 5
+    })
+  : undefined;
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {
@@ -37,7 +40,7 @@ export const actions: Actions = {
     const ipAddress = event.getClientAddress();
     const throttleKey = `${user.id}:${ipAddress}`;
     const recoveryFormCheck = superValidate(event, zod(twoFactorRecoverySchema));
-    const throttlerCheck = throttler.check(throttleKey);
+    const throttlerCheck = throttler?.check(throttleKey);
     const [recoveryForm, throttleCheck] = await Promise.all([recoveryFormCheck, throttlerCheck]);
     if (!recoveryForm.valid) {
       return fail(400, {
@@ -67,7 +70,7 @@ export const actions: Actions = {
       )
       .limit(1);
     if (!twoFactorRecovery) {
-      await throttler.increment(throttleKey);
+      await throttler?.increment(throttleKey);
       recoveryForm.errors.recoveryCode = ['Invalid'];
       return fail(400, {
         success: false,
@@ -80,7 +83,7 @@ export const actions: Actions = {
       .delete(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
-    const throttleReset = throttler.reset(throttleKey);
+    const throttleReset = throttler?.reset(throttleKey);
     const invalidateAllUserSessions = lucia.invalidateUserSessions(user.id);
     const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: false,
