@@ -191,12 +191,12 @@ export const actions: Actions = {
     if (!credential) {
       return error(406, { message: 'Missing credential' });
     }
-    const publicKey = getPublicKeyFromCredential(credential);
 
     const algorithm = credential.publicKey.algorithm();
-    if (!algorithm || (algorithm !== coseAlgorithmES256 && algorithm !== coseAlgorithmRS256)) {
+    if (!algorithm || algorithm !== coseAlgorithmES256) {
       return error(406, { message: 'Unsupported algorithm' });
     }
+    const publicKey = getPublicKeyFromCredential(credential);
 
     const clientData = parseClientDataJSON(base64url.decode(signupForm.data.clientDataJSON));
     verifyClientData({ clientData: clientData, type: ClientDataType.Create });

@@ -57,22 +57,12 @@ export const verifyChallenge = async ({
 
 // Parse the COSE key depending on the algorithm. The structure depends on the algorithm.
 export const getPublicKeyFromCredential = (credential: WebAuthnCredential) => {
-  const algorithm = credential.publicKey.algorithm();
-  if (!algorithm || (algorithm !== coseAlgorithmES256 && algorithm !== coseAlgorithmRS256)) {
+  const cosePublicKey = credential.publicKey.ec2();
+  if (cosePublicKey.curve !== coseEllipticCurveP256) {
     return error(406, { message: 'Unsupported algorithm' });
   }
 
-  if (algorithm === coseAlgorithmES256) {
-    const cosePublicKey = credential.publicKey.ec2();
-    if (cosePublicKey.curve !== coseEllipticCurveP256) {
-      return error(406, { message: 'Unsupported algorithm' });
-    }
-
-    return base64url.encode(
-      new ECDSAPublicKey(p256, cosePublicKey.x, cosePublicKey.y).encodeSEC1Uncompressed()
-    );
-  } else {
-    const cosePublicKey = credential.publicKey.rsa();
-    return base64url.encode(new RSAPublicKey(cosePublicKey.n, cosePublicKey.e).encodePKCS1());
-  }
+  return base64url.encode(
+    new ECDSAPublicKey(p256, cosePublicKey.x, cosePublicKey.y).encodeSEC1Uncompressed()
+  );
 };
