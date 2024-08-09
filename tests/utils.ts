@@ -1,5 +1,5 @@
-import { db } from '$lib/db/server/postgres';
-import { redis, type RedisInstance } from '$lib/db/server/redis';
+import { redis, type RedisInstance } from './redis';
+import { db } from './db';
 import { sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
