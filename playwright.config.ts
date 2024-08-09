@@ -5,9 +5,16 @@ const config: PlaywrightTestConfig = {
     command: 'vite preview --mode test',
     port: 4173
   },
-  testDir: 'tests',
-  testMatch: /(.+\.)?(test)\.[jt]s/,
-  fullyParallel: false
+  projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/, fullyParallel: true },
+    {
+      name: 'auth',
+      testMatch: /auth\/(.+.)?test.ts/,
+      fullyParallel: false,
+      dependencies: ['setup']
+    }
+  ],
+  testDir: 'tests'
 };
 
 export default config;

@@ -3,9 +3,11 @@ import { db } from './db';
 import { sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
-import type { Page } from '@playwright/test';
 import { emails, users } from '$lib/db/postgres/schema';
 import { hash } from '@node-rs/argon2';
+import { execSync } from 'child_process';
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 export const resetTestDatabases = async () => {
   let cemetary: Promise<any>[] = [];
@@ -42,7 +44,6 @@ export const resetTestDatabases = async () => {
       cemetary.push(dbInstance!.execute(sql.raw(`TRUNCATE TABLE ${table.table_name} CASCADE`)));
     }
   }
-
   await Promise.all(cemetary);
 };
 
@@ -77,42 +78,46 @@ export const createNewUser = async ({
   });
 };
 
-export const newlySignedUpUser = async ({
-  page,
+export const backupTestDatabase = ({
   username,
-  email
+  host,
+  port,
+  database,
+  backupFile
 }: {
-  page: Page;
   username: string;
-  email: string;
+  host: string;
+  port: string;
+  database: string;
+  backupFile: string;
 }) => {
-  await page.goto('/auth/signup');
+  const dir = dirname(backupFile);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
 
-  await page.getByLabel('Username').fill(username);
-  await page.getByLabel('Email').fill(email);
-  await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
-  await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-  await page.waitForURL('/auth/email-verification');
+  const dbDumpCommand = `pg_dump -U ${username} -h ${host} -p ${port} -F c -b -f ${backupFile} ${database} `;
+  execSync(dbDumpCommand);
 };
 
-export const newlyEmailVerifiedUser = async ({
-  page,
+export const restoreDatabase = ({
   username,
-  email
+  host,
+  port,
+  database,
+  dumpFile
 }: {
-  page: Page;
   username: string;
-  email: string;
+  host: string;
+  port: string;
+  database: string;
+  dumpFile: string;
 }) => {
-  await page.goto('/auth/signup');
+  const dir = dirname(dumpFile);
+  if (!existsSync(dir)) {
+    throw new Error('File does not exist');
+  }
 
-  await page.getByLabel('Username').fill(username);
-  await page.getByLabel('Email').fill(email);
-  await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
-  await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-  await page.waitForURL('/auth/email-verification');
-  await page.getByLabel('Verification Code').fill('TEST');
-  await page.getByRole('button', { name: 'Activate' }).click();
+  const dbRestoreCommand = `pg_restore -U ${username} -h ${host} -p ${port} -d ${database} --clean ${dumpFile}`;
+  execSync(dbRestoreCommand);
 };

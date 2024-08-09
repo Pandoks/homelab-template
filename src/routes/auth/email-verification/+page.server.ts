@@ -156,7 +156,7 @@ export const load: PageServerLoad = async (event) => {
   const session = event.locals.session;
   const user = event.locals.user;
   if (session && user) {
-    if (!session.isTwoFactorVerified && user.hasTwoFactor && session.isPasskeyVerified) {
+    if (!session.isTwoFactorVerified && user.hasTwoFactor && !session.isPasskeyVerified) {
       return redirect(302, '/auth/2fa/otp');
     } else if (user.isEmailVerified) {
       return redirect(302, '/');

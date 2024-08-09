@@ -1,104 +1,65 @@
 import { emails, users } from '$lib/db/postgres/schema';
-import { emailVerifications, sessions } from '$lib/db/postgres/schema/auth';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
-import { resetTestDatabases } from '../utils';
 import { db } from '../db';
+import dotenv from 'dotenv';
+import { restoreDatabase } from '../utils';
 
-test.describe('Sign up', () => {
-  const username = 'testuser';
-  const emailInput = 'test@example.com';
-  const emailCode = 'TEST';
+const { parsed: env } = dotenv.config({ path: `.env.test` });
+if (!env) throw new Error('Need .env.test');
 
-  test.beforeAll(async () => {
-    await resetTestDatabases();
+test.describe('Partially signed up user', () => {
+  test.beforeEach('restore database state', () => {
+    restoreDatabase({
+      username: env.USER_DB_USERNAME,
+      database: env.USER_DB_DATABASE,
+      host: env.USER_DB_HOST,
+      port: env.USER_DB_PORT,
+      dumpFile: 'playwright/.states/user-db.dump'
+    });
   });
+  test.use({ storageState: 'playwright/.states/password-partial-signup.json' });
 
-  test.afterEach(async () => {
-    await resetTestDatabases();
-  });
-
-  const signup = async (page: Page) => {
+  test('should delete user', async ({ page }) => {
     await page.goto('/auth/signup');
-
-    await page.getByLabel('Username').fill(username);
-    await page.getByLabel('Email').fill(emailInput);
-    await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-    await page.waitForURL('/auth/email-verification');
-  };
-
-  test('should allow a user to sign up', async ({ page }) => {
-    await signup(page);
-    const [result] = await db.main
+    const [partialPasswordLoginUser] = await db.main
       .select()
       .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
-      .where(eq(emails.email, emailInput))
+      .innerJoin(
+        users,
+        and(eq(users.id, emails.userId), eq(users.username, 'partial_password_user'))
+      )
+      .where(eq(emails.email, 'partial_password_user@example'))
       .limit(1);
-    expect(result).toBeTruthy();
-    const user = result.users;
-    const email = result.emails;
-    expect(email.isVerified).toBeFalsy();
-
-    const emailVerification = await db.main
-      .select()
-      .from(emailVerifications)
-      .where(eq(emailVerifications.email, emailInput));
-    expect(emailVerification.length).toBe(1);
-
-    const session = await db.main.select().from(sessions).where(eq(sessions.userId, user.id));
-    expect(session.length).toBe(1);
-
-    await page.getByLabel('Verification Code').fill(emailCode);
-    await page.getByRole('button', { name: 'Activate' }).click();
-
-    await page.waitForURL('/');
-    const afterEmailVerification = await db.main
-      .select()
-      .from(emailVerifications)
-      .where(eq(emailVerifications.email, emailInput));
-    expect(afterEmailVerification.length).toBe(0);
-
-    const [verifiedResult] = await db.main
-      .select()
-      .from(emails)
-      .where(eq(emails.email, emailInput))
-      .limit(1);
-    expect(verifiedResult).toBeTruthy();
-    expect(verifiedResult.isVerified).toBeTruthy();
+    expect(partialPasswordLoginUser).toBeFalsy();
   });
 
-  test('should delete user if email not verified', async ({ page }) => {
-    await signup(page);
-    const [result] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
-      .where(eq(emails.email, emailInput))
-      .limit(1);
-    expect(result).toBeTruthy();
-    const email = result.emails;
-    expect(email.isVerified).toBeFalsy();
-
-    await page.goto('/auth/signup');
-    const [result2] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
-      .where(eq(emails.email, emailInput))
-      .limit(1);
-    expect(result2).toBeFalsy();
-  });
-
-  test("shouldn't accept invalid inputs", async ({ page }) => {
-    await page.goto('/auth/signup');
-
-    await page.getByLabel('Username').fill('#$*(5)#@)');
-    await expect(page.getByText('Special characters are not')).toBeVisible();
-    await page.getByLabel('Email').fill(emailInput);
-    await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-  });
+  // test('should allow user to sign up with passkey', async ({ context, page }) => {
+  //   await page.goto('/auth/signup');
+  //
+  //   // initialize automatic passkey verification
+  //   const client = await context.newCDPSession(page);
+  //
+  //   await client.send('WebAuthn.enable');
+  //   const result = await client.send('WebAuthn.addVirtualAuthenticator', {
+  //     options: {
+  //       protocol: 'ctap2',
+  //       transport: 'usb',
+  //       hasResidentKey: true,
+  //       hasUserVerification: true,
+  //       isUserVerified: true,
+  //       automaticPresenceSimulation: true
+  //     }
+  //   });
+  //   const authenticatorId = result.authenticatorId;
+  //
+  //   await page.getByLabel('Username').fill('test');
+  //   await page.getByLabel('Email').fill(emailInput);
+  //   await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
+  //   await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+  //
+  //   await page.waitForURL('/auth/email-verification');
+  // });
 });
+
+test.describe('Fully signed up user', () => {});

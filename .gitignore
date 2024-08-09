@@ -21,6 +21,7 @@ vite.config.ts.timestamp-*
 
 # Tests
 test-results
+playwright/
 
 # Redis
 dump.rdb

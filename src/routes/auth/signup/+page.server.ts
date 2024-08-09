@@ -208,7 +208,7 @@ export const actions: Actions = {
       const userId = generateIdFromEntropySize(10);
       const email = signupForm.data.email.toLowerCase();
 
-      const insertNewUser = db.main.transaction(async (tsx) => {
+      await db.main.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
           username: signupForm.data.username.toLowerCase(),
@@ -234,12 +234,10 @@ export const actions: Actions = {
         });
       });
 
-      const createEmailCode = generateEmailVerification({
+      const verificationCode = await generateEmailVerification({
         userId: userId,
         email: email
       });
-
-      const [verificationCode] = await Promise.all([createEmailCode, insertNewUser]);
 
       const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
       const sessionCreation = lucia.createSession(userId, {

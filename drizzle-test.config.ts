@@ -1,13 +1,14 @@
 import { defineConfig } from 'drizzle-kit';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env.test' });
+const { parsed: env } = dotenv.config({ path: `.env.test` });
+if (!env) throw new Error('Need .env.test');
 
-const USER_DB_USERNAME = process.env.USER_DB_USERNAME;
-const USER_DB_PASSWORD = process.env.USER_DB_PASSWORD;
-const USER_DB_HOST = process.env.USER_DB_HOST;
-const USER_DB_PORT = process.env.USER_DB_PORT;
-const USER_DB_DATABASE = process.env.USER_DB_DATABASE;
+const USER_DB_USERNAME = env.USER_DB_USERNAME;
+const USER_DB_PASSWORD = env.USER_DB_PASSWORD;
+const USER_DB_HOST = env.USER_DB_HOST;
+const USER_DB_PORT = env.USER_DB_PORT;
+const USER_DB_DATABASE = env.USER_DB_DATABASE;
 
 if (
   !USER_DB_DATABASE ||

@@ -12,11 +12,6 @@ import {
   p256,
   verifyECDSASignature
 } from '@oslojs/crypto/ecdsa';
-import {
-  decodePKCS1RSAPublicKey,
-  sha256ObjectIdentifier,
-  verifyRSASSAPKCS1v15Signature
-} from '@oslojs/crypto/rsa';
 import { base64url } from 'oslo/encoding';
 import { verifyAuthenticatorData, verifyChallenge, verifyClientData } from '../utils';
 import { db } from '$lib/db/server/postgres';
