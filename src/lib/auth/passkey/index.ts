@@ -56,35 +56,35 @@ export const registerPasskey = async ({ username, name }: { username: string; na
         case 'NotAllowedError':
           // User cancelled the operation or it timed out
           return {
-            id: null,
+            challengeId: null,
             clientDataJSON: null,
             attestationObject: null
           };
         case 'SecurityError':
           // The operation failed for security reasons
           return {
-            id: null,
+            challengeId: null,
             clientDataJSON: null,
             attestationObject: null
           };
         case 'AbortError':
           // The operation was aborted
           return {
-            id: null,
+            challengeId: null,
             clientDataJSON: null,
             attestationObject: null
           };
         case 'InvalidStateError':
           // The operation is not allowed in the current state
           return {
-            id: null,
+            challengeId: null,
             clientDataJSON: null,
             attestationObject: null
           };
         case 'NotSupportedError':
           // The requested authentication method is not supported
           return {
-            id: null,
+            challengeId: null,
             clientDataJSON: null,
             attestationObject: null
           };
@@ -120,7 +120,7 @@ export const authenticatePasskey = async () => {
     }
 
     return {
-      id: challengeData.id as string,
+      challengeId: challengeData.id as string,
       credentialId: base64url.encode(new Uint8Array(credential.rawId)),
       signature: base64url.encode(new Uint8Array(response.signature)),
       authenticatorData: base64url.encode(new Uint8Array(response.authenticatorData)),
@@ -134,6 +134,7 @@ export const authenticatePasskey = async () => {
         case 'NotAllowedError':
           // User cancelled the operation or it timed out
           return {
+            challengeId: null,
             credentialId: null,
             signature: null,
             authenticatorData: null,
@@ -142,6 +143,7 @@ export const authenticatePasskey = async () => {
         case 'SecurityError':
           // The operation failed for security reasons
           return {
+            challengeId: null,
             credentialId: null,
             signature: null,
             authenticatorData: null,
@@ -150,6 +152,7 @@ export const authenticatePasskey = async () => {
         case 'AbortError':
           // The operation was aborted
           return {
+            challengeId: null,
             credentialId: null,
             signature: null,
             authenticatorData: null,
@@ -158,6 +161,7 @@ export const authenticatePasskey = async () => {
         case 'InvalidStateError':
           // The operation is not allowed in the current state
           return {
+            challengeId: null,
             credentialId: null,
             signature: null,
             authenticatorData: null,
@@ -166,6 +170,7 @@ export const authenticatePasskey = async () => {
         case 'NotSupportedError':
           // The requested authentication method is not supported
           return {
+            challengeId: null,
             credentialId: null,
             signature: null,
             authenticatorData: null,
