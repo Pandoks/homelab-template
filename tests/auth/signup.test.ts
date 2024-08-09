@@ -1,6 +1,6 @@
 import { emails, users } from '$lib/db/postgres/schema';
 import { emailVerifications, sessions } from '$lib/db/postgres/schema/auth';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { and, eq } from 'drizzle-orm';
 import { resetTestDatabases } from '../utils';
 import { db } from '../db';
@@ -18,7 +18,7 @@ test.describe('Sign up', () => {
     await resetTestDatabases();
   });
 
-  test('should allow a user to sign up', async ({ page }) => {
+  const signup = async (page: Page) => {
     await page.goto('/auth/signup');
 
     await page.getByLabel('Username').fill(username);
@@ -27,6 +27,10 @@ test.describe('Sign up', () => {
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
     await page.waitForURL('/auth/email-verification');
+  };
+
+  test('should allow a user to sign up', async ({ page }) => {
+    await signup(page);
     const [result] = await db.main
       .select()
       .from(emails)
@@ -64,5 +68,37 @@ test.describe('Sign up', () => {
       .limit(1);
     expect(verifiedResult).toBeTruthy();
     expect(verifiedResult.isVerified).toBeTruthy();
+  });
+
+  test('should delete user if email not verified', async ({ page }) => {
+    await signup(page);
+    const [result] = await db.main
+      .select()
+      .from(emails)
+      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
+      .where(eq(emails.email, emailInput))
+      .limit(1);
+    expect(result).toBeTruthy();
+    const email = result.emails;
+    expect(email.isVerified).toBeFalsy();
+
+    await page.goto('/auth/signup');
+    const [result2] = await db.main
+      .select()
+      .from(emails)
+      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, username)))
+      .where(eq(emails.email, emailInput))
+      .limit(1);
+    expect(result2).toBeFalsy();
+  });
+
+  test("shouldn't accept invalid inputs", async ({ page }) => {
+    await page.goto('/auth/signup');
+
+    await page.getByLabel('Username').fill('#$*(5)#@)');
+    await expect(page.getByText('Special characters are not')).toBeVisible();
+    await page.getByLabel('Email').fill(emailInput);
+    await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
   });
 });
