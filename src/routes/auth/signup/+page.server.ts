@@ -2,7 +2,6 @@ import {
   AttestationStatementFormat,
   ClientDataType,
   coseAlgorithmES256,
-  coseAlgorithmRS256,
   parseAttestationObject,
   parseClientDataJSON
 } from '@oslojs/webauthn';

@@ -73,18 +73,6 @@ export const verifyPasskey = async ({
       const ecdsaSignature = decodePKIXECDSASignature(decodedSignature);
 
       return verifyECDSASignature(ecdsaPublicKey, hash, ecdsaSignature);
-    } else if (passkeyInfo.algorithm === coseAlgorithmRS256) {
-      const rsaPublicKey = decodePKCS1RSAPublicKey(base64url.decode(passkeyInfo.encodedPublicKey));
-      const hash = sha256(
-        createAssertionSignatureMessage(decodedAuthenticatorData, decodedClientDataJSON)
-      );
-
-      return verifyRSASSAPKCS1v15Signature(
-        rsaPublicKey,
-        sha256ObjectIdentifier,
-        hash,
-        decodedSignature
-      );
     } else {
       return false;
     }

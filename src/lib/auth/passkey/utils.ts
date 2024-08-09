@@ -1,7 +1,5 @@
 import {
   ClientDataType,
-  coseAlgorithmES256,
-  coseAlgorithmRS256,
   coseEllipticCurveP256,
   type AuthenticatorData,
   type ClientData,
@@ -10,7 +8,6 @@ import {
 import { env } from '$env/dynamic/public';
 import { redis } from '$lib/db/server/redis';
 import { ECDSAPublicKey, p256 } from '@oslojs/crypto/ecdsa';
-import { RSAPublicKey } from '@oslojs/crypto/rsa';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { error } from '@sveltejs/kit';
 import { base64url, encodeHex } from 'oslo/encoding';
