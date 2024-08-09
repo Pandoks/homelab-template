@@ -5,8 +5,7 @@ import { db } from '$lib/db/server/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 import { emails, users } from '$lib/db/postgres/schema';
-
-const testEnv = process.env.NODE_ENV === 'test';
+import { NODE_ENV } from '$env/static/private';
 
 // TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
@@ -16,7 +15,7 @@ export const generateEmailVerification = async ({
   userId: string;
   email: string;
 }): Promise<string> => {
-  const code = testEnv ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
+  const code = NODE_ENV === 'test' ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
   await db.main.transaction(async (tsx) => {
     await tsx.execute(sql`
       DELETE FROM ${emailVerifications}
