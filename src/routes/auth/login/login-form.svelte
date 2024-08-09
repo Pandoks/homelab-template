@@ -28,13 +28,8 @@
     multipleSubmits: 'prevent',
     dataType: 'json',
     onSubmit: async (form) => {
-      const {
-        id: challengeId,
-        credentialId,
-        signature,
-        authenticatorData,
-        clientDataJSON
-      } = await authenticatePasskey();
+      const { challengeId, credentialId, signature, authenticatorData, clientDataJSON } =
+        await authenticatePasskey();
 
       if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
         form.cancel();
