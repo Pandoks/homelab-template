@@ -2,7 +2,7 @@ import type { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
-    command: 'vite preview',
+    command: 'vite preview --mode test',
     port: 4173
   },
   testDir: 'tests',
