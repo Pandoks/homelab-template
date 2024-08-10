@@ -32,6 +32,7 @@
         await authenticatePasskey();
 
       if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
+        passkeyDelayed = false;
         form.cancel();
       }
 
@@ -47,7 +48,13 @@
   });
 
   const { form: loginFormData, enhance: loginEnhance, delayed: loginDelayed } = loginForm;
-  const { form: passkeyFormData, enhance: passkeyEnhance, delayed: passkeyDelayed } = passkeyForm;
+  const {
+    form: passkeyFormData,
+    enhance: passkeyEnhance,
+    delayed: passkeyDelayedForm
+  } = passkeyForm;
+
+  $: passkeyDelayed = $passkeyDelayedForm;
 
   $: if (type === 'password') {
     $passkeyFormData.usernameOrEmail = $loginFormData.usernameOrEmail;
@@ -151,8 +158,8 @@
       </Form.Control>
     </Form.Field>
 
-    <Form.Button disabled={$passkeyDelayed} class="w-full mt-6">
-      {#if $passkeyDelayed}
+    <Form.Button disabled={passkeyDelayed} class="w-full mt-6">
+      {#if passkeyDelayed}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Logging In
       {:else}

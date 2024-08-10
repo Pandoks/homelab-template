@@ -33,33 +33,6 @@ test.describe('Partially signed up user', () => {
       .limit(1);
     expect(partialPasswordLoginUser).toBeFalsy();
   });
-
-  // test('should allow user to sign up with passkey', async ({ context, page }) => {
-  //   await page.goto('/auth/signup');
-  //
-  //   // initialize automatic passkey verification
-  //   const client = await context.newCDPSession(page);
-  //
-  //   await client.send('WebAuthn.enable');
-  //   const result = await client.send('WebAuthn.addVirtualAuthenticator', {
-  //     options: {
-  //       protocol: 'ctap2',
-  //       transport: 'usb',
-  //       hasResidentKey: true,
-  //       hasUserVerification: true,
-  //       isUserVerified: true,
-  //       automaticPresenceSimulation: true
-  //     }
-  //   });
-  //   const authenticatorId = result.authenticatorId;
-  //
-  //   await page.getByLabel('Username').fill('test');
-  //   await page.getByLabel('Email').fill(emailInput);
-  //   await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
-  //   await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-  //
-  //   await page.waitForURL('/auth/email-verification');
-  // });
 });
 
 test.describe('Fully signed up user', () => {});

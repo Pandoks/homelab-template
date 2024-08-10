@@ -43,6 +43,7 @@
       });
 
       if (!challengeId || !clientDataJSON || !attestationObject) {
+        passkeyDelayed = false;
         form.cancel();
       }
 
@@ -52,7 +53,13 @@
     }
   });
   const { form: signupFormData, enhance: signupEnhance, delayed: signupDelayed } = signupForm;
-  const { form: passkeyFormData, enhance: passkeyEnhance, delayed: passkeyDelayed } = passkeyForm;
+  const {
+    form: passkeyFormData,
+    enhance: passkeyEnhance,
+    delayed: passkeyDelayedForm
+  } = passkeyForm;
+
+  $: passkeyDelayed = $passkeyDelayedForm;
 
   $: if (type === 'password') {
     $passkeyFormData.username = $signupFormData.username;
@@ -204,8 +211,8 @@
       <Form.FieldErrors />
     </Form.Field>
 
-    <Form.Button disabled={$passkeyDelayed} class="w-full mt-4">
-      {#if $passkeyDelayed}
+    <Form.Button disabled={passkeyDelayed} class="w-full mt-4">
+      {#if passkeyDelayed}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Signing Up
       {:else}

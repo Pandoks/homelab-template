@@ -1,4 +1,4 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
+import { devices, type PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
@@ -6,7 +6,12 @@ const config: PlaywrightTestConfig = {
     port: 4173
   },
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/, fullyParallel: true },
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+      fullyParallel: true,
+      use: { ...devices['Desktop Chrome'] }
+    },
     {
       name: 'auth',
       testMatch: /auth\/(.+.)?test.ts/,
