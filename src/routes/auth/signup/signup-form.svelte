@@ -45,20 +45,19 @@
         form.cancel();
         return;
       }
-      const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
-        username: username,
-        name: username
-      });
 
-      if (!challengeId || !clientDataJSON || !attestationObject) {
-        passkeyDelayed = false;
-        form.cancel();
+      try {
+        const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
+          username: username,
+          name: username
+        });
+        data.set('challengeId', challengeId);
+        data.set('clientDataJSON', clientDataJSON);
+        data.set('attestationObject', attestationObject);
+      } catch {
+        // TODO: delete the passkey (wait for https://github.com/w3c/webauthn/pull/2093)
         return;
       }
-
-      data.set('challengeId', challengeId || '');
-      data.set('clientDataJSON', clientDataJSON || '');
-      data.set('attestationObject', attestationObject || '');
     }
   });
   const { form: signupFormData, enhance: signupEnhance, delayed: signupDelayed } = signupForm;

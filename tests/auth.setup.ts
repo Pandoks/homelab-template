@@ -1,4 +1,4 @@
-import { chromium, expect, test as setup } from '@playwright/test';
+import { expect, test as setup } from '@playwright/test';
 import { db } from './db';
 import { emails, users } from '$lib/db/postgres/schema';
 import { and, eq } from 'drizzle-orm';
@@ -214,6 +214,6 @@ setup.afterAll('save database state', () => {
     host: env.USER_DB_HOST,
     port: env.USER_DB_PORT,
     database: env.USER_DB_DATABASE,
-    backupFile: 'playwright/.states/user-db.dump'
+    backupFile: 'playwright/.states/users-db.dump'
   });
 });
