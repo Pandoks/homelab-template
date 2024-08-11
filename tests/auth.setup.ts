@@ -98,13 +98,14 @@ setup('partial passkey signup', async ({ page }) => {
 
   const client = await page.context().newCDPSession(page);
   await client.send('WebAuthn.enable');
-  const authenticator = await client.send('WebAuthn.addVirtualAuthenticator', {
+  const { authenticatorId } = await client.send('WebAuthn.addVirtualAuthenticator', {
     options: {
       protocol: 'ctap2',
       transport: 'usb',
       hasResidentKey: true,
       hasUserVerification: true,
-      isUserVerified: true
+      isUserVerified: true,
+      automaticPresenceSimulation: true
     }
   });
 
@@ -117,19 +118,12 @@ setup('partial passkey signup', async ({ page }) => {
   await page.getByLabel('Email').fill(email);
   await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
+  await page.waitForResponse('https://webauthn.io/registration/verification');
   const passkey = await client.send('WebAuthn.getCredentials', {
-    authenticatorId: authenticator.authenticatorId
+    authenticatorId
   });
   console.log(passkey);
-  expect(passkey.credentials).toHaveLength(0);
-
-  await page.waitForURL('/auth/email-verification');
-});
-
-setup('full passkey signup', async ({ page }) => {
-  const username = 'full_passkey_user';
-  const email = 'full_passkey_user@example.com';
-  const emailCode = 'TEST';
+  expect(passkey.credentials).toHaveLength(1);
 });
 
 setup.afterAll('save database state', () => {

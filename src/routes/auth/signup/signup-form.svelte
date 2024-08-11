@@ -16,6 +16,8 @@
   import { registerPasskey } from '$lib/auth/passkey';
   import { createEventDispatcher, tick } from 'svelte';
   import { get } from 'svelte/store';
+  import { z } from 'zod';
+  import { emailSchema, usernameSchema } from '../schema';
 
   // TODO: add show and hide password
 
@@ -37,6 +39,12 @@
     onSubmit: async (form) => {
       const data = form.formData;
       const username = data.get('username') as string;
+      const email = data.get('email');
+      const validator = z.object({ username: usernameSchema, email: emailSchema });
+      if (!validator.safeParse({ username, email }).success) {
+        form.cancel();
+        return;
+      }
       const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
         username: username,
         name: username
@@ -45,6 +53,7 @@
       if (!challengeId || !clientDataJSON || !attestationObject) {
         passkeyDelayed = false;
         form.cancel();
+        return;
       }
 
       data.set('challengeId', challengeId || '');
