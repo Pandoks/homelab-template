@@ -13,7 +13,7 @@ if (!env) throw new Error('Need .env.test');
 // otherwise nothing needs to be changed for "Session" (long running hosting)
 const main = drizzle(
   postgres({
-    username: env.USERNAME,
+    username: env.USER_DB_USERNAME,
     password: env.USER_DB_PASSWORD,
     host: env.USER_DB_HOST,
     port: parseInt(env.USER_DB_PORT),

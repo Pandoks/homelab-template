@@ -5,6 +5,8 @@ import { and, eq } from 'drizzle-orm';
 import { emailVerifications, passkeys, sessions } from '$lib/db/postgres/schema/auth';
 import { backupTestDatabase, resetTestDatabases } from './utils';
 import dotenv from 'dotenv';
+import { redis } from './redis';
+import { execSync } from 'child_process';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
@@ -14,7 +16,21 @@ const stateDir = 'playwright/.states';
 setup.describe.configure({ mode: 'parallel' });
 
 setup.beforeAll('reset test databases', async () => {
-  await resetTestDatabases();
+  await resetTestDatabases({
+    redis: redis,
+    db: db
+  });
+});
+
+setup.afterAll('save database state', () => {
+  backupTestDatabase({
+    username: env.USER_DB_USERNAME,
+    host: env.USER_DB_HOST,
+    port: env.USER_DB_PORT,
+    database: env.USER_DB_DATABASE,
+    backupFile: 'playwright/.states/users-db.dump'
+  });
+  execSync('npm run testdb:generate');
 });
 
 setup('partial password signup', async ({ page }) => {
@@ -211,14 +227,4 @@ setup('full passkey signup', async ({ page }) => {
   expect(verifiedUser.email_verifications).toBeFalsy;
 
   await page.context().storageState({ path: `${stateDir}/passkey-full-signup.json` });
-});
-
-setup.afterAll('save database state', () => {
-  backupTestDatabase({
-    username: env.USER_DB_USERNAME,
-    host: env.USER_DB_HOST,
-    port: env.USER_DB_PORT,
-    database: env.USER_DB_DATABASE,
-    backupFile: 'playwright/.states/users-db.dump'
-  });
 });

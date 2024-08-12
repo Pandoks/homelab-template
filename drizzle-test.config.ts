@@ -24,7 +24,7 @@ if (
 export default defineConfig({
   schema: './src/lib/db/postgres/schema/*',
   dialect: 'postgresql',
-  out: './src/lib/db/postgres/migrations',
+  out: './playwright/db/migrations',
   migrations: {
     prefix: 'timestamp' // compatible with Supabase
   },

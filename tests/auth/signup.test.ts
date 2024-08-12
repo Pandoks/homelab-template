@@ -3,20 +3,39 @@ import { expect, test } from '@playwright/test';
 import { eq, or } from 'drizzle-orm';
 import { db } from '../db';
 import dotenv from 'dotenv';
-import { allLoggedInGoto, resetTestDatabases, restoreDatabase } from '../utils';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { allLoggedInGoto, createDatabase, deleteDatabase, restoreDatabase } from '../utils';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
 
-test.beforeAll('restore database state', async () => {
-  console.log('restoring database signup');
-  await resetTestDatabases();
+let testdb: PostgresJsDatabase;
+
+test.beforeAll('create database state', async () => {
+  testdb = createDatabase({
+    username: env.USER_DB_USERNAME,
+    host: env.USER_DB_HOST,
+    port: env.USER_DB_PORT,
+    name: 'test_signup_db'
+  });
+  await migrate(testdb, { migrationsFolder: './playwright/db/migrations' });
   restoreDatabase({
     username: env.USER_DB_USERNAME,
-    database: env.USER_DB_DATABASE,
+    database: 'test_signup_db',
     host: env.USER_DB_HOST,
     port: env.USER_DB_PORT,
     dumpFile: 'playwright/.states/users-db.dump'
+  });
+});
+
+test.afterAll('delete database', () => {
+  console.log('delete database');
+  deleteDatabase({
+    username: env.USER_DB_USERNAME,
+    host: env.USER_DB_HOST,
+    port: env.USER_DB_PORT,
+    name: 'test_signup_db'
   });
 });
 
@@ -44,9 +63,10 @@ test('already logged in', async ({ browser }) => {
 
 test.describe('new user', () => {
   test.beforeAll('restore database state', () => {
+    console.log('inside restore');
     restoreDatabase({
       username: env.USER_DB_USERNAME,
-      database: env.USER_DB_DATABASE,
+      database: 'test_signup_db',
       host: env.USER_DB_HOST,
       port: env.USER_DB_PORT,
       dumpFile: 'playwright/.states/users-db.dump'
