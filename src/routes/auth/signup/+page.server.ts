@@ -28,7 +28,7 @@ import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
-import { building } from '$app/environment';
+import { building, dev } from '$app/environment';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
@@ -122,11 +122,10 @@ export const actions: Actions = {
         ...sessionCookie.attributes
       });
     } catch (err) {
-      console.error(err);
       // @ts-ignore
-      if (err!.code) {
+      if (err.code) {
         // @ts-ignore
-        const constraint_name = err!.constraint_name;
+        const constraint_name = err.constraint_name;
         if (constraint_name === 'users_username_unique') {
           signupForm.errors.username = ['Username already exists'];
           return fail(400, {
@@ -134,7 +133,7 @@ export const actions: Actions = {
             message: 'Username already exists',
             signupForm
           });
-        } else if (constraint_name === 'users_email_unique') {
+        } else if (constraint_name === 'emails_pkey') {
           signupForm.errors.email = ['Email already exists'];
           return fail(400, {
             success: false,
