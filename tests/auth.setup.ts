@@ -10,9 +10,12 @@ const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
 
 const stateDir = 'playwright/.states';
-await resetTestDatabases();
 
 setup.describe.configure({ mode: 'parallel' });
+
+setup.beforeAll('reset test databases', async () => {
+  await resetTestDatabases();
+});
 
 setup('partial password signup', async ({ page }) => {
   const username = 'partial_password_user';

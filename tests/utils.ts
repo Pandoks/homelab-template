@@ -8,8 +8,15 @@ import { hash } from '@node-rs/argon2';
 import { execSync } from 'child_process';
 import { dirname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import type { Browser } from '@playwright/test';
 
-export const resetTestDatabases = async () => {
+export const resetTestDatabases = async ({
+  redis,
+  db
+}: {
+  redis: { [key: string]: RedisInstance };
+  db: { [key: string]: PostgresJsDatabase };
+}) => {
   let cemetary: Promise<any>[] = [];
 
   const redisIds = Object.keys(redis);
@@ -120,4 +127,42 @@ export const restoreDatabase = ({
 
   const dbRestoreCommand = `pg_restore -U ${username} -h ${host} -p ${port} -d ${database} --clean ${dumpFile}`;
   execSync(dbRestoreCommand);
+};
+
+export const allLoggedInGoto = async ({ browser, url }: { browser: Browser; url: string }) => {
+  const [partialPasswordContext, fullPasswordContext, partialPasskeyContext, fullPasskeyContext] =
+    await Promise.all([
+      browser.newContext({
+        storageState: 'playwright/.states/password-partial-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/password-full-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/passkey-partial-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/passkey-full-signup.json'
+      })
+    ]);
+  const [partialPasswordPage, fullPasswordPage, partialPasskeyPage, fullPasskeyPage] =
+    await Promise.all([
+      partialPasswordContext.newPage(),
+      fullPasswordContext.newPage(),
+      partialPasskeyContext.newPage(),
+      fullPasskeyContext.newPage()
+    ]);
+  await Promise.all([
+    partialPasswordPage.goto(url),
+    fullPasswordPage.goto(url),
+    partialPasskeyPage.goto(url),
+    fullPasskeyPage.goto(url)
+  ]);
+
+  return {
+    partialPasswordPage,
+    fullPasswordPage,
+    partialPasskeyPage,
+    fullPasskeyPage
+  };
 };

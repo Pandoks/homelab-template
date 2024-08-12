@@ -3,14 +3,14 @@ import { expect, test } from '@playwright/test';
 import { eq, or } from 'drizzle-orm';
 import { db } from '../db';
 import dotenv from 'dotenv';
-import { restoreDatabase } from '../utils';
+import { allLoggedInGoto, resetTestDatabases, restoreDatabase } from '../utils';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
 
-test.describe.configure({ mode: 'serial' });
-
-test.beforeAll('restore database state', () => {
+test.beforeAll('restore database state', async () => {
+  console.log('restoring database signup');
+  await resetTestDatabases();
   restoreDatabase({
     username: env.USER_DB_USERNAME,
     database: env.USER_DB_DATABASE,
@@ -20,35 +20,11 @@ test.beforeAll('restore database state', () => {
   });
 });
 
-test('already signed up', async ({ browser }) => {
-  const [partialPasswordContext, fullPasswordContext, partialPasskeyContext, fullPasskeyContext] =
-    await Promise.all([
-      browser.newContext({
-        storageState: 'playwright/.states/password-partial-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/password-full-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/passkey-partial-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/passkey-full-signup.json'
-      })
-    ]);
-  const [partialPasswordPage, fullPasswordPage, partialPasskeyPage, fullPasskeyPage] =
-    await Promise.all([
-      partialPasswordContext.newPage(),
-      fullPasswordContext.newPage(),
-      partialPasskeyContext.newPage(),
-      fullPasskeyContext.newPage()
-    ]);
-  await Promise.all([
-    partialPasswordPage.goto('/auth/signup'),
-    fullPasswordPage.goto('/auth/signup'),
-    partialPasskeyPage.goto('/auth/signup'),
-    fullPasskeyPage.goto('/auth/signup')
-  ]);
+test('already logged in', async ({ browser }) => {
+  const { fullPasswordPage, fullPasskeyPage } = await allLoggedInGoto({
+    browser,
+    url: '/auth/signup'
+  });
   await Promise.all([fullPasswordPage.waitForURL('/'), fullPasskeyPage.waitForURL('/')]);
 
   const deletedUsers = await db.main
@@ -78,8 +54,8 @@ test.describe('new user', () => {
   });
 
   test('should not allow duplicate credentials', async ({ page }) => {
-    const username = 'partial_password_user';
-    const email = 'partial_password_user@example.com';
+    const username = 'full_password_user';
+    const email = 'full_password_user@example.com';
     await page.goto('/auth/signup');
 
     await page.getByLabel('Username').click();

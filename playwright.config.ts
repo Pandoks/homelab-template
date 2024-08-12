@@ -8,12 +8,14 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/
+      testMatch: /.*\.setup\.ts/,
+      fullyParallel: true // for all files (not tests within files)
     },
     {
       name: 'auth',
       testMatch: /auth\/(.+.)?test.ts/,
-      dependencies: ['setup']
+      dependencies: ['setup'],
+      fullyParallel: false
     }
   ],
   testDir: 'tests'
