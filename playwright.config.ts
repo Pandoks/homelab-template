@@ -1,4 +1,4 @@
-import { devices, type PlaywrightTestConfig } from '@playwright/test';
+import { type PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
@@ -8,14 +8,11 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      fullyParallel: true,
-      use: { ...devices['Desktop Chrome'] }
+      testMatch: /.*\.setup\.ts/
     },
     {
       name: 'auth',
       testMatch: /auth\/(.+.)?test.ts/,
-      fullyParallel: false,
       dependencies: ['setup']
     }
   ],

@@ -1,6 +1,6 @@
-import { emails, users } from '$lib/db/postgres/schema';
+import { users } from '$lib/db/postgres/schema';
 import { expect, test } from '@playwright/test';
-import { and, eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { db } from '../db';
 import dotenv from 'dotenv';
 import { restoreDatabase } from '../utils';
@@ -8,7 +8,9 @@ import { restoreDatabase } from '../utils';
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
 
-test.beforeEach('restore database state', () => {
+test.describe.configure({ mode: 'serial' });
+
+test.beforeAll('restore database state', () => {
   restoreDatabase({
     username: env.USER_DB_USERNAME,
     database: env.USER_DB_DATABASE,
@@ -18,77 +20,63 @@ test.beforeEach('restore database state', () => {
   });
 });
 
-test.describe('Partially signed up password user', () => {
-  test.use({ storageState: 'playwright/.states/password-partial-signup.json' });
+test('already signed up', async ({ browser }) => {
+  const [partialPasswordContext, fullPasswordContext, partialPasskeyContext, fullPasskeyContext] =
+    await Promise.all([
+      browser.newContext({
+        storageState: 'playwright/.states/password-partial-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/password-full-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/passkey-partial-signup.json'
+      }),
+      browser.newContext({
+        storageState: 'playwright/.states/passkey-full-signup.json'
+      })
+    ]);
+  const [partialPasswordPage, fullPasswordPage, partialPasskeyPage, fullPasskeyPage] =
+    await Promise.all([
+      partialPasswordContext.newPage(),
+      fullPasswordContext.newPage(),
+      partialPasskeyContext.newPage(),
+      fullPasskeyContext.newPage()
+    ]);
+  await Promise.all([
+    partialPasswordPage.goto('/auth/signup'),
+    fullPasswordPage.goto('/auth/signup'),
+    partialPasskeyPage.goto('/auth/signup'),
+    fullPasskeyPage.goto('/auth/signup')
+  ]);
+  await Promise.all([fullPasswordPage.waitForURL('/'), fullPasskeyPage.waitForURL('/')]);
 
-  test('should delete user', async ({ page }) => {
-    await page.goto('/auth/signup');
-    const [partialPasswordLoginUser] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(
-        users,
-        and(eq(users.id, emails.userId), eq(users.username, 'partial_password_user'))
-      )
-      .where(eq(emails.email, 'partial_password_user@example.com'))
-      .limit(1);
-    expect(partialPasswordLoginUser).toBeFalsy();
-  });
+  const deletedUsers = await db.main
+    .select()
+    .from(users)
+    .where(
+      or(eq(users.username, 'partial_password_user'), eq(users.username, 'partial_passkey_user'))
+    );
+  expect(deletedUsers.length).toBe(0);
+
+  const noChangedUsers = await db.main
+    .select()
+    .from(users)
+    .where(or(eq(users.username, 'full_password_user'), eq(users.username, 'full_passkey_user')));
+  expect(noChangedUsers.length).toBe(2);
 });
 
-test.describe('Fully signed up password user', () => {
-  test.use({ storageState: 'playwright/.states/password-full-signup.json' });
-
-  test('should redirect user', async ({ page }) => {
-    await page.goto('/auth/signup');
-    await page.waitForURL('/');
-
-    const [fullPasswordUser] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, 'full_password_user')))
-      .where(eq(emails.email, 'full_password_user@example.com'))
-      .limit(1);
-    expect(fullPasswordUser).toBeTruthy();
+test.describe('new user', () => {
+  test.beforeAll('restore database state', () => {
+    restoreDatabase({
+      username: env.USER_DB_USERNAME,
+      database: env.USER_DB_DATABASE,
+      host: env.USER_DB_HOST,
+      port: env.USER_DB_PORT,
+      dumpFile: 'playwright/.states/users-db.dump'
+    });
   });
-});
 
-test.describe('Partially signed up passkey user', () => {
-  test.use({ storageState: 'playwright/.states/passkey-partial-signup.json' });
-
-  test('should delete user', async ({ page }) => {
-    await page.goto('/auth/signup');
-    const [partialPasswordLoginUser] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(
-        users,
-        and(eq(users.id, emails.userId), eq(users.username, 'partial_passkey_user'))
-      )
-      .where(eq(emails.email, 'partial_passkey_user@example.com'))
-      .limit(1);
-    expect(partialPasswordLoginUser).toBeFalsy();
-  });
-});
-
-test.describe('Fully signed up passkey user', () => {
-  test.use({ storageState: 'playwright/.states/passkey-full-signup.json' });
-
-  test('should redirect user', async ({ page }) => {
-    await page.goto('/auth/signup');
-    await page.waitForURL('/');
-
-    const [fullPasswordUser] = await db.main
-      .select()
-      .from(emails)
-      .innerJoin(users, and(eq(users.id, emails.userId), eq(users.username, 'full_passkey_user')))
-      .where(eq(emails.email, 'full_passkey_user@example.com'))
-      .limit(1);
-    expect(fullPasswordUser).toBeTruthy();
-  });
-});
-
-test.describe('New user', () => {
   test('should not allow duplicate credentials', async ({ page }) => {
     const username = 'partial_password_user';
     const email = 'partial_password_user@example.com';

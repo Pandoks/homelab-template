@@ -12,6 +12,8 @@ if (!env) throw new Error('Need .env.test');
 const stateDir = 'playwright/.states';
 await resetTestDatabases();
 
+setup.describe.configure({ mode: 'parallel' });
+
 setup('partial password signup', async ({ page }) => {
   const username = 'partial_password_user';
   const email = 'partial_password_user@example.com';
