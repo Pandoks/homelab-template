@@ -166,3 +166,33 @@ export const allLoggedInGoto = async ({ browser, url }: { browser: Browser; url:
     fullPasskeyPage
   };
 };
+
+export const createDatabases = ({
+  username,
+  host,
+  port,
+  name
+}: {
+  username: string;
+  host: string;
+  port: string;
+  name: string;
+}) => {
+  const dbCreateCommand = `createdb -U ${username} -h ${host} -p ${port} ${name}`;
+  execSync(dbCreateCommand);
+};
+
+export const deleteDatabases = ({
+  username,
+  host,
+  port,
+  name
+}: {
+  username: string;
+  host: string;
+  port: string;
+  name: string;
+}) => {
+  const dbDeleteCommand = `dropdb -U ${username} -h ${host} -p ${port} ${name}`;
+  execSync(dbDeleteCommand);
+};
