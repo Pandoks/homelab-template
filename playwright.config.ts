@@ -18,7 +18,8 @@ const config: PlaywrightTestConfig = {
       fullyParallel: false
     }
   ],
-  testDir: 'tests'
+  testDir: 'tests',
+  reporter: process.env.CI ? 'blob' : 'html'
 };
 
 export default config;

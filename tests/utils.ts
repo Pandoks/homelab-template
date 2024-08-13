@@ -1,7 +1,7 @@
 import { type RedisInstance } from './redis';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
 import { emails, users } from '$lib/db/postgres/schema';
 import { hash } from '@node-rs/argon2';
@@ -9,7 +9,6 @@ import { execSync } from 'child_process';
 import { dirname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import type { Browser } from '@playwright/test';
-import postgres from 'postgres';
 import dotenv from 'dotenv';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
@@ -170,69 +169,4 @@ export const allLoggedInGoto = async ({ browser, url }: { browser: Browser; url:
     partialPasskeyPage,
     fullPasskeyPage
   };
-};
-
-export const createDatabase = ({
-  username,
-  host,
-  port,
-  name
-}: {
-  username: string;
-  host: string;
-  port: string;
-  name: string;
-}) => {
-  const existCommand = `psql -lqt | cut -d \\\| -f 1 \| grep ${name} | xargs echo`;
-  const exists = execSync(existCommand, {
-    encoding: 'utf-8'
-  });
-  if (exists.trim() !== '') {
-    return drizzle(
-      postgres({
-        username: env.USER_DB_USERNAME,
-        password: env.USER_DB_PASSWORD,
-        host: env.USER_DB_HOST,
-        port: parseInt(env.USER_DB_PORT),
-        database: name,
-        onnotice: () => {}
-      })
-    );
-  }
-
-  const dbCreateCommand = `createdb -U ${username} -h ${host} -p ${port} ${name}`;
-  execSync(dbCreateCommand);
-  return drizzle(
-    postgres({
-      username: env.USER_DB_USERNAME,
-      password: env.USER_DB_PASSWORD,
-      host: env.USER_DB_HOST,
-      port: parseInt(env.USER_DB_PORT),
-      database: name,
-      onnotice: () => {}
-    })
-  );
-};
-
-export const deleteDatabase = ({
-  username,
-  host,
-  port,
-  name
-}: {
-  username: string;
-  host: string;
-  port: string;
-  name: string;
-}) => {
-  const existCommand = `psql -lqt | cut -d \\\| -f 1 \| grep ${name} | xargs echo`;
-  const exists = execSync(existCommand, {
-    encoding: 'utf-8'
-  });
-  if (exists.trim() === '') {
-    return;
-  }
-
-  const dbDeleteCommand = `dropdb -U ${username} -h ${host} -p ${port} ${name} --force`;
-  execSync(dbDeleteCommand);
 };

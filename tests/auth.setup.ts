@@ -5,8 +5,7 @@ import { and, eq } from 'drizzle-orm';
 import { emailVerifications, passkeys, sessions } from '$lib/db/postgres/schema/auth';
 import { backupTestDatabase, resetTestDatabases } from './utils';
 import dotenv from 'dotenv';
-import { redis } from './redis';
-import { execSync } from 'child_process';
+import { redis, type RedisInstance } from './redis';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
@@ -17,7 +16,7 @@ setup.describe.configure({ mode: 'parallel' });
 
 setup.beforeAll('reset test databases', async () => {
   await resetTestDatabases({
-    redis: redis,
+    redis: redis as { [key: string]: RedisInstance },
     db: db
   });
 });
@@ -30,7 +29,6 @@ setup.afterAll('save database state', () => {
     database: env.USER_DB_DATABASE,
     backupFile: 'playwright/.states/users-db.dump'
   });
-  execSync('npm run testdb:generate');
 });
 
 setup('partial password signup', async ({ page }) => {

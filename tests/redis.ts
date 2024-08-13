@@ -22,7 +22,7 @@ const main = createClient({
 // can add more later
 const [mainClient] = await Promise.all([main]);
 
-export const redis: { [key: string]: RedisInstance } = {
+export const redis = {
   main: { instance: mainClient as RedisClientType, type: 'client' }
 };
 
