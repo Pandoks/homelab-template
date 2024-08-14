@@ -28,13 +28,14 @@ import { base64url } from 'oslo/encoding';
 import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
 import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
-import { building, dev } from '$app/environment';
+import { building } from '$app/environment';
+import { NODE_ENV } from '$env/static/private';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
       name: 'signup-limiter',
       max: 10,
-      refillIntervalSeconds: 5,
+      refillIntervalSeconds: NODE_ENV === 'test' ? 0 : 5,
       storage: redis.main.instance as RedisClientType
     })
   : undefined;

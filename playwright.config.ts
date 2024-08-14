@@ -7,19 +7,15 @@ const config: PlaywrightTestConfig = {
   },
   projects: [
     {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      fullyParallel: true // for all files (not tests within files)
-    },
-    {
       name: 'auth',
       testMatch: /auth\/(.+.)?test.ts/,
-      dependencies: ['setup'],
-      fullyParallel: false
+      fullyParallel: true
     }
   ],
   testDir: 'tests',
-  reporter: process.env.CI ? 'blob' : 'html'
+  globalSetup: './tests/global-setup.ts',
+  globalTeardown: './tests/global-teardown.ts',
+  reporter: process.env.CI ? 'blob' : 'list'
 };
 
 export default config;

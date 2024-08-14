@@ -1,83 +1,64 @@
-import { users } from '$lib/db/postgres/schema';
-import { expect, test } from '@playwright/test';
-import { eq, or } from 'drizzle-orm';
+import { emails, users } from '$lib/db/postgres/schema';
+import { expect } from '@playwright/test';
+import { and, eq, or } from 'drizzle-orm';
 import { db } from '../db';
-import dotenv from 'dotenv';
-import { allLoggedInGoto, restoreDatabase } from '../utils';
-
-const { parsed: env } = dotenv.config({ path: `.env.test` });
-if (!env) throw new Error('Need .env.test');
-
-test.beforeAll('create database state', async () => {
-  restoreDatabase({
-    username: env.USER_DB_USERNAME,
-    database: env.USER_DB_DATABASE,
-    host: env.USER_DB_HOST,
-    port: env.USER_DB_PORT,
-    dumpFile: 'playwright/.states/users-db.dump'
-  });
-});
-
-test('already logged in', async ({ browser }) => {
-  const { fullPasswordPage, fullPasskeyPage } = await allLoggedInGoto({
-    browser,
-    url: '/auth/signup'
-  });
-  await Promise.all([fullPasswordPage.waitForURL('/'), fullPasskeyPage.waitForURL('/')]);
-
-  const deletedUsers = await db.main
-    .select()
-    .from(users)
-    .where(
-      or(eq(users.username, 'partial_password_user'), eq(users.username, 'partial_passkey_user'))
-    );
-  expect(deletedUsers.length).toBe(0);
-
-  const noChangedUsers = await db.main
-    .select()
-    .from(users)
-    .where(or(eq(users.username, 'full_password_user'), eq(users.username, 'full_passkey_user')));
-  expect(noChangedUsers.length).toBe(2);
-});
+import { createNewTestUser, generateRandomTestUser, test } from '../utils';
+import { emailVerifications, passkeys, sessions } from '$lib/db/postgres/schema/auth';
 
 test.describe('new user', () => {
-  test.beforeAll('restore database state', () => {
-    restoreDatabase({
-      username: env.USER_DB_USERNAME,
-      database: env.USER_DB_DATABASE,
-      host: env.USER_DB_HOST,
-      port: env.USER_DB_PORT,
-      dumpFile: 'playwright/.states/users-db.dump'
-    });
-  });
-
   test('should not allow duplicate credentials', async ({ page }) => {
-    const username = 'full_password_user';
-    const email = 'full_password_user@example.com';
+    const [
+      { username: unverifiedUsername, email: unverifiedEmail, password: unverifiedPassword },
+      { username: verifiedUsername, email: verifiedEmail }
+    ] = await Promise.all([
+      generateRandomTestUser('signup_new_user'),
+      generateRandomTestUser('signup_new_user')
+    ]);
+    await Promise.all([
+      createNewTestUser({
+        username: unverifiedUsername,
+        email: unverifiedEmail,
+        emailVerified: false
+      }),
+      createNewTestUser({
+        username: verifiedUsername,
+        email: verifiedEmail,
+        emailVerified: true
+      })
+    ]);
     await page.goto('/auth/signup');
 
     await page.getByLabel('Username').click();
-    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Username').fill(unverifiedUsername);
     await page.getByLabel('Email').click();
-    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Email').fill(unverifiedEmail);
     await page.locator('input[name="password"]').click();
-    await page.locator('input[name="password"]').fill('=+s8W$5)Ww6$t@cS!hqkx');
+    await page.locator('input[name="password"]').fill(unverifiedPassword);
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
     await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
 
     await page.getByLabel('Username').click();
-    await page.getByLabel('Username').fill(`${username}1`);
+    await page.getByLabel('Username').fill(verifiedUsername);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(verifiedEmail);
+    await page.locator('input[name="password"]').click();
+    await page.locator('input[name="password"]').fill(unverifiedEmail);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForResponse('/auth/signup?/signup');
+    await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
+
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(`${unverifiedUsername}1`);
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
     await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Email already exists')).toBeVisible();
   });
 
   test('should not allow weak passwords', async ({ page }) => {
-    const username = 'beta_password';
-    const email = 'beta_password@example.com';
-    const password = 'password';
+    const { username, email } = await generateRandomTestUser('signup_new_user');
     await page.goto('/auth/signup');
 
     await page.getByLabel('Username').click();
@@ -85,13 +66,16 @@ test.describe('new user', () => {
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
-    await page.locator('input[name="password"]').fill(password);
+    await page.locator('input[name="password"]').fill('password');
     await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
     await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Weak password')).toBeVisible();
 
-    const [badUser] = await db.main.select().from(users).where(eq(users.username, username));
+    const [badUser] = await db.main
+      .select()
+      .from(users)
+      .where(eq(users.username, username.toLowerCase()));
     expect(badUser).toBeFalsy();
   });
 
@@ -113,7 +97,161 @@ test.describe('new user', () => {
     await expect(page.getByLabel('Username')).toHaveValue(username);
     await expect(page.getByLabel('Email')).toHaveValue(email);
 
-    const [badUser] = await db.main.select().from(users).where(eq(users.username, username));
+    const [badUser] = await db.main
+      .select()
+      .from(users)
+      .where(eq(users.username, username.toLowerCase()));
     expect(badUser).toBeFalsy();
   });
+
+  test('full password signup', async ({ page }) => {
+    const { username, email, password } = await generateRandomTestUser('full_password');
+
+    await page.goto('/auth/signup');
+
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.locator('input[name="password"]').click();
+    await page.locator('input[name="password"]').fill(password);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForURL('/auth/email-verification');
+
+    const [newUser] = await db.main
+      .select()
+      .from(users)
+      .innerJoin(emails, and(eq(users.id, emails.userId)))
+      .innerJoin(emailVerifications, eq(emailVerifications.email, emails.email))
+      .innerJoin(sessions, eq(sessions.userId, users.id))
+      .where(eq(users.username, username.toLowerCase()))
+      .limit(1);
+    expect(newUser).toBeTruthy();
+    expect(newUser.emails.isVerified).toBeFalsy();
+    expect(newUser.email_verifications).toBeTruthy();
+    expect(newUser.sessions).toBeTruthy();
+
+    await page.getByLabel('Verification Code').click();
+    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByRole('button', { name: 'Activate' }).click();
+
+    await page.waitForURL('/');
+
+    const [verifiedUser] = await db.main
+      .select()
+      .from(emails)
+      .leftJoin(emailVerifications, eq(emailVerifications.email, emails.email))
+      .where(eq(emails.email, email.toLowerCase()))
+      .limit(1);
+    expect(verifiedUser).toBeTruthy();
+    expect(verifiedUser.emails.isVerified).toBeTruthy();
+    expect(verifiedUser.email_verifications).toBeFalsy;
+  });
+
+  test('full passkey signup', async ({ page }) => {
+    const { username, email } = await generateRandomTestUser('full_passkey');
+
+    const client = await page.context().newCDPSession(page);
+    await client.send('WebAuthn.enable');
+    const { authenticatorId } = await client.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2',
+        transport: 'usb',
+        hasResidentKey: true,
+        hasUserVerification: true,
+        isUserVerified: true,
+        automaticPresenceSimulation: true
+      }
+    });
+
+    await page.goto('/auth/signup');
+
+    const passwordField = page.locator('input[name="password"]');
+    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
+    await passwordField.waitFor({ state: 'detached' });
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForResponse('/auth/signup?/signup-passkey');
+    const passkey = await client.send('WebAuthn.getCredentials', {
+      authenticatorId
+    });
+    expect(passkey.credentials).toHaveLength(1);
+
+    await page.waitForURL('/auth/email-verification');
+    const [newUser] = await db.main
+      .select()
+      .from(users)
+      .innerJoin(emails, and(eq(users.id, emails.userId)))
+      .innerJoin(emailVerifications, eq(emailVerifications.email, emails.email))
+      .innerJoin(sessions, eq(sessions.userId, users.id))
+      .innerJoin(passkeys, eq(passkeys.userId, users.id))
+      .where(eq(users.username, username.toLowerCase()))
+      .limit(1);
+    expect(newUser).toBeTruthy();
+    expect(newUser.emails.isVerified).toBeFalsy();
+    expect(newUser.email_verifications).toBeTruthy();
+    expect(newUser.sessions).toBeTruthy();
+
+    await page.getByLabel('Verification Code').click();
+    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByRole('button', { name: 'Activate' }).click();
+
+    await page.waitForURL('/');
+
+    const [verifiedUser] = await db.main
+      .select()
+      .from(emails)
+      .leftJoin(emailVerifications, eq(emailVerifications.email, emails.email))
+      .where(eq(emails.email, email.toLowerCase()))
+      .limit(1);
+    expect(verifiedUser).toBeTruthy();
+    expect(verifiedUser.emails.isVerified).toBeTruthy();
+    expect(verifiedUser.email_verifications).toBeFalsy;
+  });
+});
+
+test('should not allow already logged in', async ({ partPass, fullPass, partKey, fullKey }) => {
+  const [partPassPage, fullPassPage, partKeyPage, fullKeyPage] = [
+    partPass.page,
+    fullPass.page,
+    partKey.page,
+    fullKey.page
+  ];
+  await Promise.all([
+    partPassPage.goto('/auth/signup'),
+    fullPassPage.goto('/auth/signup'),
+    partKeyPage.goto('/auth/signup'),
+    fullKeyPage.goto('/auth/signup')
+  ]);
+
+  const [deletedUsers] = await Promise.all([
+    db.main
+      .select()
+      .from(users)
+      .where(
+        or(
+          eq(users.username, partPass.username.toLowerCase()),
+          eq(users.username, partKey.username.toLowerCase())
+        )
+      ),
+    fullPassPage.waitForURL('/'),
+    fullKeyPage.waitForURL('/')
+  ]);
+  expect(deletedUsers.length).toBe(0);
+
+  const noChangedUsers = await db.main
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.username, fullPass.username.toLowerCase()),
+        eq(users.username, fullKey.username.toLowerCase())
+      )
+    );
+  expect(noChangedUsers.length).toBe(2);
 });

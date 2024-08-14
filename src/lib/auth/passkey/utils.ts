@@ -5,7 +5,7 @@ import {
   type ClientData,
   type WebAuthnCredential
 } from '@oslojs/webauthn';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_APP_DOMAIN, PUBLIC_APP_ORIGIN } from '$env/static/public';
 import { redis } from '$lib/db/server/redis';
 import { ECDSAPublicKey, p256 } from '@oslojs/crypto/ecdsa';
 import { sha256 } from '@oslojs/crypto/sha2';
@@ -13,7 +13,7 @@ import { error } from '@sveltejs/kit';
 import { base64url, encodeHex } from 'oslo/encoding';
 
 export const verifyAuthenticatorData = (authenticatorData: AuthenticatorData): void => {
-  if (!authenticatorData.verifyRelyingPartyIdHash(env.PUBLIC_APP_DOMAIN)) {
+  if (!authenticatorData.verifyRelyingPartyIdHash(PUBLIC_APP_DOMAIN)) {
     return error(406, { message: 'Invalid relying party ID hash' });
   } else if (!authenticatorData.userPresent || !authenticatorData.userVerified) {
     return error(406, { message: 'User must be present and verified' });
@@ -29,7 +29,7 @@ export const verifyClientData = ({
 }): void => {
   if (clientData.type !== type) {
     return error(406, { message: 'Invalid client data type' });
-  } else if (clientData.origin !== env.PUBLIC_APP_ORIGIN || clientData.crossOrigin) {
+  } else if (clientData.origin !== PUBLIC_APP_ORIGIN || clientData.crossOrigin) {
     return error(406, { message: 'Invalid origin' });
   }
 };

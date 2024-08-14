@@ -1,15 +1,14 @@
 import { type RedisInstance } from './redis';
 import { db } from './db';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
 import { emails, users } from '$lib/db/postgres/schema';
 import { hash } from '@node-rs/argon2';
-import { execSync } from 'child_process';
-import { dirname } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import type { Browser } from '@playwright/test';
+import { test as testBase, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
+import { alphabet, generateRandomString } from 'oslo/crypto';
+import { generateIdFromEntropySize } from 'lucia';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
@@ -66,7 +65,9 @@ const PASSWORD_HASH = await hash('password', {
   outputLen: 32,
   parallelism: 1
 });
-export const createNewUser = async ({
+
+// Inserts a new user into the test database based off of given credentials
+export const createNewTestUser = async ({
   username,
   email,
   emailVerified
@@ -78,95 +79,155 @@ export const createNewUser = async ({
   await db.main.transaction(async (tsx) => {
     await tsx.insert(users).values({
       id: username,
-      username: username,
+      username: username.toLowerCase(),
       passwordHash: PASSWORD_HASH
     });
     await tsx.insert(emails).values({
-      email: email,
+      email: email.toLowerCase(),
       isVerified: emailVerified,
       userId: username
     });
   });
 };
 
-export const backupTestDatabase = ({
-  username,
-  host,
-  port,
-  database,
-  backupFile
-}: {
-  username: string;
-  host: string;
-  port: string;
-  database: string;
-  backupFile: string;
-}) => {
-  const dir = dirname(backupFile);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+/** Generates the credentials for a random test user (remember to lowercase username and email for db queries) */
+export const generateRandomTestUser = async (prefix: string) => {
+  const createUsername = async () => {
+    let username = `${prefix}_${generateRandomString(6, alphabet('0-9', 'a-z', 'A-Z'))}`;
+    const [existingUser] = await db.main.select().from(users).where(eq(users.username, username));
+    if (existingUser) {
+      username = await createUsername();
+    }
+    return username;
+  };
 
-  const dbDumpCommand = `pg_dump -U ${username} -h ${host} -p ${port} -F c -b -f ${backupFile} ${database} `;
-  execSync(dbDumpCommand);
-};
-
-export const restoreDatabase = ({
-  username,
-  host,
-  port,
-  database,
-  dumpFile
-}: {
-  username: string;
-  host: string;
-  port: string;
-  database: string;
-  dumpFile: string;
-}) => {
-  const dir = dirname(dumpFile);
-  if (!existsSync(dir)) {
-    throw new Error('File does not exist');
-  }
-
-  const dbRestoreCommand = `pg_restore -U ${username} -h ${host} -p ${port} -d ${database} --clean ${dumpFile}`;
-  execSync(dbRestoreCommand);
-};
-
-export const allLoggedInGoto = async ({ browser, url }: { browser: Browser; url: string }) => {
-  const [partialPasswordContext, fullPasswordContext, partialPasskeyContext, fullPasskeyContext] =
-    await Promise.all([
-      browser.newContext({
-        storageState: 'playwright/.states/password-partial-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/password-full-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/passkey-partial-signup.json'
-      }),
-      browser.newContext({
-        storageState: 'playwright/.states/passkey-full-signup.json'
-      })
-    ]);
-  const [partialPasswordPage, fullPasswordPage, partialPasskeyPage, fullPasskeyPage] =
-    await Promise.all([
-      partialPasswordContext.newPage(),
-      fullPasswordContext.newPage(),
-      partialPasskeyContext.newPage(),
-      fullPasskeyContext.newPage()
-    ]);
-  await Promise.all([
-    partialPasswordPage.goto(url),
-    fullPasswordPage.goto(url),
-    partialPasskeyPage.goto(url),
-    fullPasskeyPage.goto(url)
-  ]);
+  const username = await createUsername();
 
   return {
-    partialPasswordPage,
-    fullPasswordPage,
-    partialPasskeyPage,
-    fullPasskeyPage
+    username,
+    email: `${username}@example.com`,
+    password: generateIdFromEntropySize(25)
   };
 };
+
+type AuthTest = {
+  page: Page;
+  username: string;
+  email: string;
+  password?: string;
+  authenticatorId?: string;
+};
+type AuthFixture = {
+  partPass: AuthTest;
+  fullPass: AuthTest;
+  partKey: AuthTest;
+  fullKey: AuthTest;
+};
+export const test = testBase.extend<AuthFixture>({
+  partPass: async ({ browser }, use) => {
+    const { username, email, password } = await generateRandomTestUser('partial_password');
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    await page.goto('/auth/signup');
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.locator('input[name="password"]').click();
+    await page.locator('input[name="password"]').fill(password);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForURL('/auth/email-verification');
+    await use({ page, username, email, password });
+  },
+  fullPass: async ({ browser }, use) => {
+    const { username, email, password } = await generateRandomTestUser('full_password');
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    await page.goto('/auth/signup');
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.locator('input[name="password"]').click();
+    await page.locator('input[name="password"]').fill(password);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForURL('/auth/email-verification');
+    await page.getByLabel('Verification Code').click();
+    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByRole('button', { name: 'Activate' }).click();
+
+    await page.waitForURL('/');
+    await use({ page, username, email, password });
+  },
+  partKey: async ({ browser }, use) => {
+    const { username, email } = await generateRandomTestUser('partial_passkey');
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send('WebAuthn.enable');
+    const { authenticatorId } = await client.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2',
+        transport: 'usb',
+        hasResidentKey: true,
+        hasUserVerification: true,
+        isUserVerified: true,
+        automaticPresenceSimulation: true
+      }
+    });
+
+    await page.goto('/auth/signup');
+    const passwordField = page.locator('input[name="password"]');
+    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
+    await passwordField.waitFor({ state: 'detached' });
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForURL('/auth/email-verification');
+    await use({ page, username, email, authenticatorId });
+  },
+  fullKey: async ({ browser }, use) => {
+    const { username, email } = await generateRandomTestUser('partial_passkey');
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send('WebAuthn.enable');
+    const { authenticatorId } = await client.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2',
+        transport: 'usb',
+        hasResidentKey: true,
+        hasUserVerification: true,
+        isUserVerified: true,
+        automaticPresenceSimulation: true
+      }
+    });
+
+    await page.goto('/auth/signup');
+    const passwordField = page.locator('input[name="password"]');
+    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
+    await passwordField.waitFor({ state: 'detached' });
+    await page.getByLabel('Username').click();
+    await page.getByLabel('Username').fill(username);
+    await page.getByLabel('Email').click();
+    await page.getByLabel('Email').fill(email);
+    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+
+    await page.waitForURL('/auth/email-verification');
+    await page.getByLabel('Verification Code').click();
+    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByRole('button', { name: 'Activate' }).click();
+
+    await page.waitForURL('/');
+    await use({ page, username, email, authenticatorId });
+  }
+});

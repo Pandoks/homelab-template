@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/public';
+import { PUBLIC_APP_DOMAIN, PUBLIC_APP_NAME } from '$env/static/public';
 import { coseAlgorithmES256 } from '@oslojs/webauthn';
 import { base64url } from 'oslo/encoding';
 
@@ -12,8 +12,8 @@ export const registerPasskey = async ({ username, name }: { username: string; na
       attestation: 'none',
       rp: {
         // application info
-        id: env.PUBLIC_APP_DOMAIN,
-        name: env.PUBLIC_APP_NAME
+        id: PUBLIC_APP_DOMAIN,
+        name: PUBLIC_APP_NAME
       },
       user: {
         id: base64url.decode(challengeData.userId as string),

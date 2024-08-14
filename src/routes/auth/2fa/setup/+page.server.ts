@@ -8,7 +8,7 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { db } from '$lib/db/server/postgres';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
 import { TimeSpan } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
@@ -104,7 +104,7 @@ export const load: PageServerLoad = async (event) => {
 
   // create TOTP with app name, and user identifier (username/email)
   const decodedSecret = decodeHex(twoFactorSecret);
-  const uri = createTOTPKeyURI(env.PUBLIC_APP_NAME, user.username, decodedSecret, {
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, decodedSecret, {
     period: new TimeSpan(30, 's')
   });
   return {

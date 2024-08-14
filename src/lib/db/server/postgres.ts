@@ -1,6 +1,12 @@
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { env } from '$env/dynamic/private';
+import {
+  USER_DB_DATABASE,
+  USER_DB_HOST,
+  USER_DB_PASSWORD,
+  USER_DB_PORT,
+  USER_DB_USERNAME
+} from '$env/static/private';
 import { building } from '$app/environment';
 
 const databases: { [keys: string]: PostgresJsDatabase } = {};
@@ -10,11 +16,11 @@ const databases: { [keys: string]: PostgresJsDatabase } = {};
 if (!building) {
   databases.main = drizzle(
     postgres({
-      username: env.USER_DB_USERNAME,
-      password: env.USER_DB_PASSWORD,
-      host: env.USER_DB_HOST,
-      port: parseInt(env.USER_DB_PORT!),
-      database: env.USER_DB_DATABASE
+      username: USER_DB_USERNAME,
+      password: USER_DB_PASSWORD,
+      host: USER_DB_HOST,
+      port: parseInt(USER_DB_PORT),
+      database: USER_DB_DATABASE
     })
   );
 }

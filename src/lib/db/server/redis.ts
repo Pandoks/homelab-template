@@ -1,15 +1,20 @@
 import { createClient, type RedisClientType, type RedisClusterType } from 'redis';
-import { env } from '$env/dynamic/private';
+import {
+  MAIN_REDIS_HOST,
+  MAIN_REDIS_PASSWORD,
+  MAIN_REDIS_PORT,
+  MAIN_REDIS_USERNAME
+} from '$env/static/private';
 import { building, dev } from '$app/environment';
 
 const redisClients: { [key: string]: RedisInstance } = {};
 if (!building) {
   const mainClient = createClient({
-    username: env.MAIN_REDIS_USERNAME,
-    password: env.MAIN_REDIS_PASSWORD,
+    username: MAIN_REDIS_USERNAME,
+    password: MAIN_REDIS_PASSWORD,
     socket: {
-      host: env.MAIN_REDIS_HOST,
-      port: parseInt(env.MAIN_REDIS_PORT!),
+      host: MAIN_REDIS_HOST,
+      port: parseInt(MAIN_REDIS_PORT),
       tls: !dev
     }
   })
