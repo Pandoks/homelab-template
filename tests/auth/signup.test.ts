@@ -34,9 +34,11 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(unverifiedEmail);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(unverifiedPassword);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForResponse('/auth/signup?/signup')
+    ]);
 
-    await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
 
     await page.getByLabel('Username').click();
@@ -45,15 +47,20 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(verifiedEmail);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(unverifiedEmail);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForResponse('/auth/signup?/signup')
+    ]);
 
-    await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
 
     await page.getByLabel('Username').click();
     await page.getByLabel('Username').fill(`${unverifiedUsername}1`);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-    await page.waitForResponse('/auth/signup?/signup');
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForResponse('/auth/signup?/signup')
+    ]);
+
     await expect(page.locator('form').getByText('Email already exists')).toBeVisible();
   });
 
@@ -67,9 +74,11 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill('password');
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForResponse('/auth/signup?/signup')
+    ]);
 
-    await page.waitForResponse('/auth/signup?/signup');
     await expect(page.locator('form').getByText('Weak password')).toBeVisible();
 
     const [badUser] = await db.main
@@ -88,7 +97,9 @@ test.describe('new user', () => {
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
+    const passwordField = page.locator('input[name="password"]');
     await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
+    await passwordField.waitFor({ state: 'detached' });
 
     await expect(page.getByLabel('Username')).toHaveValue(username);
     await expect(page.getByLabel('Email')).toHaveValue(email);
@@ -115,9 +126,10 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-    await page.waitForURL('/auth/email-verification');
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForURL('/auth/email-verification')
+    ]);
 
     const [newUser] = await db.main
       .select()
@@ -134,9 +146,10 @@ test.describe('new user', () => {
 
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await page.getByRole('button', { name: 'Activate' }).click();
-
-    await page.waitForURL('/');
+    await Promise.all([
+      page.getByRole('button', { name: 'Activate' }).click(),
+      page.waitForURL('/')
+    ]);
 
     const [verifiedUser] = await db.main
       .select()
@@ -174,15 +187,17 @@ test.describe('new user', () => {
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForResponse('/auth/signup?/signup-passkey'),
+      page.waitForURL('/auth/email-verification')
+    ]);
 
-    await page.waitForResponse('/auth/signup?/signup-passkey');
     const passkey = await client.send('WebAuthn.getCredentials', {
       authenticatorId
     });
     expect(passkey.credentials).toHaveLength(1);
 
-    await page.waitForURL('/auth/email-verification');
     const [newUser] = await db.main
       .select()
       .from(users)
@@ -199,9 +214,10 @@ test.describe('new user', () => {
 
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await page.getByRole('button', { name: 'Activate' }).click();
-
-    await page.waitForURL('/');
+    await Promise.all([
+      page.getByRole('button', { name: 'Activate' }).click(),
+      page.waitForURL('/')
+    ]);
 
     const [verifiedUser] = await db.main
       .select()
@@ -226,7 +242,9 @@ test('should not allow already logged in', async ({ partPass, fullPass, partKey,
     partPassPage.goto('/auth/signup'),
     fullPassPage.goto('/auth/signup'),
     partKeyPage.goto('/auth/signup'),
-    fullKeyPage.goto('/auth/signup')
+    fullKeyPage.goto('/auth/signup'),
+    fullPassPage.waitForURL('/'),
+    fullKeyPage.waitForURL('/')
   ]);
 
   const [deletedUsers] = await Promise.all([
@@ -238,9 +256,7 @@ test('should not allow already logged in', async ({ partPass, fullPass, partKey,
           eq(users.username, partPass.username.toLowerCase()),
           eq(users.username, partKey.username.toLowerCase())
         )
-      ),
-    fullPassPage.waitForURL('/'),
-    fullKeyPage.waitForURL('/')
+      )
   ]);
   expect(deletedUsers.length).toBe(0);
 

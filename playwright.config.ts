@@ -2,8 +2,8 @@ import { type PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
-    command: 'vite preview --mode test --port 5173',
-    port: 5173
+    command: 'vite preview --mode test --port 4173',
+    port: 4173
   },
   projects: [
     {

@@ -11,9 +11,7 @@ test('already logged in', async ({ partPass, fullPass, partKey, fullKey }) => {
     partPassPage.goto('/auth/password-reset'),
     fullPassPage.goto('/auth/password-reset'),
     partKeyPage.goto('/auth/password-reset'),
-    fullKeyPage.goto('/auth/password-reset')
-  ]);
-  await Promise.all([
+    fullKeyPage.goto('/auth/password-reset'),
     partPassPage.waitForURL('/auth/email-verification'),
     fullPassPage.waitForURL('/'),
     partKeyPage.waitForURL('/auth/email-verification'),

@@ -136,9 +136,12 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
 
-    await page.waitForURL('/auth/email-verification');
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForURL('/auth/email-verification')
+    ]);
+
     await use({ page, username, email, password });
   },
   fullPass: async ({ browser }, use) => {
@@ -153,14 +156,16 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-    await page.waitForURL('/auth/email-verification');
+    await Promise.all([
+      await page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      await page.waitForURL('/auth/email-verification')
+    ]);
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await page.getByRole('button', { name: 'Activate' }).click();
-
-    await page.waitForURL('/');
+    await Promise.all([
+      page.getByRole('button', { name: 'Activate' }).click(),
+      page.waitForURL('/')
+    ]);
     await use({ page, username, email, password });
   },
   partKey: async ({ browser }, use) => {
@@ -189,9 +194,10 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-    await page.waitForURL('/auth/email-verification');
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForURL('/auth/email-verification')
+    ]);
     await use({ page, username, email, authenticatorId });
   },
   fullKey: async ({ browser }, use) => {
@@ -220,14 +226,16 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
-    await page.getByRole('button', { name: 'Sign Up', exact: true }).click();
-
-    await page.waitForURL('/auth/email-verification');
+    await Promise.all([
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      page.waitForURL('/auth/email-verification')
+    ]);
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await page.getByRole('button', { name: 'Activate' }).click();
-
-    await page.waitForURL('/');
+    await Promise.all([
+      page.getByRole('button', { name: 'Activate' }).click(),
+      page.waitForURL('/')
+    ]);
     await use({ page, username, email, authenticatorId });
   }
 });
