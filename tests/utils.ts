@@ -137,9 +137,10 @@ export const test = testBase.extend<AuthFixture>({
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
 
+    const emailVerifyWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForURL('/auth/email-verification')
+      emailVerifyWait
     ]);
 
     await use({ page, username, email, password });
@@ -156,16 +157,16 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
+
+    const emailVerifyWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
-      await page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      await page.waitForURL('/auth/email-verification')
+      page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
+      emailVerifyWait
     ]);
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await Promise.all([
-      page.getByRole('button', { name: 'Activate' }).click(),
-      page.waitForURL('/')
-    ]);
+    const homeWait = page.waitForURL('/');
+    await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
     await use({ page, username, email, password });
   },
   partKey: async ({ browser }, use) => {
@@ -187,16 +188,23 @@ export const test = testBase.extend<AuthFixture>({
     });
 
     await page.goto('/auth/signup');
-    const passwordField = page.locator('input[name="password"]');
-    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
-    await passwordField.waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passkeyFormWait = page
+      .locator('form[action="?/signup-passkey"]')
+      .waitFor({ state: 'visible' });
+    await Promise.all([
+      page.getByRole('button', { name: 'Passkey Sign Up' }).click(),
+      passwordFormWait,
+      passkeyFormWait
+    ]);
     await page.getByLabel('Username').click();
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
+    const emailVerifyWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForURL('/auth/email-verification')
+      emailVerifyWait
     ]);
     await use({ page, username, email, authenticatorId });
   },
@@ -219,23 +227,28 @@ export const test = testBase.extend<AuthFixture>({
     });
 
     await page.goto('/auth/signup');
-    const passwordField = page.locator('input[name="password"]');
-    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
-    await passwordField.waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passkeyFormWait = page
+      .locator('form[action="?/signup-passkey"]')
+      .waitFor({ state: 'visible' });
+    await Promise.all([
+      page.getByRole('button', { name: 'Passkey Sign Up' }).click(),
+      passwordFormWait,
+      passkeyFormWait
+    ]);
     await page.getByLabel('Username').click();
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
+    const emailVerifyWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForURL('/auth/email-verification')
+      emailVerifyWait
     ]);
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await Promise.all([
-      page.getByRole('button', { name: 'Activate' }).click(),
-      page.waitForURL('/')
-    ]);
+    const homeWait = page.waitForURL('/');
+    await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
     await use({ page, username, email, authenticatorId });
   }
 });

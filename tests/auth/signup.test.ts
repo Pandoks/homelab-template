@@ -34,9 +34,10 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(unverifiedEmail);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(unverifiedPassword);
+    const signupResponseWait = page.waitForResponse('/auth/signup?/signup');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForResponse('/auth/signup?/signup')
+      signupResponseWait
     ]);
 
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
@@ -47,18 +48,21 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(verifiedEmail);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(unverifiedEmail);
+    const signupResponseWait2 = page.waitForResponse('/auth/signup?/signup');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForResponse('/auth/signup?/signup')
+      signupResponseWait2
     ]);
 
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
 
     await page.getByLabel('Username').click();
     await page.getByLabel('Username').fill(`${unverifiedUsername}1`);
+    const signupResponseWait3 = page.waitForResponse('/auth/signup?/signup');
+
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForResponse('/auth/signup?/signup')
+      signupResponseWait3
     ]);
 
     await expect(page.locator('form').getByText('Email already exists')).toBeVisible();
@@ -74,9 +78,10 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill('password');
+    const signupResponseWait = page.waitForResponse('/auth/signup?/signup');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForResponse('/auth/signup?/signup')
+      signupResponseWait
     ]);
 
     await expect(page.locator('form').getByText('Weak password')).toBeVisible();
@@ -97,9 +102,15 @@ test.describe('new user', () => {
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
-    const passwordField = page.locator('input[name="password"]');
-    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
-    await passwordField.waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passkeyFormWait = page
+      .locator('form[action="?/signup-passkey"]')
+      .waitFor({ state: 'visible' });
+    await Promise.all([
+      page.getByRole('button', { name: 'Passkey Sign Up' }).click(),
+      passwordFormWait,
+      passkeyFormWait
+    ]);
 
     await expect(page.getByLabel('Username')).toHaveValue(username);
     await expect(page.getByLabel('Email')).toHaveValue(email);
@@ -126,9 +137,10 @@ test.describe('new user', () => {
     await page.getByLabel('Email').fill(email);
     await page.locator('input[name="password"]').click();
     await page.locator('input[name="password"]').fill(password);
+    const emailVerificationWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForURL('/auth/email-verification')
+      emailVerificationWait
     ]);
 
     const [newUser] = await db.main
@@ -146,10 +158,8 @@ test.describe('new user', () => {
 
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await Promise.all([
-      page.getByRole('button', { name: 'Activate' }).click(),
-      page.waitForURL('/')
-    ]);
+    const homeWait = page.waitForURL('/');
+    await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
     const [verifiedUser] = await db.main
       .select()
@@ -180,17 +190,25 @@ test.describe('new user', () => {
 
     await page.goto('/auth/signup');
 
-    const passwordField = page.locator('input[name="password"]');
-    await page.getByRole('button', { name: 'Passkey Sign Up' }).click();
-    await passwordField.waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passkeyFormWait = page
+      .locator('form[action="?/signup-passkey"]')
+      .waitFor({ state: 'visible' });
+    await Promise.all([
+      page.getByRole('button', { name: 'Passkey Sign Up' }).click(),
+      passwordFormWait,
+      passkeyFormWait
+    ]);
     await page.getByLabel('Username').click();
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
+    const signupResponseWait = page.waitForResponse('/auth/signup?/signup-passkey');
+    const emailVerificationWait = page.waitForURL('/auth/email-verification');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
-      page.waitForResponse('/auth/signup?/signup-passkey'),
-      page.waitForURL('/auth/email-verification')
+      signupResponseWait,
+      emailVerificationWait
     ]);
 
     const passkey = await client.send('WebAuthn.getCredentials', {
@@ -214,10 +232,8 @@ test.describe('new user', () => {
 
     await page.getByLabel('Verification Code').click();
     await page.getByLabel('Verification Code').fill('TEST');
-    await Promise.all([
-      page.getByRole('button', { name: 'Activate' }).click(),
-      page.waitForURL('/')
-    ]);
+    const homeWait = page.waitForURL('/');
+    await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
     const [verifiedUser] = await db.main
       .select()
@@ -238,26 +254,24 @@ test('should not allow already logged in', async ({ partPass, fullPass, partKey,
     partKey.page,
     fullKey.page
   ];
+  const waits = [fullPassPage.waitForURL('/'), fullKeyPage.waitForURL('/')];
   await Promise.all([
     partPassPage.goto('/auth/signup'),
     fullPassPage.goto('/auth/signup'),
     partKeyPage.goto('/auth/signup'),
     fullKeyPage.goto('/auth/signup'),
-    fullPassPage.waitForURL('/'),
-    fullKeyPage.waitForURL('/')
+    ...waits
   ]);
 
-  const [deletedUsers] = await Promise.all([
-    db.main
-      .select()
-      .from(users)
-      .where(
-        or(
-          eq(users.username, partPass.username.toLowerCase()),
-          eq(users.username, partKey.username.toLowerCase())
-        )
+  const deletedUsers = await db.main
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.username, partPass.username.toLowerCase()),
+        eq(users.username, partKey.username.toLowerCase())
       )
-  ]);
+    );
   expect(deletedUsers.length).toBe(0);
 
   const noChangedUsers = await db.main
