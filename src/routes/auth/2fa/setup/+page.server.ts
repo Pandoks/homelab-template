@@ -15,7 +15,6 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
-import { NODE_ENV } from '$env/static/private';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -85,10 +84,7 @@ export const load: PageServerLoad = async (event) => {
     .limit(1);
 
   if (!twoFactorSecret) {
-    twoFactorSecret =
-      NODE_ENV === 'test'
-        ? '4197a6acecf9e5d6e94400579dd05e607b732016'
-        : encodeHex(crypto.getRandomValues(new Uint8Array(20)));
+    twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
     await db.main
       .insert(twoFactorAuthenticationCredentials)
       .values({

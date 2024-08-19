@@ -5,7 +5,6 @@ import { db } from '$lib/db/server/postgres';
 import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { type User } from 'lucia';
 import { emails, users } from '$lib/db/postgres/schema';
-import { NODE_ENV } from '$env/static/private';
 
 // TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
@@ -15,7 +14,7 @@ export const generateEmailVerification = async ({
   userId: string;
   email: string;
 }): Promise<string> => {
-  const code = NODE_ENV === 'test' ? 'TEST' : generateRandomString(6, alphabet('0-9', 'A-Z'));
+  const code = generateRandomString(6, alphabet('0-9', 'A-Z'));
   await db.main.transaction(async (tsx) => {
     await tsx.execute(sql`
       DELETE FROM ${emailVerifications}
@@ -39,7 +38,7 @@ export const sendVerification = async ({ email, code }: { email: string; code: s
 };
 
 export const verifyVerificationCode = async ({ user, code }: { user: User; code: string }) => {
-  const isValidVerificationCode: boolean = await db.main.transaction(async (tsx) => {
+  return await db.main.transaction(async (tsx) => {
     const [emailVerificationCode] = await tsx
       .select({
         code: emailVerifications.code,
@@ -54,6 +53,7 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
     if (!emailVerificationCode || emailVerificationCode.code !== code) {
       return false;
     }
+
     await tsx.delete(emailVerifications).where(eq(emailVerifications.id, emailVerificationCode.id));
 
     if (
@@ -65,6 +65,4 @@ export const verifyVerificationCode = async ({ user, code }: { user: User; code:
 
     return true;
   });
-
-  return isValidVerificationCode;
 };

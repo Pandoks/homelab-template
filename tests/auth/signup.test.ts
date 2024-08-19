@@ -112,12 +112,16 @@ test.describe('new user', () => {
       passkeyFormWait
     ]);
 
-    await expect(page.getByLabel('Username')).toHaveValue(username);
-    await expect(page.getByLabel('Email')).toHaveValue(email);
+    await Promise.all([
+      expect(page.getByLabel('Username')).toHaveValue(username),
+      expect(page.getByLabel('Email')).toHaveValue(email)
+    ]);
 
     await page.getByRole('button', { name: 'Password Sign Up' }).click();
-    await expect(page.getByLabel('Username')).toHaveValue(username);
-    await expect(page.getByLabel('Email')).toHaveValue(email);
+    await Promise.all([
+      expect(page.getByLabel('Username')).toHaveValue(username),
+      expect(page.getByLabel('Email')).toHaveValue(email)
+    ]);
 
     const [badUser] = await db.main
       .select()
@@ -157,7 +161,7 @@ test.describe('new user', () => {
     expect(newUser.sessions).toBeTruthy();
 
     await page.getByLabel('Verification Code').click();
-    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByLabel('Verification Code').fill(newUser.email_verifications.code);
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
@@ -169,7 +173,7 @@ test.describe('new user', () => {
       .limit(1);
     expect(verifiedUser).toBeTruthy();
     expect(verifiedUser.emails.isVerified).toBeTruthy();
-    expect(verifiedUser.email_verifications).toBeFalsy;
+    expect(verifiedUser.email_verifications).toBeFalsy();
   });
 
   test('full passkey signup', async ({ page }) => {
@@ -231,7 +235,7 @@ test.describe('new user', () => {
     expect(newUser.sessions).toBeTruthy();
 
     await page.getByLabel('Verification Code').click();
-    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByLabel('Verification Code').fill(newUser.email_verifications.code);
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
@@ -243,7 +247,7 @@ test.describe('new user', () => {
       .limit(1);
     expect(verifiedUser).toBeTruthy();
     expect(verifiedUser.emails.isVerified).toBeTruthy();
-    expect(verifiedUser.email_verifications).toBeFalsy;
+    expect(verifiedUser.email_verifications).toBeFalsy();
   });
 });
 

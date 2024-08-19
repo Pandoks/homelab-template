@@ -24,7 +24,7 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
 
 export const emailVerifications = pgTable('email_verifications', {
   id: serial('id').primaryKey(),
-  code: text('code'),
+  code: text('code').notNull(),
   email: text('email')
     .notNull()
     .references(() => emails.email, { onDelete: 'cascade' }),

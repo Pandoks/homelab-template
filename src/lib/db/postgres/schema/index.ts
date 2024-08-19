@@ -1,6 +1,5 @@
 import { relations } from 'drizzle-orm';
 import { boolean, pgTable, text } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import {
   emailVerifications,
   passkeys,
@@ -11,14 +10,12 @@ import {
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
-  username: text('username').notNull().unique(),
+  username: text('username').notNull().unique(), // will be converted to lower case
   passwordHash: text('password_hash')
 });
 /** TODO: when checks get released in Drizzle ORM, add check for password.
  * Password can only be null if the user has at least a single passkey
  */
-export type User = typeof users.$inferSelect;
-export const insertUserSchema = createInsertSchema(users);
 export const userRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   emailVerificationCode: one(emailVerifications),
@@ -29,7 +26,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
 }));
 
 export const emails = pgTable('emails', {
-  email: text('email').primaryKey(),
+  email: text('email').primaryKey(), // will be converted to lower case
   isVerified: boolean('is_verified').default(false).notNull(),
   userId: text('user_id')
     .references(() => users.id, { onDelete: 'cascade' })

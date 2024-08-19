@@ -49,7 +49,7 @@ export const actions: Actions = {
       return {
         success: true,
         throttled: false,
-        passowrdResetForm: passwordResetForm
+        passwordResetForm: passwordResetForm
       };
     }
 

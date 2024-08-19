@@ -15,12 +15,14 @@ import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { building } from '$app/environment';
+import { NODE_ENV } from '$env/static/private';
 
+const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180, 300, 600];
 const throttler = !building
   ? new Throttler({
       name: 'login-throttle',
       storage: redis.main.instance as RedisClientType,
-      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+      timeoutSeconds: timeoutSeconds,
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,
       grace: 5
@@ -38,6 +40,7 @@ export const actions: Actions = {
     const throttleCheck = throttler?.check(ipAddress);
     const formValidation = superValidate(event, zod(loginSchema));
     const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
+    console.log('checked');
     if (!loginForm.valid) {
       return fail(400, {
         success: false,
@@ -53,7 +56,7 @@ export const actions: Actions = {
     }
 
     let isUsername = true;
-    const usernameOrEmail = loginForm.data.usernameOrEmail.toLowerCase();
+    const usernameOrEmail = loginForm.data.usernameOrEmail;
     if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }
@@ -75,7 +78,7 @@ export const actions: Actions = {
         })
         .from(users)
         .innerJoin(emails, eq(emails.userId, users.id))
-        .innerJoin(
+        .leftJoin(
           twoFactorAuthenticationCredentials,
           eq(twoFactorAuthenticationCredentials.userId, users.id)
         )
@@ -93,15 +96,15 @@ export const actions: Actions = {
         })
         .from(emails)
         .innerJoin(users, eq(users.id, emails.userId))
-        .innerJoin(
+        .leftJoin(
           twoFactorAuthenticationCredentials,
           eq(twoFactorAuthenticationCredentials.userId, users.id)
         )
         .where(eq(emails.email, usernameOrEmail))
         .limit(1);
     }
-
     if (!userInfo || !userInfo.user.passwordHash) {
+      throttler?.increment(ipAddress);
       return fail(400, {
         success: false,
         throttled: false,
@@ -169,7 +172,7 @@ export const actions: Actions = {
     }
 
     let isUsername = true;
-    const usernameOrEmail = loginForm.data.usernameOrEmail.toLowerCase();
+    const usernameOrEmail = loginForm.data.usernameOrEmail;
     if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }

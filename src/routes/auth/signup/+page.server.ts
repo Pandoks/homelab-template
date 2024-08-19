@@ -31,11 +31,12 @@ import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 
+const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
       name: 'signup-limiter',
       max: 10,
-      refillIntervalSeconds: NODE_ENV === 'test' ? 0 : 5,
+      refillIntervalSeconds: refillIntervalSeconds,
       storage: redis.main.instance as RedisClientType
     })
   : undefined;
@@ -84,13 +85,13 @@ export const actions: Actions = {
       parallelism: 1
     });
     const userId = generateIdFromEntropySize(10); // 16 characters long
-    const email = signupForm.data.email.toLowerCase();
+    const email = signupForm.data.email;
 
     try {
       await db.main.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
-          username: signupForm.data.username.toLowerCase(),
+          username: signupForm.data.username,
           passwordHash: passwordHash
         });
         await tsx.insert(emails).values({
@@ -206,12 +207,12 @@ export const actions: Actions = {
 
     try {
       const userId = generateIdFromEntropySize(10);
-      const email = signupForm.data.email.toLowerCase();
+      const email = signupForm.data.email;
 
       await db.main.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
-          username: signupForm.data.username.toLowerCase(),
+          username: signupForm.data.username,
           passwordHash: null
         });
         await tsx.insert(emails).values({

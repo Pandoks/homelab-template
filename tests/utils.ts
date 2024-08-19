@@ -9,6 +9,7 @@ import { test as testBase, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
 import { alphabet, generateRandomString } from 'oslo/crypto';
 import { generateIdFromEntropySize } from 'lucia';
+import { emailVerifications } from '$lib/db/postgres/schema/auth';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
@@ -163,8 +164,13 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
+
+    const [emailVerification] = await db.main
+      .select()
+      .from(emailVerifications)
+      .where(eq(emailVerifications.email, email.toLowerCase()));
     await page.getByLabel('Verification Code').click();
-    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByLabel('Verification Code').fill(emailVerification.code);
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
     await use({ page, username, email, password });
@@ -245,8 +251,12 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
+    const [emailVerification] = await db.main
+      .select()
+      .from(emailVerifications)
+      .where(eq(emailVerifications.email, email.toLowerCase()));
     await page.getByLabel('Verification Code').click();
-    await page.getByLabel('Verification Code').fill('TEST');
+    await page.getByLabel('Verification Code').fill(emailVerification.code);
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
     await use({ page, username, email, authenticatorId });

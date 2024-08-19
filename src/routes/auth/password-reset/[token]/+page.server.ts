@@ -3,12 +3,12 @@ import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
 import { db } from '$lib/db/server/postgres';
-import { passwordResets, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
 import { lucia, handleAlreadyLoggedIn, verifyPasswordStrength } from '$lib/auth/server';
 import { hash } from '@node-rs/argon2';
-import { emails, users } from '$lib/db/postgres/schema';
+import { users } from '$lib/db/postgres/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -41,11 +41,6 @@ export const actions: Actions = {
       .from(passwordResets)
       .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
       .limit(1);
-    if (token) {
-      await db.main
-        .delete(passwordResets)
-        .where(eq(passwordResets.tokenHash, passwordResetTokenHash));
-    }
     if (!token || !isWithinExpirationDate(token.expiresAt)) {
       return fail(400, {
         success: false,
@@ -53,7 +48,6 @@ export const actions: Actions = {
         newPasswordForm
       });
     }
-
     const sessionInvalidation = lucia.invalidateUserSessions(token.userId);
 
     const password = newPasswordForm.data.password;
@@ -74,28 +68,11 @@ export const actions: Actions = {
       outputLen: 32,
       parallelism: 1
     });
-    const updateUser = db.main
-      .update(users)
-      .set({ passwordHash: passwordHash })
-      .where(eq(users.id, token.userId));
-    const sessionCreation = lucia.createSession(token.userId, {
-      isTwoFactorVerified: false,
-      isPasskeyVerified: false
+    await db.main.transaction(async (tsx) => {
+      await tsx.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetTokenHash));
+      await tsx.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
     });
-    const getUserInfo = db.main
-      .select({
-        isEmailVerified: emails.isVerified,
-        twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
-      })
-      .from(emails)
-      .innerJoin(
-        twoFactorAuthenticationCredentials,
-        eq(twoFactorAuthenticationCredentials.userId, emails.userId)
-      )
-      .where(eq(emails.userId, token.userId))
-      .limit(1);
-    const [[user], session] = await Promise.all([getUserInfo, sessionCreation, updateUser]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
+    const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
       ...sessionCookie.attributes
@@ -104,13 +81,7 @@ export const actions: Actions = {
       'Referrer-Policy': 'strict-origin' // see why in load function
     });
 
-    if (!user.isEmailVerified) {
-      return redirect(302, '/auth/email-verification');
-    } else if (user.twoFactorSecret) {
-      return redirect(302, '/auth/2fa/otp');
-    }
-
-    return redirect(302, '/');
+    return redirect(302, '/auth/login');
   }
 };
 

@@ -6,9 +6,10 @@ export const usernameSchema = z
   .max(31)
   .regex(/^[a-zA-Z0-9_-]+$/, {
     message: "Special characters are not allowed except: '_' and '-'"
-  }); // alphabets + numbers + _ + - (4 ~ 31 characters long)
+  })
+  .toLowerCase(); // alphabets + numbers + _ + - (4 ~ 31 characters long)
 
-export const emailSchema = z.string().email();
+export const emailSchema = z.string().email().toLowerCase();
 
 export const passwordSchema = z
   .string()

@@ -35,11 +35,6 @@ describe('generateEmailVerification', () => {
     await database.delete(users); // cascade deletes everything related
   });
 
-  it('should give me code TEST', async () => {
-    const result = await generateEmailVerification({ userId: 'user', email: 'test@example.com' });
-    expect(result).toBe('TEST');
-  });
-
   it('should delete existing email verifications', async () => {
     await database.insert(emailVerifications).values({
       email: 'test@example.com',
@@ -53,7 +48,6 @@ describe('generateEmailVerification', () => {
       .from(emailVerifications)
       .where(eq(emailVerifications.email, 'test@example.com'));
     expect(results.length).toBe(1);
-    expect(results[0].code).toBe('TEST');
   });
 
   it('should not delete other email verifications', async () => {
@@ -79,14 +73,13 @@ describe('generateEmailVerification', () => {
         expiresAt: createDate(new TimeSpan(15, 'h'))
       });
     });
-    const result = await generateEmailVerification({ userId: 'user', email: 'test@example.com' });
-    expect(result).toBe('TEST');
+    await generateEmailVerification({ userId: 'user', email: 'test@example.com' });
 
-    const [databaseResult] = await database
+    const databaseResult = await database
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, 'test@example.com'));
-    expect(databaseResult.code).toBe('TEST');
+    expect(databaseResult.length).toBe(1);
 
     const [databaseResultUntouched] = await database
       .select()
