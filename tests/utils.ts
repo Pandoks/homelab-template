@@ -121,8 +121,10 @@ type AuthTest = {
 type AuthFixture = {
   partPass: AuthTest;
   fullPass: AuthTest;
+  twoFacPass: AuthTest;
   partKey: AuthTest;
   fullKey: AuthTest;
+  twoFacKey: AuthTest;
 };
 export const test = testBase.extend<AuthFixture>({
   partPass: async ({ browser }, use) => {
@@ -215,7 +217,7 @@ export const test = testBase.extend<AuthFixture>({
     await use({ page, username, email, authenticatorId });
   },
   fullKey: async ({ browser }, use) => {
-    const { username, email } = await generateRandomTestUser('partial_passkey');
+    const { username, email } = await generateRandomTestUser('full_passkey');
     const context = await browser.newContext();
     const page = await context.newPage();
 

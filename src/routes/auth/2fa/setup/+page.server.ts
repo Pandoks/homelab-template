@@ -21,6 +21,7 @@ export const actions: Actions = {
     handleAlreadyLoggedIn(event);
     const user = event.locals.user;
     if (!user) {
+      console.error('here');
       return redirect(302, '/auth/login');
     } else if (event.locals.session?.isTwoFactorVerified || user.hasTwoFactor) {
       return redirect(302, '/');

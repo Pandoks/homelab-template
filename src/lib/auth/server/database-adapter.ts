@@ -42,7 +42,7 @@ export class DatabaseAdapter implements Adapter {
           email: emails.email,
           isVerified: emails.isVerified
         },
-        twoFactorCredential: twoFactorAuthenticationCredentials.twoFactorSecret
+        hasTwoFactor: twoFactorAuthenticationCredentials.activated
       })
       .from(sessions)
       .innerJoin(users, eq(sessions.userId, users.id))
@@ -54,13 +54,13 @@ export class DatabaseAdapter implements Adapter {
       .where(eq(sessions.id, sessionId))
       .limit(1);
     if (!results.length) return [null, null];
-    const { user, session, email, twoFactorCredential } = results[0];
+    const { user, session, email, hasTwoFactor } = results[0];
 
     const userAttributes = {
       username: user.username,
       email: email.email,
       isEmailVerified: email.isVerified,
-      hasTwoFactor: !!twoFactorCredential
+      hasTwoFactor: hasTwoFactor
     };
     const sessionAttributes = {
       isTwoFactorVerified: session.isTwoFactorVerified,
