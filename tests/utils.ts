@@ -111,14 +111,14 @@ export const generateRandomTestUser = async (prefix: string) => {
   };
 };
 
-type AuthTest = {
+export type AuthTest = {
   page: Page;
   username: string;
   email: string;
   password?: string;
   authenticatorId?: string;
 };
-type AuthFixture = {
+export type AuthFixture = {
   partPass: AuthTest;
   fullPass: AuthTest;
   twoFacPass: AuthTest;

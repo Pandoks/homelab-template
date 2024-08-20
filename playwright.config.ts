@@ -10,8 +10,8 @@ const config: PlaywrightTestConfig = {
       name: 'auth',
       testMatch: /auth\/(.+.)?test.ts/,
       fullyParallel: true,
-      retries: 3,
-      timeout: 10
+      retries: 2, // runs 3 times (first run not counted as retry)
+      timeout: 5 * 1000
     }
   ],
   testDir: 'tests',
