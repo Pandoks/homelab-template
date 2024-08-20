@@ -92,7 +92,7 @@ export const actions: Actions = {
       });
     }
 
-    const sessionInvalidation = lucia.invalidateUserSessions(user.id);
+    await lucia.invalidateUserSessions(user.id);
     const emailUpdate = db.main
       .update(emails)
       .set({ isVerified: true })
@@ -107,8 +107,7 @@ export const actions: Actions = {
       sessionCreation,
       resendBucketReset,
       verificationBucketReset,
-      emailUpdate,
-      sessionInvalidation
+      emailUpdate
     ]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

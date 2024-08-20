@@ -17,8 +17,8 @@ const nakedPaths: string[] = [];
 
 // Gets auth information of a user accessing the website
 const luciaAuth: Handle = async ({ event, resolve }) => {
-  const nakedPath = nakedPaths.includes(event.url.pathname);
-  const sessionId = nakedPath
+  const isNakedPath = nakedPaths.includes(event.url.pathname);
+  const sessionId = isNakedPath
     ? lucia.readBearerToken(event.request.headers.get('Authorization') ?? '') // bearer token
     : event.cookies.get(lucia.sessionCookieName); // cookies
 

@@ -42,6 +42,8 @@ const setupPageTOTP = async (page: Page) => {
   ]);
   await expect(page.getByRole('button', { name: 'Continue' })).toBeEnabled();
 
+  // if this fails, it's usually because the otp code got rejected (~0.2% failure rate)
+  // unlucky timing of code creation towards end of lifecycle
   const recoveryCodeWait = page.waitForURL('/auth/2fa/setup/recovery');
   await Promise.all([page.getByRole('button', { name: 'Continue' }).click(), recoveryCodeWait]);
 };

@@ -89,15 +89,21 @@ export class DatabaseAdapter implements Adapter {
   }
 
   public async setSession(session: DatabaseSession): Promise<void> {
-    await this.db.insert(sessions).values({
-      id: session.id,
-      userId: session.userId,
-      expiresAt: session.expiresAt,
-      ...session.attributes
-    });
+    await this.db
+      .insert(sessions)
+      .values({
+        id: session.id,
+        userId: session.userId,
+        expiresAt: session.expiresAt,
+        ...session.attributes
+      })
+      .onConflictDoUpdate({
+        target: sessions.id,
+        set: { userId: session.userId, expiresAt: session.expiresAt, ...session.attributes }
+      });
   }
 
   public async updateSessionExpiration(sessionId: string, expiresAt: Date): Promise<void> {
-    await this.db.update(sessions).set({ expiresAt }).where(eq(sessions.id, sessionId));
+    await this.db.update(sessions).set({ expiresAt: expiresAt }).where(eq(sessions.id, sessionId));
   }
 }
