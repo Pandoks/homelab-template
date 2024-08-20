@@ -47,7 +47,7 @@ export class DatabaseAdapter implements Adapter {
       .from(sessions)
       .innerJoin(users, eq(sessions.userId, users.id))
       .innerJoin(emails, eq(emails.userId, users.id))
-      .innerJoin(
+      .leftJoin(
         twoFactorAuthenticationCredentials,
         eq(twoFactorAuthenticationCredentials.userId, users.id)
       )
@@ -60,7 +60,7 @@ export class DatabaseAdapter implements Adapter {
       username: user.username,
       email: email.email,
       isEmailVerified: email.isVerified,
-      hasTwoFactor: hasTwoFactor
+      hasTwoFactor: !!hasTwoFactor
     };
     const sessionAttributes = {
       isTwoFactorVerified: session.isTwoFactorVerified,
