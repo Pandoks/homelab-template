@@ -43,7 +43,7 @@ test.describe('new user', () => {
     await expect(page.locator('form').getByText('Username already exists')).toBeVisible();
 
     await page.getByLabel('Username').click();
-    await page.getByLabel('Username').fill(verifiedUsername);
+    await page.getByLabel('Username').fill(verifiedUsername.toUpperCase());
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(verifiedEmail);
     await page.locator('input[name="password"]').click();

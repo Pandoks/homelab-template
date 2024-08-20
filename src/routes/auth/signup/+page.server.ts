@@ -85,13 +85,14 @@ export const actions: Actions = {
       parallelism: 1
     });
     const userId = generateIdFromEntropySize(10); // 16 characters long
-    const email = signupForm.data.email;
+    const email = signupForm.data.email.toLowerCase();
+    const username = signupForm.data.username.toLowerCase();
 
     try {
       await db.main.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
-          username: signupForm.data.username,
+          username: username,
           passwordHash: passwordHash
         });
         await tsx.insert(emails).values({
@@ -207,12 +208,13 @@ export const actions: Actions = {
 
     try {
       const userId = generateIdFromEntropySize(10);
-      const email = signupForm.data.email;
+      const email = signupForm.data.email.toLowerCase();
+      const username = signupForm.data.username.toLowerCase();
 
       await db.main.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
-          username: signupForm.data.username,
+          username: username,
           passwordHash: null
         });
         await tsx.insert(emails).values({

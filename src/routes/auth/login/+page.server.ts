@@ -55,7 +55,7 @@ export const actions: Actions = {
     }
 
     let isUsername = true;
-    const usernameOrEmail = loginForm.data.usernameOrEmail;
+    const usernameOrEmail = loginForm.data.usernameOrEmail.toLowerCase();
     if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }
@@ -171,7 +171,7 @@ export const actions: Actions = {
     }
 
     let isUsername = true;
-    const usernameOrEmail = loginForm.data.usernameOrEmail;
+    const usernameOrEmail = loginForm.data.usernameOrEmail.toLowerCase();
     if (emailSchema.safeParse(usernameOrEmail).success) {
       isUsername = false;
     }

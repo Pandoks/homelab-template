@@ -39,7 +39,7 @@ export const actions: Actions = {
       });
     }
 
-    const email = passwordResetForm.data.email;
+    const email = passwordResetForm.data.email.toLowerCase();
     const [emailInfo] = await db.main
       .select({ email: emails.email, userId: emails.userId })
       .from(emails)
