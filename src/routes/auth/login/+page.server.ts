@@ -40,7 +40,6 @@ export const actions: Actions = {
     const throttleCheck = throttler?.check(ipAddress);
     const formValidation = superValidate(event, zod(loginSchema));
     const [loginForm, validThrottle] = await Promise.all([formValidation, throttleCheck]);
-    console.log('checked');
     if (!loginForm.valid) {
       return fail(400, {
         success: false,

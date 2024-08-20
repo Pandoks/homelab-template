@@ -267,7 +267,7 @@ export const test = testBase.extend<AuthFixture>({
     });
 
     await page.goto('/auth/signup');
-    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/signup-passkey"]')
       .waitFor({ state: 'visible' });
@@ -306,7 +306,7 @@ export const test = testBase.extend<AuthFixture>({
     });
 
     await page.goto('/auth/signup');
-    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/signup-passkey"]')
       .waitFor({ state: 'visible' });
@@ -353,7 +353,7 @@ export const test = testBase.extend<AuthFixture>({
     });
 
     await page.goto('/auth/signup');
-    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/signup-passkey"]')
       .waitFor({ state: 'visible' });

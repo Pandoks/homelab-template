@@ -102,7 +102,7 @@ test.describe('new user', () => {
     await page.getByLabel('Username').fill(username);
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
-    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/signup-passkey"]')
       .waitFor({ state: 'visible' });
@@ -194,7 +194,7 @@ test.describe('new user', () => {
 
     await page.goto('/auth/signup');
 
-    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/signup"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/signup-passkey"]')
       .waitFor({ state: 'visible' });

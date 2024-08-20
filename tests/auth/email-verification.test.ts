@@ -60,7 +60,7 @@ test.describe('logged in user', () => {
     );
     const resendButtonDetach = partPass.page
       .getByRole('button', { name: 'Resend' })
-      .waitFor({ state: 'detached' });
+      .waitFor({ state: 'hidden' });
     await Promise.all([
       partPass.page.getByRole('button', { name: 'Resend' }).click(),
       resendEmailVerificationResponse,

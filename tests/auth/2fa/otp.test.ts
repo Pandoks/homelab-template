@@ -28,7 +28,7 @@ test.describe('redirections based off of user conditions', () => {
     await logout(page);
 
     await page.goto('/auth/login');
-    const passwordFormWait = page.locator('form[action="?/login"]').waitFor({ state: 'detached' });
+    const passwordFormWait = page.locator('form[action="?/login"]').waitFor({ state: 'hidden' });
     const passkeyFormWait = page
       .locator('form[action="?/login-passkey"]')
       .waitFor({ state: 'visible' });
