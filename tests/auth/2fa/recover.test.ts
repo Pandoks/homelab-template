@@ -1,4 +1,8 @@
-import { test } from '../../utils';
+import { logout, test } from '../../utils';
+
+test('should disable 2fa with recovery code', async ({ twoFacPass, twoFacKey }) => {
+  await Promise.all([logout(twoFacPass.page), logout(twoFacKey.page)]);
+});
 
 test.describe('redirections based off of user conditions', () => {
   test('should not allow non logged in', async ({ page }) => {

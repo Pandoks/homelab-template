@@ -119,6 +119,8 @@ export type AuthTest = {
   email: string;
   password?: string;
   authenticatorId?: string;
+  twoFacSecret?: Uint8Array;
+  twoFacRecovery?: string;
 };
 export type AuthFixture = {
   partPass: AuthTest;
@@ -235,6 +237,8 @@ export const test = testBase.extend<AuthFixture>({
     // unlucky timing of code creation towards end of lifecycle
     const recoveryCodeWait = page.waitForURL('/auth/2fa/setup/recovery');
     await Promise.all([page.getByRole('button', { name: 'Continue' }).click(), recoveryCodeWait]);
+    await page.getByRole('button').nth(1).click();
+    const plainRecoveryCode = await page.locator('input[type="text"][disabled]').inputValue();
 
     const twoFacHomeWait = page.waitForURL('/');
     await page.getByRole('button', { name: 'Activate 2 Factor' }).click();
@@ -243,7 +247,14 @@ export const test = testBase.extend<AuthFixture>({
       twoFacHomeWait
     ]);
 
-    await use({ page, username, email, password });
+    await use({
+      page,
+      username,
+      email,
+      password,
+      twoFacSecret: twoFactorSecret,
+      twoFacRecovery: plainRecoveryCode
+    });
   },
   partKey: async ({ browser }, use) => {
     const { username, email } = await generateRandomTestUser('partial_passkey');
@@ -405,6 +416,8 @@ export const test = testBase.extend<AuthFixture>({
     // unlucky timing of code creation towards end of lifecycle
     const recoveryCodeWait = page.waitForURL('/auth/2fa/setup/recovery');
     await Promise.all([page.getByRole('button', { name: 'Continue' }).click(), recoveryCodeWait]);
+    await page.getByRole('button').nth(1).click();
+    const plainRecoveryCode = await page.locator('input[type="text"][disabled]').inputValue();
 
     const twoFacHomeWait = page.waitForURL('/');
     await page.getByRole('button', { name: 'Activate 2 Factor' }).click();
@@ -413,6 +426,24 @@ export const test = testBase.extend<AuthFixture>({
       twoFacHomeWait
     ]);
 
-    await use({ page, username, email, authenticatorId });
+    await use({
+      page,
+      username,
+      email,
+      authenticatorId,
+      twoFacSecret: twoFactorSecret,
+      twoFacRecovery: plainRecoveryCode
+    });
   }
 });
+
+export const logout = async (page: Page) => {
+  return await page.evaluate(async () => {
+    await fetch('/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  });
+};
