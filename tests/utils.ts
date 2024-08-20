@@ -216,14 +216,6 @@ export const test = testBase.extend<AuthFixture>({
 
     const twoFactorSecret = base32.decode(plainTwoFactor);
 
-    await page.getByPlaceholder('XXXXXX').click();
-    await page.getByPlaceholder('XXXXXX').fill('wrongs');
-    const badTotpCodeVerificationResponse = page.waitForResponse('/auth/2fa/setup?/verify-otp');
-    await Promise.all([
-      page.getByRole('button', { name: 'Verify' }).click(),
-      badTotpCodeVerificationResponse
-    ]);
-
     const totpController = new TOTPController();
     await page.getByPlaceholder('XXXXXX').click();
     await page.getByPlaceholder('XXXXXX').fill(await totpController.generate(twoFactorSecret));
@@ -394,14 +386,6 @@ export const test = testBase.extend<AuthFixture>({
     const plainTwoFactor = await page.locator('input[type="text"][disabled]').inputValue();
 
     const twoFactorSecret = base32.decode(plainTwoFactor);
-
-    await page.getByPlaceholder('XXXXXX').click();
-    await page.getByPlaceholder('XXXXXX').fill('wrongs');
-    const badTotpCodeVerificationResponse = page.waitForResponse('/auth/2fa/setup?/verify-otp');
-    await Promise.all([
-      page.getByRole('button', { name: 'Verify' }).click(),
-      badTotpCodeVerificationResponse
-    ]);
 
     const totpController = new TOTPController();
     await page.getByPlaceholder('XXXXXX').click();
