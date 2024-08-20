@@ -83,18 +83,13 @@ export const actions: Actions = {
       .delete(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
+    await lucia.invalidateUserSessions(user.id);
     const throttleReset = throttler?.reset(throttleKey);
-    const invalidateAllUserSessions = lucia.invalidateUserSessions(user.id);
     const sessionCreation = lucia.createSession(user.id, {
       isTwoFactorVerified: false,
       isPasskeyVerified: false
     });
-    const [session] = await Promise.all([
-      sessionCreation,
-      invalidateAllUserSessions,
-      throttleReset,
-      twoFactorDeletion
-    ]);
+    const [session] = await Promise.all([sessionCreation, throttleReset, twoFactorDeletion]);
     const sessionCookie = lucia.createSessionCookie(session.id);
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '/',
