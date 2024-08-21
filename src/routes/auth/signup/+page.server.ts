@@ -301,8 +301,13 @@ export const load: PageServerLoad = async (event) => {
     });
   }
 
+  const [signupForm, signupPasskeyForm] = await Promise.all([
+    superValidate(zod(signupSchema)),
+    superValidate(zod(signupPasskeySchema))
+  ]);
+
   return {
-    signupForm: await superValidate(zod(signupSchema)),
-    signupPasskeyForm: await superValidate(zod(signupPasskeySchema))
+    signupForm,
+    signupPasskeyForm
   };
 };

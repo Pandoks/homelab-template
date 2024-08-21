@@ -254,8 +254,12 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
+  const [loginForm, loginPasskeyForm] = await Promise.all([
+    superValidate(zod(loginSchema)),
+    superValidate(zod(loginPasskeySchema))
+  ]);
   return {
-    loginForm: await superValidate(zod(loginSchema)),
-    loginPasskeyForm: await superValidate(zod(loginPasskeySchema))
+    loginForm,
+    loginPasskeyForm
   };
 };
