@@ -7,7 +7,7 @@
     type SignupSchema
   } from './schema';
   import { zodClient } from 'sveltekit-superforms/adapters';
-  import { Input } from '$lib/components/ui/input';
+  import { Input, ToggleInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
   import { Separator } from '$lib/components/ui/separator';
@@ -154,7 +154,7 @@
           <div class="flex items-center">
             <Form.Label for="password">Password</Form.Label>
           </div>
-          <Input
+          <ToggleInput
             on:input={() => dispatch('interacted')}
             {...attrs}
             bind:value={$signupFormData.password}

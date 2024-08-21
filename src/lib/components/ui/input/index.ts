@@ -1,4 +1,5 @@
 import Root from './input.svelte';
+import ToggleRoot from './toggle.svelte';
 
 export type FormInputEvent<T extends Event = Event> = T & {
   currentTarget: EventTarget & HTMLInputElement;
@@ -24,6 +25,8 @@ export type InputEvents = {
 
 export {
   Root,
+  ToggleRoot,
   //
-  Root as Input
+  Root as Input,
+  ToggleRoot as ToggleInput
 };
