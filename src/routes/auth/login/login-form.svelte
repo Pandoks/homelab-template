@@ -1,7 +1,7 @@
 <script lang="ts">
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import { type LoginFormSchema, type LoginPasskeySchema } from './schema';
-  import { Input } from '$lib/components/ui/input';
+  import { Input, ToggleInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
@@ -107,7 +107,7 @@
               Forgot your password?
             </a>
           </div>
-          <Input
+          <ToggleInput
             on:input={() => dispatch('interacted')}
             {...attrs}
             bind:value={$loginFormData.password}
