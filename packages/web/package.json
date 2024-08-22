@@ -1,7 +1,6 @@
 {
-  "name": "startup-template",
-  "version": "0.0.1",
-  "private": true,
+  "name": "@startup-template/web",
+  "version": "0.0.0",
   "scripts": {
     "dev": "vite dev",
     "build:prod": "vite build",
