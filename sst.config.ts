@@ -1,5 +1,8 @@
 /// <reference path="./.sst/platform/config.d.ts" />
-// NOTE: DO NOT add imports. use globals `$` or types (https://sst.dev/docs/reference/config)
+// https://sst.dev/docs/reference/config
+
+import { readdirSync } from "fs";
+
 export default $config({
   // Your app's config
   app(input) {
@@ -15,7 +18,15 @@ export default $config({
   },
   // Your app's resources
   async run() {
-    // Your app's output to the cli/output file
-    return {};
+    let outputs = {};
+
+    for (const infraPackage of readdirSync("./infra/")) {
+      const result = await import(`./infra/${infraPackage}`);
+      if (result.outputs) {
+        outputs = { ...outputs, ...result.outputs };
+      }
+    }
+
+    return outputs;
   },
 });
