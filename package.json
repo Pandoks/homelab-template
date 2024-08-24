@@ -11,6 +11,7 @@
     "typescript": "5.3.3"
   },
   "dependencies": {
+    "oslo": "^1.2.1",
     "sst": "^3"
   }
 }
