@@ -1,8 +1,6 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 // https://sst.dev/docs/reference/config
-
 import { readdirSync } from "fs";
-
 export default $config({
   // Your app's config
   app(input) {
@@ -13,20 +11,23 @@ export default $config({
       providers: {
         aws: { region: "us-east-2" },
         cloudflare: true,
+        "pulumi-stripe": true,
+        github: true,
+        digitalocean: true,
+        docker: true,
+        command: true,
       },
     };
   },
   // Your app's resources
   async run() {
     let outputs = {};
-
     for (const infraPackage of readdirSync("./infra/")) {
       const result = await import(`./infra/${infraPackage}`);
       if (result.outputs) {
         outputs = { ...outputs, ...result.outputs };
       }
     }
-
     return outputs;
   },
 });
