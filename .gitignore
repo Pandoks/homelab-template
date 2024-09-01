@@ -34,3 +34,6 @@ repopack*
 
 # Turborepo
 .turbo
+
+# No npm
+package-lock.json
