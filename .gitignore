@@ -31,3 +31,6 @@ repopack*
 
 # sst
 .sst
+
+# Turborepo
+.turbo

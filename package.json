@@ -1,17 +1,14 @@
 {
   "name": "startup-template",
   "version": "0.0.0",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "dev": "sst dev"
   },
   "devDependencies": {
+    "turbo": "^2.1.1",
     "typescript": "5.3.3"
   },
   "dependencies": {
-    "oslo": "^1.2.1",
-    "sst": "^3"
+    "sst": "^3.0.83"
   }
 }
