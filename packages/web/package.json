@@ -1,6 +1,9 @@
 {
   "name": "@startup-template/web",
   "version": "0.0.0",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
