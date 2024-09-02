@@ -1,8 +1,10 @@
 {
   "name": "startup-template",
   "version": "0.0.0",
+  "packageManager": "pnpm@9.9.0",
   "scripts": {
-    "dev": "sst dev"
+    "dev": "sst dev",
+    "docker:base": "docker build . --tag startup-template-base:latest"
   },
   "devDependencies": {
     "turbo": "^2.1.1",

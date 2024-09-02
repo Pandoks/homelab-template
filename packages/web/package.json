@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite dev",
+    "build": "vite build",
     "build:prod": "vite build",
     "build:local": "NODE_ENV=development vite build",
     "build:test": "NODE_ENV=test vite build --mode test",
