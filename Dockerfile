@@ -4,7 +4,7 @@ ENV PATH="${PNPM_HOME}:$PATH"
 RUN corepack enable pnpm
 WORKDIR /app
 COPY pnpm-lock.yaml .
-RUN pnpm fetch --prod
+RUN pnpm fetch
 COPY . .
 RUN pnpm run -r build
 

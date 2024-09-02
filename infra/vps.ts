@@ -74,22 +74,22 @@ const webFirewall = new digitalocean.Firewall("Firewall", {
   ],
 });
 
-/** Basically a VPC for the docker containers */
-const dockerNetwork = new docker.Network("DockerNetwork", {
-  name: "startup-template-docker-network",
-  driver: "bridge",
-  options: {
-    "com.docker.network.bridge.enable_icc": "true",
-    "com.docker.network.bridge.enable_ip_masquerade": "true",
-  },
-});
+// /** Basically a VPC for the docker containers */
+// const dockerNetwork = new docker.Network("DockerNetwork", {
+//   name: "startup-template-docker-network",
+//   driver: "bridge",
+//   options: {
+//     "com.docker.network.bridge.enable_icc": "true",
+//     "com.docker.network.bridge.enable_ip_masquerade": "true",
+//   },
+// });
 
-/** Reverse proxy for routing traffic */
-const nginxContainer = new docker.Container("Nginx", {
-  image: "nginx:latest",
-  networksAdvanced: [{ name: dockerNetwork.name }],
-  ports: [
-    { internal: 80, external: 80 }, // HTTP
-    { internal: 443, external: 443 }, // HTTPS
-  ],
-});
+// /** Reverse proxy for routing traffic */
+// const nginxContainer = new docker.Container("Nginx", {
+//   image: "nginx:latest",
+//   networksAdvanced: [{ name: dockerNetwork.name }],
+//   ports: [
+//     { internal: 80, external: 80 }, // HTTP
+//     { internal: 443, external: 443 }, // HTTPS
+//   ],
+// });
