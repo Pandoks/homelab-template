@@ -13,13 +13,23 @@ importers:
         version: 1.2.1
       sst:
         specifier: ^3.0.83
-        version: 3.0.94
-      turbo:
-        specifier: ^2.1.1
-        version: 2.1.1
+        version: 3.0.97
       typescript:
         specifier: 5.3.3
         version: 5.3.3
+
+  packages/core:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.33.0
+        version: 0.33.0(postgres@3.4.4)
+      drizzle-zod:
+        specifier: ^0.5.1
+        version: 0.5.1(drizzle-orm@0.33.0(postgres@3.4.4))(zod@3.23.8)
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.24.0
+        version: 0.24.2
 
   packages/web:
     dependencies:
@@ -1600,8 +1610,8 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.0
 
-  '@swc/helpers@0.5.12':
-    resolution: {integrity: sha512-KMZNXiGibsW9kvZAO1Pam2JPTDBm+KSHMMHWdsyI/1DbIZjT2A6Gy3hblVXUMEDvUAKq+e0vL0X0o54owWji7g==}
+  '@swc/helpers@0.5.13':
+    resolution: {integrity: sha512-UoKGxQ3r5kYI9dALKJapMmuK+1zWM/H17Z1+iwnNmzcJRnfFuevZs375TA5rW31pu4BS4NoSy1fRsexDXfWn5w==}
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -2472,8 +2482,8 @@ packages:
   periscopic@3.1.0:
     resolution: {integrity: sha512-vKiQ8RRtkl9P+r/+oefh25C3fhybptkHKCZSPlcXiJux2tJF55GnEj3BVn4A5gKfq9NWWXXrxkHBwVPUfH0opw==}
 
-  picocolors@1.0.1:
-    resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
+  picocolors@1.1.0:
+    resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
 
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
@@ -2650,33 +2660,33 @@ packages:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
 
-  sst-darwin-arm64@3.0.94:
-    resolution: {integrity: sha512-wEuhw5HuUiGFAX5QVo9dcDG6/7lXlUI7PGmc6h8kCYZ27AvrkdjxhLFFE7q55ly3uiHmvteGzN9cLrSdLemXHg==}
+  sst-darwin-arm64@3.0.97:
+    resolution: {integrity: sha512-71fK+JXChzHCsS/nBG4WVIg8pZvqAdimYRK85AtWmjPcNFyGYIQszGa0KBrMk4cFihdnqbU+ZTRArsQIvkzDZA==}
     cpu: [arm64]
     os: [darwin]
 
-  sst-darwin-x64@3.0.94:
-    resolution: {integrity: sha512-2ij6Ocl8YCMgkbCrWXVdlP/ki71OGlbC9eh9O9TTZB+2ooz9O4uxI/HbGTALFz1diVxQrEWzk+70TWj+BhcCVw==}
+  sst-darwin-x64@3.0.97:
+    resolution: {integrity: sha512-x17UjUDClAf5R5RrONu8V9T1pGgAotdGY5KIHBd7fgUPt5oeFdlbeqQVgt89V5ZSExzATQue8oR9hH+UGhTsNg==}
     cpu: [x64]
     os: [darwin]
 
-  sst-linux-arm64@3.0.94:
-    resolution: {integrity: sha512-muEfHav98AVbKfRMpLxUJskheDUt08tGbSU3ftRZBlmsJ/tYX5nL51PRCO36gy0do0oNMR+TPJDO5f3Bczibhg==}
+  sst-linux-arm64@3.0.97:
+    resolution: {integrity: sha512-3tYqLA/b3hjgA5pbACBXrNyRen2+PFRwOgHKmr5lkVbBYb4UKuB9GFN9QecWGKod8P/9mSTlE3pgwpXiecSa7w==}
     cpu: [arm64]
     os: [linux]
 
-  sst-linux-x64@3.0.94:
-    resolution: {integrity: sha512-VdB94B0jvGxeXV3rDJbbI7/cQLpSJ8yADKFkR7uShlcsL+/z4uQeKCqTxu+wqOeKDgx9V8Ft3CQLcBM4c10fzQ==}
+  sst-linux-x64@3.0.97:
+    resolution: {integrity: sha512-VDlzw/V6qXLSCPOymY+O8Xoth3B4VnTv+11HiLobP8SuLOnUULE3szF+v+rzA9mPTL1/0OMknGa/kUUau95tFA==}
     cpu: [x64]
     os: [linux]
 
-  sst-linux-x86@3.0.94:
-    resolution: {integrity: sha512-1KEZI+XZgOlm4bJeBWEpfYXb9/9P/tVlEKncKINqL4wMnAduffZPjpmu/RWRkNoYkI0rEqOO/8Y0ZTeCrufMrA==}
+  sst-linux-x86@3.0.97:
+    resolution: {integrity: sha512-eRRno4gjkZ4hjARm0pTr3vgKjZM0pTct5tJyV7pXnSljlLIRtVKUJYxRNRo2VUi2BnarM1MYoVh1nS2sLQ3Pbw==}
     cpu: [x86]
     os: [linux]
 
-  sst@3.0.94:
-    resolution: {integrity: sha512-jlNCjdozAHoJJosth90tNkPRkJ2kEnoF3wEidkyYT862MEZeqzNoHy/m23iT9xuRPurj5rRxlDFxFw9tym1dRg==}
+  sst@3.0.97:
+    resolution: {integrity: sha512-0MyOKaFwDGuCjQAOwtjxe/kCOSAmX1M2sbaxAzP5Qzd5RguYLrGLm9m1DzmompITyGjs2cOiHRmLS9Pip+RQng==}
     hasBin: true
     peerDependencies:
       hono: 4.x
@@ -2874,40 +2884,6 @@ packages:
 
   tslib@2.7.0:
     resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
-
-  turbo-darwin-64@2.1.1:
-    resolution: {integrity: sha512-aYNuJpZlCoi0Htd79fl/2DywpewGKijdXeOfg9KzNuPVKzSMYlAXuAlNGh0MKjiOcyqxQGL7Mq9LFhwA0VpDpQ==}
-    cpu: [x64]
-    os: [darwin]
-
-  turbo-darwin-arm64@2.1.1:
-    resolution: {integrity: sha512-tifJKD8yHY48rHXPMcM8o1jI/Jk2KCaXiNjTKvvy9Zsim61BZksNVLelIbrRoCGwAN6PUBZO2lGU5iL/TQJ5Pw==}
-    cpu: [arm64]
-    os: [darwin]
-
-  turbo-linux-64@2.1.1:
-    resolution: {integrity: sha512-Js6d/bSQe9DuV9c7ITXYpsU/ADzFHABdz1UIHa7Oqjj9VOEbFeA9WpAn0c+mdJrVD+IXJFbbDZUjN7VYssmtcg==}
-    cpu: [x64]
-    os: [linux]
-
-  turbo-linux-arm64@2.1.1:
-    resolution: {integrity: sha512-LidzTCq0yvQ+N8w8Qub9FmhQ/mmEIeoqFi7DSupekEV2EjvE9jw/zYc9Pk67X+g7dHVfgOnvVzmrjChdxpFePw==}
-    cpu: [arm64]
-    os: [linux]
-
-  turbo-windows-64@2.1.1:
-    resolution: {integrity: sha512-GKc9ZywKwy4xLDhwXd6H07yzl0TB52HjXMrFLyHGhCVnf/w0oq4sLJv2sjbvuarPjsyx4xnCBJ3m3oyL2XmFtA==}
-    cpu: [x64]
-    os: [win32]
-
-  turbo-windows-arm64@2.1.1:
-    resolution: {integrity: sha512-oFKkMj11KKUv3xSK9/fhAEQTxLUp1Ol1EOktwc32+SFtEU0uls7kosAz0b+qe8k3pJGEMFdDPdqoEjyJidbxtQ==}
-    cpu: [arm64]
-    os: [win32]
-
-  turbo@2.1.1:
-    resolution: {integrity: sha512-u9gUDkmR9dFS8b5kAYqIETK4OnzsS4l2ragJ0+soSMHh6VEeNHjTfSjk1tKxCqLyziCrPogadxP680J+v6yGHw==}
-    hasBin: true
 
   type-fest@2.19.0:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
@@ -3442,7 +3418,7 @@ snapshots:
   '@babel/code-frame@7.24.7':
     dependencies:
       '@babel/highlight': 7.24.7
-      picocolors: 1.0.1
+      picocolors: 1.1.0
 
   '@babel/helper-validator-identifier@7.24.7': {}
 
@@ -3451,7 +3427,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.7
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
 
   '@babel/runtime@7.25.6':
     dependencies:
@@ -3804,7 +3780,7 @@ snapshots:
 
   '@internationalized/date@3.5.5':
     dependencies:
-      '@swc/helpers': 0.5.12
+      '@swc/helpers': 0.5.13
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -4554,7 +4530,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@swc/helpers@0.5.12':
+  '@swc/helpers@0.5.13':
     dependencies:
       tslib: 2.7.0
 
@@ -4706,7 +4682,7 @@ snapshots:
       caniuse-lite: 1.0.30001655
       fraction.js: 4.3.7
       normalize-range: 0.1.2
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       postcss: 8.4.44
       postcss-value-parser: 4.2.0
 
@@ -5380,7 +5356,7 @@ snapshots:
       estree-walker: 3.0.3
       is-reference: 3.0.2
 
-  picocolors@1.0.1: {}
+  picocolors@1.1.0: {}
 
   picomatch@2.3.1: {}
 
@@ -5430,7 +5406,7 @@ snapshots:
   postcss@8.4.44:
     dependencies:
       nanoid: 3.3.7
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       source-map-js: 1.2.0
 
   postgres@3.4.4: {}
@@ -5561,33 +5537,33 @@ snapshots:
 
   source-map@0.6.1: {}
 
-  sst-darwin-arm64@3.0.94:
+  sst-darwin-arm64@3.0.97:
     optional: true
 
-  sst-darwin-x64@3.0.94:
+  sst-darwin-x64@3.0.97:
     optional: true
 
-  sst-linux-arm64@3.0.94:
+  sst-linux-arm64@3.0.97:
     optional: true
 
-  sst-linux-x64@3.0.94:
+  sst-linux-x64@3.0.97:
     optional: true
 
-  sst-linux-x86@3.0.94:
+  sst-linux-x86@3.0.97:
     optional: true
 
-  sst@3.0.94:
+  sst@3.0.97:
     dependencies:
       '@aws-sdk/client-lambda': 3.478.0
       aws4fetch: 1.0.20
       jose: 5.2.3
       openid-client: 5.6.4
     optionalDependencies:
-      sst-darwin-arm64: 3.0.94
-      sst-darwin-x64: 3.0.94
-      sst-linux-arm64: 3.0.94
-      sst-linux-x64: 3.0.94
-      sst-linux-x86: 3.0.94
+      sst-darwin-arm64: 3.0.97
+      sst-darwin-x64: 3.0.97
+      sst-linux-arm64: 3.0.97
+      sst-linux-x64: 3.0.97
+      sst-linux-x86: 3.0.97
     transitivePeerDependencies:
       - aws-crt
 
@@ -5650,7 +5626,7 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       chokidar: 3.6.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       sade: 1.8.1
       svelte: 4.2.19
       svelte-preprocess: 5.1.4(postcss-load-config@4.0.2(postcss@8.4.44))(postcss@8.4.44)(svelte@4.2.19)(typescript@5.3.3)
@@ -5747,7 +5723,7 @@ snapshots:
       micromatch: 4.0.8
       normalize-path: 3.0.0
       object-hash: 3.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       postcss: 8.4.44
       postcss-import: 15.1.0(postcss@8.4.44)
       postcss-js: 4.0.1(postcss@8.4.44)
@@ -5806,33 +5782,6 @@ snapshots:
 
   tslib@2.7.0: {}
 
-  turbo-darwin-64@2.1.1:
-    optional: true
-
-  turbo-darwin-arm64@2.1.1:
-    optional: true
-
-  turbo-linux-64@2.1.1:
-    optional: true
-
-  turbo-linux-arm64@2.1.1:
-    optional: true
-
-  turbo-windows-64@2.1.1:
-    optional: true
-
-  turbo-windows-arm64@2.1.1:
-    optional: true
-
-  turbo@2.1.1:
-    optionalDependencies:
-      turbo-darwin-64: 2.1.1
-      turbo-darwin-arm64: 2.1.1
-      turbo-linux-64: 2.1.1
-      turbo-linux-arm64: 2.1.1
-      turbo-windows-64: 2.1.1
-      turbo-windows-arm64: 2.1.1
-
   type-fest@2.19.0:
     optional: true
 
@@ -5844,7 +5793,7 @@ snapshots:
     dependencies:
       browserslist: 4.23.3
       escalade: 3.2.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
 
   util-deprecate@1.0.2: {}
 

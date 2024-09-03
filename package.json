@@ -4,12 +4,15 @@
   "packageManager": "pnpm@9.9.0",
   "scripts": {
     "dev": "sst dev",
-    "docker:base": "docker build . --tag startup-template-base:latest"
+    "docker:base": "docker build . --tag startup-template-base:latest -f ./Dockerfile",
+    "docker:web": "docker build ./packages/web --tag startup-template-web:latest -f ./packages/web/Dockerfile",
+    "docker:main-postgres": "docker build ./packages/core/src/database/main --tag startup-template-main-postgres:latest -f ./packages/core/src/database/main/Dockerfile",
+    "docker:main-redis": "docker build ./packages/core/src/redis --tag start-template-main-redis:latest -f ./packages/core/src/redis/main/Dockerfile",
+    "docker:nginx": "docker build ./packages/core/src/nginx --tag startup-template-nginx:latest -f ./packages/core/src/nginx/Dockerfile"
   },
   "devDependencies": {
-    "turbo": "^2.1.1",
-    "typescript": "5.3.3",
     "oslo": "^1.2.1",
-    "sst": "^3.0.83"
+    "sst": "^3.0.83",
+    "typescript": "5.3.3"
   }
 }

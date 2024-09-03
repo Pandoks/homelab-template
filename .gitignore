@@ -37,3 +37,6 @@ repopack*
 
 # No npm
 package-lock.json
+
+# Docker
+.build-cache

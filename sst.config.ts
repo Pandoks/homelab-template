@@ -13,9 +13,8 @@ export default $config({
         cloudflare: true,
         "pulumi-stripe": true,
         github: true,
-        digitalocean: true,
         docker: true,
-        command: true,
+        digitalocean: true,
       },
     };
   },

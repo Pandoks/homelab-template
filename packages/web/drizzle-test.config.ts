@@ -1,3 +1,4 @@
+// TODO: make work with docker
 import { defineConfig } from 'drizzle-kit';
 import dotenv from 'dotenv';
 
