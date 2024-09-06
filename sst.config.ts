@@ -15,6 +15,7 @@ export default $config({
         github: true,
         docker: true,
         digitalocean: true,
+        "docker-build": true,
       },
     };
   },

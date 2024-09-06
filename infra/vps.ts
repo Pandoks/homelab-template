@@ -11,9 +11,7 @@ const webVps = new digitalocean.Droplet("Server", {
   region: digitalocean.Region.SFO3,
   resizeDisk: true,
   sshKeys: ["43190601"],
-  // userData: initializationScript,
   volumeIds: [], // additional storage
-  // vpcUuid: "", // vpc for other services (has as default vpc for itself)
 });
 
 const webFirewall = new digitalocean.Firewall("Firewall", {
@@ -22,10 +20,10 @@ const webFirewall = new digitalocean.Firewall("Firewall", {
   tags: ["web"],
   inboundRules: [
     {
-      // SSH view authentication key
+      // SSH
       protocol: "tcp",
       portRange: "22",
-      // allow all ip addresses as I travel a lot and my ip changes
+      // allow all IP addresses so I can SSH from anywhere
       sourceAddresses: ["0.0.0.0/0", "::/0"],
     },
   ],
@@ -63,27 +61,26 @@ const webFirewall = new digitalocean.Firewall("Firewall", {
   ],
 });
 
-const dropletDocker = new docker.Provider(
-  "DropletDocker",
-  {
-    host: $interpolate`ssh://root@${webVps.ipv4Address}`,
-  },
-  { dependsOn: webVps },
-);
-
-const dockerNetwork = new docker.Network(
-  "DockerNetwork",
-  {
-    name: "startup-template-docker-network",
-    driver: "bridge",
-    options: {
-      "com.docker.network.bridge.enable_icc": "true",
-      "com.docker.network.bridge.enable_ip_masquerade": "true",
-    },
-  },
-  { provider: dropletDocker },
-);
+/** https://github.com/pulumi/pulumi/discussions/9010 */
+// const dropletDocker = new docker.Provider(
+//   "DropletDocker",
+//   { host: $interpolate`ssh://root@${webVps.ipv4Address}` },
+//   { dependsOn: webVps },
+// );
 //
+// const dockerNetwork = new docker.Network(
+//   "DockerNetwork",
+//   {
+//     name: "startup-template-docker-network",
+//     driver: "bridge",
+//     options: {
+//       "com.docker.network.bridge.enable_icc": "true",
+//       "com.docker.network.bridge.enable_ip_masquerade": "true",
+//     },
+//   },
+//   { provider: dropletDocker },
+// );
+
 // const nginxContainer = new docker.Container(
 //   "Nginx",
 //   {
@@ -91,6 +88,7 @@ const dockerNetwork = new docker.Network(
 //     image: "startup-template-nginx:latest",
 //     networksAdvanced: [{ name: dockerNetwork.name }],
 //     ports: [
+//       // TODO: check if you can connect without exposing ports
 //       { internal: 80, external: 80 }, // HTTP
 //       { internal: 443, external: 443 }, // HTTPS
 //     ],

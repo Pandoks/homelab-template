@@ -39,4 +39,9 @@ repopack*
 package-lock.json
 
 # Docker
+.docker-cache
 .build-cache
+
+# git
+.git
+.github
