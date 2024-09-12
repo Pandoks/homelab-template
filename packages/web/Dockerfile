@@ -1,4 +1,5 @@
-FROM startup-template-base:latest AS builder
+ARG BASE=startup-template-base:latest
+FROM ${BASE} AS builder
 
 FROM node:20-alpine AS runner
 WORKDIR /app
