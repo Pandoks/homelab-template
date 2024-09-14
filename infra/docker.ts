@@ -72,10 +72,8 @@ const webContainer = new docker.Container(
   { dependsOn: [dockerNetwork, webImage], deleteBeforeReplace: true },
 );
 new sst.x.DevCommand(
-  "Web Logs",
-  {
-    dev: { command: $interpolate`docker logs --follow ${webContainer.id}` },
-  },
+  "WebLogs",
+  { dev: { command: $interpolate`docker logs --follow ${webContainer.id}` } },
   { dependsOn: webContainer },
 );
 
@@ -93,6 +91,11 @@ const nginxContainer = new docker.Container(
   },
   { dependsOn: [dockerNetwork, nginxImage], deleteBeforeReplace: true },
 );
+new sst.x.DevCommand(
+  "Nginx",
+  { dev: { command: $interpolate`docker logs --follow ${nginxContainer.id}` } },
+  { dependsOn: nginxContainer },
+);
 
 const mainDatabaseContainer = new docker.Container(
   "MainDatabase",
@@ -105,6 +108,15 @@ const mainDatabaseContainer = new docker.Container(
   },
   { dependsOn: [dockerNetwork, mainDatabaseImage], deleteBeforeReplace: true },
 );
+new sst.x.DevCommand(
+  "MainDatabase",
+  {
+    dev: {
+      command: $interpolate`docker logs --follow ${mainDatabaseContainer.id}`,
+    },
+  },
+  { dependsOn: mainDatabaseContainer },
+);
 
 const mainRedisContainer = new docker.Container(
   "MainRedis",
@@ -115,4 +127,13 @@ const mainRedisContainer = new docker.Container(
     ports: [{ internal: 6379, external: 6379 }],
   },
   { dependsOn: [dockerNetwork, mainRedisImage], deleteBeforeReplace: true },
+);
+new sst.x.DevCommand(
+  "MainRedis",
+  {
+    dev: {
+      command: $interpolate`docker logs --follow ${mainRedisContainer.id}`,
+    },
+  },
+  { dependsOn: mainRedisContainer },
 );
