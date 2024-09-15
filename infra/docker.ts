@@ -25,15 +25,6 @@ const webImage = new docker.Image(
   { dependsOn: baseImage },
 );
 
-const nginxImage = new docker.Image("NginxImage", {
-  imageName: `${baseName}-nginx:latest`,
-  build: {
-    context: "../../packages/core/src/nginx",
-    dockerfile: "../../packages/core/src/nginx/Dockerfile",
-  },
-  skipPush: true,
-});
-
 const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
   imageName: `${baseName}-main-database:latest`,
   build: {
@@ -54,11 +45,6 @@ const mainRedisImage = new docker.Image("MainRedisImage", {
 
 const dockerNetwork = new docker.Network("DockerNetwork", {
   name: `${baseName}-docker-network`,
-  driver: "bridge",
-  options: {
-    "com.docker.network.bridge.enable_icc": "true",
-    "com.docker.network.bridge.enable_ip_masquerade": "true",
-  },
 });
 
 const webContainer = new docker.Container(
@@ -67,34 +53,14 @@ const webContainer = new docker.Container(
     name: `${baseName}-web`,
     image: webImage.imageName,
     networksAdvanced: [{ name: dockerNetwork.name }],
-    ports: [{ internal: 3000, external: 3000 }],
+    ports: [{ internal: 3000, external: 3000 }], // Allow direct access (NOTE: ONLY FOR DEV)
   },
   { dependsOn: [dockerNetwork, webImage], deleteBeforeReplace: true },
 );
 new sst.x.DevCommand(
   "WebLogs",
-  { dev: { command: $interpolate`docker logs --follow ${webContainer.id}` } },
+  { dev: { command: $interpolate`docker logs --follow ${webContainer.name}` } },
   { dependsOn: webContainer },
-);
-
-const nginxContainer = new docker.Container(
-  "Nginx",
-  {
-    name: `${baseName}-nginx`,
-    image: nginxImage.imageName,
-    networksAdvanced: [{ name: dockerNetwork.name }],
-    ports: [
-      // TODO: check if you can connect without exposing ports (cloudflare tunnels)
-      { internal: 80, external: 80 }, // HTTP
-      { internal: 443, external: 443 }, // HTTPS
-    ],
-  },
-  { dependsOn: [dockerNetwork, nginxImage], deleteBeforeReplace: true },
-);
-new sst.x.DevCommand(
-  "Nginx",
-  { dev: { command: $interpolate`docker logs --follow ${nginxContainer.id}` } },
-  { dependsOn: nginxContainer },
 );
 
 const mainDatabaseContainer = new docker.Container(
@@ -112,9 +78,14 @@ new sst.x.DevCommand(
   "MainDatabase",
   {
     dev: {
-      command: $interpolate`docker logs --follow ${mainDatabaseContainer.id}`,
+      command: $interpolate`docker logs --follow ${mainDatabaseContainer.name}`,
     },
   },
+  { dependsOn: mainDatabaseContainer },
+);
+new sst.x.DevCommand(
+  "MainDatabaseCLI",
+  { dev: { command: $interpolate`psql -p 5432` } },
   { dependsOn: mainDatabaseContainer },
 );
 
@@ -132,7 +103,16 @@ new sst.x.DevCommand(
   "MainRedis",
   {
     dev: {
-      command: $interpolate`docker logs --follow ${mainRedisContainer.id}`,
+      command: $interpolate`docker logs --follow ${mainRedisContainer.name}`,
+    },
+  },
+  { dependsOn: mainRedisContainer },
+);
+new sst.x.DevCommand(
+  "MainRedisCLI",
+  {
+    dev: {
+      command: $interpolate`redis-cli -p ${mainRedisContainer.ports[0].external}`,
     },
   },
   { dependsOn: mainRedisContainer },
