@@ -1,4 +1,5 @@
 import { baseName } from "./utils";
+import { secrets } from "./secrets";
 
 const baseImage = new docker.Image("BaseImage", {
   imageName: `${baseName}-base:latest`,
@@ -28,8 +29,8 @@ const webImage = new docker.Image(
 const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
   imageName: `${baseName}-main-database:latest`,
   build: {
-    context: "../../packages/core/src/database/main",
-    dockerfile: "../../packages/core/src/database/main/Dockerfile",
+    context: "../../packages/core/database/main",
+    dockerfile: "../../packages/core/database/main/Dockerfile",
   },
   skipPush: true,
 });
@@ -37,8 +38,8 @@ const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
 const mainRedisImage = new docker.Image("MainRedisImage", {
   imageName: `${baseName}-main-redis:latest`,
   build: {
-    context: "../../packages/core/src/redis/main",
-    dockerfile: "../../packages/core/src/redis/main/Dockerfile",
+    context: "../../packages/core/redis/main",
+    dockerfile: "../../packages/core/redis/main/Dockerfile",
   },
   skipPush: true,
 });
@@ -48,7 +49,7 @@ const dockerNetwork = new docker.Network("DockerNetwork", {
 });
 
 const webContainer = new docker.Container(
-  "Web",
+  "WebContainer",
   {
     name: `${baseName}-web`,
     image: webImage.imageName,
@@ -64,18 +65,32 @@ new sst.x.DevCommand(
 );
 
 const mainDatabaseContainer = new docker.Container(
-  "MainDatabase",
+  "MainDatabaseContainer",
   {
     name: `${baseName}-main-database`,
     image: mainDatabaseImage.imageName,
     networksAdvanced: [{ name: dockerNetwork.name }],
     ports: [{ internal: 5432, external: 5432 }],
-    envs: ["POSTGRES_HOST_AUTH_METHOD=trust"], // Allows no password (NOTE: ONLY FOR DEV)
+    envs: [
+      "POSTGRES_HOST_AUTH_METHOD=trust", // Allows no password (NOTE: ONLY FOR DEV)
+      `POSTGRES_DB=${baseName}-main-database`,
+      $interpolate`POSTGRES_USER=${secrets.MainDatabase.Username}`,
+      $interpolate`POSTGRES_PASSWORD=${secrets.MainDatabase.Password}`,
+    ],
   },
   { dependsOn: [dockerNetwork, mainDatabaseImage], deleteBeforeReplace: true },
 );
+export const mainDatabase = new sst.Linkable("MainDatabase", {
+  properties: {
+    username: secrets.MainDatabase.Username.value,
+    password: secrets.MainDatabase.Password.value,
+    name: `${baseName}-main-database`,
+    port: mainDatabaseContainer.ports[0].external,
+    host: mainDatabaseContainer.name,
+  },
+});
 new sst.x.DevCommand(
-  "MainDatabase",
+  "MainDatabaseLogs",
   {
     dev: {
       command: $interpolate`docker logs --follow ${mainDatabaseContainer.name}`,
