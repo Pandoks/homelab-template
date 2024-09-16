@@ -4,6 +4,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./database/*": "./database/*.ts",
+    "./redis/*": "./redis/*.ts",
     "./*": "./src/*.ts"
   },
   "dependencies": {
