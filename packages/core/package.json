@@ -11,7 +11,8 @@
   "dependencies": {
     "drizzle-orm": "^0.33.0",
     "drizzle-zod": "^0.5.1",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.4",
+    "redis": "^4.6.15"
   },
   "devDependencies": {
     "drizzle-kit": "^0.24.0"

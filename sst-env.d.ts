@@ -27,6 +27,21 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "MainRedis": {
+      "host": string
+      "password": string
+      "port": number
+      "type": "sst.sst.Linkable"
+      "username": string
+    }
+    "MainRedisPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainRedisUsername": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
   }
 }
 export {}

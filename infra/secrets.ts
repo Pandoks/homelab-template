@@ -18,4 +18,15 @@ export const secrets = {
       process.env.MAIN_DATABASE_PASSWORD,
     ),
   },
+
+  MainRedis: {
+    Username: new sst.Secret(
+      "MainRedisUsername",
+      process.env.MAIN_REDIS_USERNAME,
+    ),
+    Password: new sst.Secret(
+      "MainRedisPassword",
+      process.env.MAIN_REDIS_PASSWORD,
+    ),
+  },
 };

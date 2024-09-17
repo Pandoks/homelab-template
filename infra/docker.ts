@@ -85,7 +85,7 @@ export const mainDatabase = new sst.Linkable("MainDatabase", {
     username: secrets.MainDatabase.Username.value,
     password: secrets.MainDatabase.Password.value,
     name: `${baseName}-main-database`,
-    port: mainDatabaseContainer.ports[0].external,
+    port: 5432,
     host: mainDatabaseContainer.name,
   },
 });
@@ -105,7 +105,7 @@ new sst.x.DevCommand(
 );
 
 const mainRedisContainer = new docker.Container(
-  "MainRedis",
+  "MainRedisContainer",
   {
     name: `${baseName}-main-redis`,
     image: mainRedisImage.imageName,
@@ -114,8 +114,16 @@ const mainRedisContainer = new docker.Container(
   },
   { dependsOn: [dockerNetwork, mainRedisImage], deleteBeforeReplace: true },
 );
+export const mainRedis = new sst.Linkable("MainRedis", {
+  properties: {
+    username: secrets.MainRedis.Username.value,
+    password: secrets.MainRedis.Password.value,
+    host: mainRedisContainer.name,
+    port: 6379,
+  },
+});
 new sst.x.DevCommand(
-  "MainRedis",
+  "MainRedisLogs",
   {
     dev: {
       command: $interpolate`docker logs --follow ${mainRedisContainer.name}`,
