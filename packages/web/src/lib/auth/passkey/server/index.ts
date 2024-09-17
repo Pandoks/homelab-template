@@ -1,7 +1,6 @@
 import {
   ClientDataType,
   coseAlgorithmES256,
-  coseAlgorithmRS256,
   createAssertionSignatureMessage,
   parseAuthenticatorData,
   parseClientDataJSON
