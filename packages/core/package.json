@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
+  "scripts": {
+    "test": "sst shell vitest"
+  },
   "exports": {
     "./*": "./*/**/*.ts"
   },
@@ -13,6 +16,7 @@
     "redis": "^4.6.15"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.24.0"
+    "drizzle-kit": "^0.24.0",
+    "vitest": "^2.0.4"
   }
 }

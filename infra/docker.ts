@@ -27,16 +27,17 @@ const webImage = new docker.Image(
 );
 
 const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
-  imageName: `${baseName}-main-database:latest`,
+  imageName: $interpolate`${baseName}-main-database:latest`,
   build: {
     context: "../../packages/core/database/main",
     dockerfile: "../../packages/core/database/main/Dockerfile",
   },
   skipPush: true,
 });
+mainDatabaseImage.imageName.apply((name) => console.log(name));
 
 const mainRedisImage = new docker.Image("MainRedisImage", {
-  imageName: `${baseName}-main-redis:latest`,
+  imageName: $interpolate`${baseName}-main-redis:latest`,
   build: {
     context: "../../packages/core/redis/main",
     dockerfile: "../../packages/core/redis/main/Dockerfile",
@@ -52,7 +53,7 @@ const webContainer = new docker.Container(
   "WebContainer",
   {
     name: `${baseName}-web`,
-    image: webImage.imageName,
+    image: webImage.id,
     networksAdvanced: [{ name: dockerNetwork.name }],
     ports: [{ internal: 3000, external: 3000 }], // Allow direct access (NOTE: ONLY FOR DEV)
   },
@@ -68,7 +69,7 @@ const mainDatabaseContainer = new docker.Container(
   "MainDatabaseContainer",
   {
     name: `${baseName}-main-database`,
-    image: mainDatabaseImage.imageName,
+    image: mainDatabaseImage.id,
     networksAdvanced: [{ name: dockerNetwork.name }],
     ports: [{ internal: 5432, external: 5432 }],
     envs: [
@@ -108,7 +109,7 @@ const mainRedisContainer = new docker.Container(
   "MainRedisContainer",
   {
     name: `${baseName}-main-redis`,
-    image: mainRedisImage.imageName,
+    image: mainRedisImage.id,
     networksAdvanced: [{ name: dockerNetwork.name }],
     ports: [{ internal: 6379, external: 6379 }],
   },
