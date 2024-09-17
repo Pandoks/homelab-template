@@ -2,9 +2,9 @@ import { defineConfig } from "drizzle-kit";
 import { Resource } from "sst";
 
 export default defineConfig({
-  schema: "./src/lib/db/postgres/schema/*",
+  schema: "./schema/*.sql.ts",
   dialect: "postgresql",
-  out: "./src/lib/db/postgres/migrations",
+  out: "./migrations",
   migrations: {
     prefix: "timestamp", // compatible with Supabase
   },
@@ -14,7 +14,7 @@ export default defineConfig({
     host: Resource.MainDatabase.host,
     port: Resource.MainDatabase.port,
     database: Resource.MainDatabase.name,
-    ssl: false, // enable ssl for production databases
+    // ssl: false, // NOTE: enable ssl for external db connections
   },
   verbose: true,
   strict: true,
