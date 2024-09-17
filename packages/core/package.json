@@ -4,9 +4,7 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    "./database/*": "./database/*.ts",
-    "./redis/*": "./redis/*.ts",
-    "./*": "./src/*.ts"
+    "./*": "./*/**/*.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.33.0",
