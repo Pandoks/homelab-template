@@ -7,6 +7,12 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "DNS": {
+      "domain": string
+      "origin": string
+      "protocol": string
+      "type": "sst.sst.Linkable"
+    }
     "DigitalOceanToken": {
       "type": "sst.sst.Secret"
       "value": string

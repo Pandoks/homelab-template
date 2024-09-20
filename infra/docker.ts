@@ -81,7 +81,7 @@ const mainDatabaseContainer = new docker.Container(
   },
   { dependsOn: [dockerNetwork, mainDatabaseImage], deleteBeforeReplace: true },
 );
-export const mainDatabase = new sst.Linkable("MainDatabase", {
+new sst.Linkable("MainDatabase", {
   properties: {
     username: secrets.MainDatabase.Username.value,
     password: secrets.MainDatabase.Password.value,
