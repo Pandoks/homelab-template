@@ -25,7 +25,7 @@ import { ResponseError } from "../../util/error";
 import { Resource } from "sst";
 import { redis } from "../../redis/main";
 
-const verifyAuthenticatorData = (
+export const verifyAuthenticatorData = (
   authenticatorData: AuthenticatorData,
 ): void => {
   if (!authenticatorData.verifyRelyingPartyIdHash(Resource.DNS.domain)) {
@@ -38,7 +38,7 @@ const verifyAuthenticatorData = (
   }
 };
 
-const verifyClientData = ({
+export const verifyClientData = ({
   clientData,
   type,
 }: {
@@ -55,7 +55,7 @@ const verifyClientData = ({
   }
 };
 
-const verifyChallenge = async ({
+export const verifyChallenge = async ({
   challengeId,
   challenge,
 }: {

@@ -6,19 +6,19 @@ import {
   parseAttestationObject,
   parseClientDataJSON
 } from '@oslojs/webauthn';
-import {
-  getPublicKeyFromCredential,
-  verifyAuthenticatorData,
-  verifyChallenge,
-  verifyClientData
-} from '$lib/auth/passkey/utils';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { passkeyRegistrationSchema } from '../schema';
 import { base64url } from 'oslo/encoding';
-import { db } from '$lib/db/server/postgres';
-import { passkeys } from '$lib/db/postgres/schema/auth';
+import {
+  getPublicKeyFromCredential,
+  verifyAuthenticatorData,
+  verifyChallenge,
+  verifyClientData
+} from '@startup-template/core/auth/server/passkey';
+import { database } from '@startup-template/core/database/main/index';
+import { passkeys } from '@startup-template/core/database/main/schema/auth.sql';
 
 /**
  * Client hits this endpoint to add a new passkey to their EXISTING account. (must be logged in)
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async (event) => {
   await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
 
   try {
-    await db.main.insert(passkeys).values({
+    await database.insert(passkeys).values({
       userId: event.locals.user.id,
       credentialId: base64url.encode(credential.id),
       algorithm: algorithm,
