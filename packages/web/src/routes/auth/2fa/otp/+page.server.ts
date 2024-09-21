@@ -1,5 +1,4 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/server/postgres';
 import { TOTPController } from 'oslo/otp';
 import { decodeHex } from 'oslo/encoding';
 import { eq } from 'drizzle-orm';
@@ -7,17 +6,18 @@ import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
-import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
-import { Throttler } from '$lib/rate-limit/server';
-import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { building } from '$app/environment';
-import { lucia } from '@startup-template/core/auth/server';
+import { lucia } from '@startup-template/core/auth/server/index';
+import { Throttler } from '@startup-template/core/rate-limit/index';
+import { redis as mainRedis } from '@startup-template/core/redis/main/index';
+import { database } from '@startup-template/core/database/main/index';
+import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 
 const throttler = !building
   ? new Throttler({
       name: '2fa-otp',
-      storage: redis.main.instance as RedisClientType,
+      storage: mainRedis as RedisClientType,
       timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,
@@ -56,7 +56,7 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorSecret }] = await db.main
+    const [{ twoFactorSecret }] = await database
       .select({
         twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
       })

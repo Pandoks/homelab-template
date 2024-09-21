@@ -7,7 +7,7 @@
     "test": "sst shell vitest"
   },
   "exports": {
-    "./*": "./*/**/*.ts"
+    "./*": "./src/*.ts"
   },
   "dependencies": {
     "@oslojs/crypto": "^0.6.0",
