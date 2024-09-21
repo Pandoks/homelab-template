@@ -5,7 +5,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { db } from '$lib/db/server/postgres';
 import { base32, decodeHex, encodeHex } from 'oslo/encoding';
 import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
@@ -14,7 +13,8 @@ import { TimeSpan } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
-import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -35,7 +35,7 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorSecret }] = await db.main
+    const [{ twoFactorSecret }] = await mainDatabase
       .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
       .from(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
@@ -77,7 +77,7 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  let [{ twoFactorSecret }] = await db.main
+  let [{ twoFactorSecret }] = await mainDatabase
     .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
     .from(twoFactorAuthenticationCredentials)
     .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
@@ -85,7 +85,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (!twoFactorSecret) {
     twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
-    await db.main
+    await mainDatabase
       .insert(twoFactorAuthenticationCredentials)
       .values({
         userId: user.id,
