@@ -13,11 +13,11 @@
   import { Separator } from '$lib/components/ui/separator';
   import { slide } from 'svelte/transition';
   import { Button } from '$lib/components/ui/button';
-  import { registerPasskey } from '$lib/auth/passkey';
   import { createEventDispatcher, tick } from 'svelte';
   import { get } from 'svelte/store';
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
+  import { registerPasskey } from '@startup-template/core/auth/passkey';
 
   // TODO: add show and hide password
 

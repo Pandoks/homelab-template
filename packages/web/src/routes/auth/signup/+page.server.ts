@@ -5,31 +5,38 @@ import {
   parseAttestationObject,
   parseClientDataJSON
 } from '@oslojs/webauthn';
+import { generateIdFromEntropySize } from 'lucia';
+import type { Actions, PageServerLoad } from './$types';
+import { hash } from '@node-rs/argon2';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { signupPasskeySchema, signupSchema } from './schema';
+import { eq } from 'drizzle-orm';
+import { base64url } from 'oslo/encoding';
+import type { RedisClientType } from 'redis';
+import { building } from '$app/environment';
+import { NODE_ENV } from '$env/static/private';
+import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
+import { redis as mainRedis } from '@startup-template/core/redis/main/index';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
+import { lucia, verifyPasswordStrength } from '@startup-template/core/auth/server/index';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
+import {
+  passkeys,
+  twoFactorAuthenticationCredentials
+} from '@startup-template/core/database/main/schema/auth.sql';
+import {
+  generateEmailVerification,
+  sendVerification
+} from '@startup-template/core/auth/server/email';
 import {
   getPublicKeyFromCredential,
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '$lib/auth/passkey/utils';
-import { generateIdFromEntropySize } from 'lucia';
-import type { Actions, PageServerLoad } from './$types';
-import { hash } from '@node-rs/argon2';
-import { error, fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/server/postgres';
-import { emails, users } from '$lib/db/postgres/schema';
-import { handleAlreadyLoggedIn, lucia, verifyPasswordStrength } from '$lib/auth/server';
-import { generateEmailVerification, sendVerification } from '$lib/auth/server/email';
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { signupPasskeySchema, signupSchema } from './schema';
-import { eq } from 'drizzle-orm';
-import { passkeys, twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
-import { base64url } from 'oslo/encoding';
-import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
-import { redis } from '$lib/db/server/redis';
-import type { RedisClientType } from 'redis';
-import { building } from '$app/environment';
-import { NODE_ENV } from '$env/static/private';
+} from '@startup-template/core/auth/server/passkey';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building
@@ -37,7 +44,7 @@ const bucket = !building
       name: 'signup-limiter',
       max: 10,
       refillIntervalSeconds: refillIntervalSeconds,
-      storage: redis.main.instance as RedisClientType
+      storage: mainRedis as RedisClientType
     })
   : undefined;
 
@@ -89,7 +96,7 @@ export const actions: Actions = {
     const username = signupForm.data.username.toLowerCase();
 
     try {
-      await db.main.transaction(async (tsx) => {
+      await mainDatabase.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
           username: username,
@@ -211,7 +218,7 @@ export const actions: Actions = {
       const email = signupForm.data.email.toLowerCase();
       const username = signupForm.data.username.toLowerCase();
 
-      await db.main.transaction(async (tsx) => {
+      await mainDatabase.transaction(async (tsx) => {
         await tsx.insert(users).values({
           id: userId,
           username: username,
@@ -292,7 +299,7 @@ export const load: PageServerLoad = async (event) => {
     }
 
     // not email verified: delete account if signing up again
-    await db.main.delete(users).where(eq(users.id, user.id));
+    await mainDatabase.delete(users).where(eq(users.id, user.id));
 
     const sessionCookie = lucia.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {
