@@ -11,7 +11,7 @@ import { building } from '$app/environment';
 import { lucia } from '@startup-template/core/auth/server/index';
 import { Throttler } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
-import { database } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 
 const throttler = !building
@@ -56,7 +56,7 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorSecret }] = await database
+    const [{ twoFactorSecret }] = await mainDatabase
       .select({
         twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
       })
