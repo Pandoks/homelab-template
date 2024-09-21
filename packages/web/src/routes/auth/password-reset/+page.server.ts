@@ -1,25 +1,28 @@
-import { db } from '$lib/db/server/postgres';
-import { emails } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
-import { createPasswordResetToken, sendPasswordReset } from '$lib/auth/server/password-reset';
 import { PUBLIC_APP_ORIGIN } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
-import { ConstantRefillTokenBucketLimiter } from '$lib/rate-limit/server';
-import { redis } from '$lib/db/server/redis';
 import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
+import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
+import { redis as mainRedis } from '@startup-template/core/redis/main/index';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { emails } from '@startup-template/core/database/main/schema/user.sql';
+import {
+  createPasswordResetToken,
+  sendPasswordReset
+} from '@startup-template/core/auth/server/password-reset';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
       name: 'password-reset-request',
       max: 3,
       refillIntervalSeconds: 30,
-      storage: redis.main.instance as RedisClientType
+      storage: mainRedis as RedisClientType
     })
   : undefined;
 
@@ -40,7 +43,7 @@ export const actions: Actions = {
     }
 
     const email = passwordResetForm.data.email.toLowerCase();
-    const [emailInfo] = await db.main
+    const [emailInfo] = await mainDatabase
       .select({ email: emails.email, userId: emails.userId })
       .from(emails)
       .where(eq(emails.email, email))

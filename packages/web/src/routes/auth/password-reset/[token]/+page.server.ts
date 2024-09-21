@@ -2,16 +2,17 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
-import { db } from '$lib/db/server/postgres';
-import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { isWithinExpirationDate } from 'oslo';
-import { lucia, handleAlreadyLoggedIn, verifyPasswordStrength } from '$lib/auth/server';
 import { hash } from '@node-rs/argon2';
-import { users } from '$lib/db/postgres/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
+import { lucia, verifyPasswordStrength } from '@startup-template/core/auth/server/index';
+import { users } from '@startup-template/core/database/main/schema/user.sql';
 
 export const actions: Actions = {
   'new-password': async (event) => {
@@ -33,7 +34,7 @@ export const actions: Actions = {
     const passwordResetTokenHash = encodeHex(
       await sha256(new TextEncoder().encode(passwordResetToken))
     );
-    const [token] = await db.main
+    const [token] = await mainDatabase
       .select({
         expiresAt: passwordResets.expiresAt,
         userId: passwordResets.userId
@@ -68,7 +69,7 @@ export const actions: Actions = {
       outputLen: 32,
       parallelism: 1
     });
-    await db.main.transaction(async (tsx) => {
+    await mainDatabase.transaction(async (tsx) => {
       await tsx.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetTokenHash));
       await tsx.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
     });
@@ -104,7 +105,7 @@ export const load: PageServerLoad = async (event) => {
   const passwordResetTokenHash = encodeHex(
     await sha256(new TextEncoder().encode(passwordResetToken))
   );
-  const tokenQuery = db.main
+  const tokenQuery = mainDatabase
     .select({ expiresAt: passwordResets.expiresAt })
     .from(passwordResets)
     .where(eq(passwordResets.tokenHash, passwordResetTokenHash))
@@ -118,7 +119,9 @@ export const load: PageServerLoad = async (event) => {
       newPasswordForm
     };
   } else if (!isWithinExpirationDate(token.expiresAt)) {
-    await db.main.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetToken));
+    await mainDatabase
+      .delete(passwordResets)
+      .where(eq(passwordResets.tokenHash, passwordResetToken));
     return {
       success: false,
       message: 'Password reset link has expired',
