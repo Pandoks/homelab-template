@@ -1,12 +1,13 @@
 import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { handleAlreadyLoggedIn, lucia } from '$lib/auth/server';
 import { encodeHex } from 'oslo/encoding';
 import { sha256 } from 'oslo/crypto';
-import { db } from '$lib/db/server/postgres';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
-import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { lucia } from '@startup-template/core/auth/server/index';
 
 export const ssr = false;
 
@@ -20,7 +21,7 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const dbUpdate = db.main
+    const dbUpdate = mainDatabase
       .update(twoFactorAuthenticationCredentials)
       .set({
         activated: true
@@ -54,7 +55,7 @@ export const actions: Actions = {
       new TextEncoder().encode(twoFactorRecoveryCode)
     );
 
-    await db.main
+    await mainDatabase
       .update(twoFactorAuthenticationCredentials)
       .set({ twoFactorRecoveryHash: encodeHex(twoFactorRecoveryCodeHashBuffer) })
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
@@ -74,7 +75,7 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  const [{ twoFactorRecoveryHash }] = await db.main
+  const [{ twoFactorRecoveryHash }] = await mainDatabase
     .select({ twoFactorRecoveryHash: twoFactorAuthenticationCredentials.twoFactorRecoveryHash })
     .from(twoFactorAuthenticationCredentials)
     .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
@@ -91,7 +92,7 @@ export const load: PageServerLoad = async (event) => {
     await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
   );
 
-  await db.main
+  await mainDatabase
     .update(twoFactorAuthenticationCredentials)
     .set({ twoFactorRecoveryHash: twoFactorRecoveryCodeHash })
     .where(eq(twoFactorAuthenticationCredentials.userId, user.id));

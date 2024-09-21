@@ -39,7 +39,7 @@ declare module "lucia" {
 }
 
 // attributes of user for auth from the database
-interface DatabaseUserAttributes {
+export interface DatabaseUserAttributes {
   username: string;
   email: string;
   isEmailVerified: boolean;
@@ -47,7 +47,7 @@ interface DatabaseUserAttributes {
 }
 
 // attributes of session for a user from the database
-interface DatabaseSessionAttributes {
+export interface DatabaseSessionAttributes {
   isTwoFactorVerified: boolean;
   isPasskeyVerified: boolean;
 }
