@@ -1,31 +1,31 @@
-import {
-  generateEmailVerification,
-  sendVerification,
-  verifyVerificationCode
-} from '$lib/auth/server/email';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { lucia } from '$lib/auth/server';
-import { db } from '$lib/db/server/postgres';
-import { emails } from '$lib/db/postgres/schema';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
+import type { RedisClientType } from 'redis';
+import { building } from '$app/environment';
 import {
   ConstantRefillTokenBucketLimiter,
   FixedRefillTokenBucketLimiter
-} from '$lib/rate-limit/server';
-import { redis } from '$lib/db/server/redis';
-import type { RedisClientType } from 'redis';
-import { building } from '$app/environment';
+} from '@startup-template/core/rate-limit/index';
+import { redis as mainRedis } from '@startup-template/core/redis/main/index';
+import {
+  generateEmailVerification,
+  sendVerification,
+  verifyVerificationCode
+} from '@startup-template/core/auth/server/email';
+import { lucia } from '@startup-template/core/auth/server/index';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { emails } from '@startup-template/core/database/main/schema/user.sql';
 
 const verificationBucket = !building
   ? new FixedRefillTokenBucketLimiter({
       name: 'email-verification',
       max: 5,
       refillIntervalSeconds: 60 * 30, // 30 minutes
-      storage: redis.main.instance as RedisClientType
+      storage: mainRedis as RedisClientType
     })
   : undefined;
 const resendBucket = !building
@@ -33,7 +33,7 @@ const resendBucket = !building
       name: 'email-resend',
       max: 5,
       refillIntervalSeconds: 60, // 1 minute
-      storage: redis.main.instance as RedisClientType
+      storage: mainRedis as RedisClientType
     })
   : undefined;
 
@@ -93,7 +93,7 @@ export const actions: Actions = {
     }
 
     await lucia.invalidateUserSessions(user.id);
-    const emailUpdate = db.main
+    const emailUpdate = mainDatabase
       .update(emails)
       .set({ isVerified: true })
       .where(eq(emails.userId, user.id));
