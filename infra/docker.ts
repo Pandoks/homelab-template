@@ -1,11 +1,18 @@
 import { baseName } from "./utils";
 import { secrets } from "./secrets";
+import { domain, origin, protocol } from "./dns";
 
 const baseImage = new docker.Image("BaseImage", {
   imageName: `${baseName}-base:latest`,
   build: {
     context: "../../",
     dockerfile: "../../Dockerfile",
+    args: {
+      PUBLIC_DOMAIN: domain,
+      PUBLIC_ORIGIN: origin,
+      PUBLIC_PROTOCOL: protocol,
+      PUBLIC_APP_NAME: $app.name,
+    },
   },
   skipPush: true,
 });
@@ -29,8 +36,8 @@ const webImage = new docker.Image(
 const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
   imageName: $interpolate`${baseName}-main-database:latest`,
   build: {
-    context: "../../packages/core/database/main",
-    dockerfile: "../../packages/core/database/main/Dockerfile",
+    context: "../../packages/core/src/database/main",
+    dockerfile: "../../packages/core/src/database/main/Dockerfile",
   },
   skipPush: true,
 });
@@ -39,8 +46,8 @@ mainDatabaseImage.imageName.apply((name) => console.log(name));
 const mainRedisImage = new docker.Image("MainRedisImage", {
   imageName: $interpolate`${baseName}-main-redis:latest`,
   build: {
-    context: "../../packages/core/redis/main",
-    dockerfile: "../../packages/core/redis/main/Dockerfile",
+    context: "../../packages/core/src/redis/main",
+    dockerfile: "../../packages/core/src/redis/main/Dockerfile",
   },
   skipPush: true,
 });

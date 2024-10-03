@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
-import { PUBLIC_APP_ORIGIN } from '$env/static/public';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
@@ -16,6 +15,7 @@ import {
   createPasswordResetToken,
   sendPasswordReset
 } from '@startup-template/core/auth/server/password-reset';
+import { PUBLIC_ORIGIN } from '$env/static/public';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
@@ -67,7 +67,7 @@ export const actions: Actions = {
     const bucketReset = bucket?.reset(email);
     const verificationTokenCreation = createPasswordResetToken({ userId: emailInfo.userId });
     const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
-    const verificationLink = `${PUBLIC_APP_ORIGIN}/auth/password-reset/${verificationToken}`;
+    const verificationLink = `${PUBLIC_ORIGIN}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });
     return { success: true, throttled: false, passwordResetForm: passwordResetForm };

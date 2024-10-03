@@ -18,6 +18,7 @@
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
   import { registerPasskey } from '@startup-template/core/auth/passkey';
+  import { PUBLIC_APP_NAME, PUBLIC_DOMAIN } from '$env/static/public';
 
   // TODO: add show and hide password
 
@@ -49,7 +50,9 @@
       try {
         const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
           username: username,
-          name: username
+          name: username,
+          appName: PUBLIC_APP_NAME,
+          domain: PUBLIC_DOMAIN
         });
         data.set('challengeId', challengeId);
         data.set('clientDataJSON', clientDataJSON);

@@ -5,12 +5,12 @@
   import * as Form from '$lib/components/ui/form';
   import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
-  import { authenticatePasskey } from '$lib/auth/passkey';
   import { createEventDispatcher, tick } from 'svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { Button } from '$lib/components/ui/button';
   import { slide } from 'svelte/transition';
   import { get } from 'svelte/store';
+  import { authenticatePasskey } from '@startup-template/core/auth/passkey';
 
   export let data: {
     loginForm: SuperValidated<Infer<LoginFormSchema>>;

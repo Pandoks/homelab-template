@@ -1,6 +1,6 @@
-import { alphabet, generateRandomString } from "oslo/crypto";
+import { generateRandomString } from "./utils";
 
-const hash = generateRandomString(10, alphabet("a-z", "0-9"));
+const hash = generateRandomString(10);
 const base = "";
 
 export const domain =
@@ -9,11 +9,11 @@ export const domain =
     staging: `staging-${hash}.${base}`,
   }[$app.stage] || "localhost";
 
-const protocol = ["production", "staging"].includes($app.stage)
+export const protocol = ["production", "staging"].includes($app.stage)
   ? "https"
   : "http";
 
-const origin = `${protocol}://${domain}${["production", "staging"].includes($app.stage) ? "" : ":3000"}`;
+export const origin = `${protocol}://${domain}${["production", "staging"].includes($app.stage) ? "" : ":3000"}`;
 
 // export const zone = cloudflare.getZoneOutput({ name: base });
 

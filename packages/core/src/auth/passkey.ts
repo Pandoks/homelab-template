@@ -1,13 +1,24 @@
 import { base64url } from "oslo/encoding";
 import { coseAlgorithmES256 } from "@oslojs/webauthn";
-import { Resource } from "sst";
 
+/**
+ * Start passkey registration in the browser
+ *
+ * @param username username of user
+ * @param name     name of user
+ * @param domain   domain of the website
+ * @param appName  name of the app
+ */
 export const registerPasskey = async ({
   username,
   name,
+  domain,
+  appName,
 }: {
   username: string;
   name: string;
+  domain: string;
+  appName: string;
 }) => {
   const challengeResponse = await fetch("/auth/passkey/challenge", {
     method: "POST",
@@ -20,8 +31,8 @@ export const registerPasskey = async ({
       attestation: "none",
       rp: {
         // application info
-        id: Resource.DNS.domain,
-        name: Resource.App.name,
+        id: domain,
+        name: appName,
       },
       user: {
         id: base64url.decode(challengeData.userId as string),
