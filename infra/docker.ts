@@ -1,38 +1,12 @@
 import { baseName } from "./utils";
 import { secrets } from "./secrets";
-import { domain, origin, protocol } from "./dns";
+import { domain, origin } from "./dns";
 
-const baseImage = new docker.Image("BaseImage", {
-  imageName: `${baseName}-base:latest`,
-  build: {
-    context: "../../",
-    dockerfile: "../../Dockerfile",
-    args: {
-      PUBLIC_DOMAIN: domain,
-      PUBLIC_ORIGIN: origin,
-      PUBLIC_PROTOCOL: protocol,
-      PUBLIC_APP_NAME: $app.name,
-    },
-  },
-  skipPush: true,
+const dockerNetwork = new docker.Network("DockerNetwork", {
+  name: `${baseName}-docker-network`,
 });
 
-const webImage = new docker.Image(
-  "WebImage",
-  {
-    imageName: `${baseName}-web:latest`,
-    build: {
-      context: "../../packages/web",
-      dockerfile: "../../packages/web/Dockerfile",
-      args: {
-        BASE: baseImage.imageName,
-      },
-    },
-    skipPush: true,
-  },
-  { dependsOn: baseImage },
-);
-
+/** ----- MAIN DATABASE ----- */
 const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
   imageName: $interpolate`${baseName}-main-database:latest`,
   build: {
@@ -42,36 +16,6 @@ const mainDatabaseImage = new docker.Image("MainDatabaseImage", {
   skipPush: true,
 });
 mainDatabaseImage.imageName.apply((name) => console.log(name));
-
-const mainRedisImage = new docker.Image("MainRedisImage", {
-  imageName: $interpolate`${baseName}-main-redis:latest`,
-  build: {
-    context: "../../packages/core/src/redis/main",
-    dockerfile: "../../packages/core/src/redis/main/Dockerfile",
-  },
-  skipPush: true,
-});
-
-const dockerNetwork = new docker.Network("DockerNetwork", {
-  name: `${baseName}-docker-network`,
-});
-
-const webContainer = new docker.Container(
-  "WebContainer",
-  {
-    name: `${baseName}-web`,
-    image: webImage.id,
-    networksAdvanced: [{ name: dockerNetwork.name }],
-    ports: [{ internal: 3000, external: 3000 }], // Allow direct access (NOTE: ONLY FOR DEV)
-  },
-  { dependsOn: [dockerNetwork, webImage], deleteBeforeReplace: true },
-);
-new sst.x.DevCommand(
-  "WebLogs",
-  { dev: { command: $interpolate`docker logs --follow ${webContainer.name}` } },
-  { dependsOn: webContainer },
-);
-
 const mainDatabaseContainer = new docker.Container(
   "MainDatabaseContainer",
   {
@@ -112,6 +56,15 @@ new sst.x.DevCommand(
   { dependsOn: mainDatabaseContainer },
 );
 
+/** ----- MAIN REDIS CACHE ----- */
+const mainRedisImage = new docker.Image("MainRedisImage", {
+  imageName: $interpolate`${baseName}-main-redis:latest`,
+  build: {
+    context: "../../packages/core/src/redis/main",
+    dockerfile: "../../packages/core/src/redis/main/Dockerfile",
+  },
+  skipPush: true,
+});
 const mainRedisContainer = new docker.Container(
   "MainRedisContainer",
   {
@@ -148,3 +101,55 @@ new sst.x.DevCommand(
   },
   { dependsOn: mainRedisContainer },
 );
+
+/** ----- BASE IMAGE ----- */
+const baseImage = new docker.Image("BaseImage", {
+  imageName: `${baseName}-base:latest`,
+  build: {
+    context: "../../",
+    dockerfile: "../../Dockerfile",
+    args: {
+      MAIN_REDIS_PORT: mainRedisContainer.ports[0].external.apply((port) => port.toString()),
+      MAIN_REDIS_HOST:
+      MAIN_REDIS_USERNAME:
+      MAIN_REDIS_PASSWORD:
+      PUBLIC_DOMAIN: domain,
+      PUBLIC_ORIGIN: origin,
+      PUBLIC_APP_NAME: $app.name,
+    },
+  },
+  skipPush: true,
+});
+
+const webImage = new docker.Image(
+  "WebImage",
+  {
+    imageName: `${baseName}-web:latest`,
+    build: {
+      context: "../../packages/web",
+      dockerfile: "../../packages/web/Dockerfile",
+      args: {
+        BASE: baseImage.imageName,
+      },
+    },
+    skipPush: true,
+  },
+  { dependsOn: baseImage },
+);
+
+const webContainer = new docker.Container(
+  "WebContainer",
+  {
+    name: `${baseName}-web`,
+    image: webImage.id,
+    networksAdvanced: [{ name: dockerNetwork.name }],
+    ports: [{ internal: 3000, external: 3000 }], // Allow direct access (NOTE: ONLY FOR DEV)
+  },
+  { dependsOn: [dockerNetwork, webImage], deleteBeforeReplace: true },
+);
+new sst.x.DevCommand(
+  "WebLogs",
+  { dev: { command: $interpolate`docker logs --follow ${webContainer.name}` } },
+  { dependsOn: webContainer },
+);
+

@@ -1,32 +1,14 @@
 export const secrets = {
-  DigitalOceanToken: new sst.Secret(
-    "DigitalOceanToken",
-    // process.env.DIGITALOCEAN_TOKEN,
-  ),
-  CloudflareApiToken: new sst.Secret(
-    "CloudflareApiToken",
-    // process.env.CLOUDFLARE_API_TOKEN,
-  ),
+  DigitalOceanToken: new sst.Secret("DigitalOceanToken"),
+  CloudflareApiToken: new sst.Secret("CloudflareApiToken"),
 
   MainDatabase: {
-    Username: new sst.Secret(
-      "MainDatabaseUsername",
-      // process.env.MAIN_DATABASE_USERNAME,
-    ),
-    Password: new sst.Secret(
-      "MainDatabasePassword",
-      // process.env.MAIN_DATABASE_PASSWORD,
-    ),
+    Username: new sst.Secret("MainDatabaseUsername"),
+    Password: new sst.Secret("MainDatabasePassword"),
   },
 
   MainRedis: {
-    Username: new sst.Secret(
-      "MainRedisUsername",
-      // process.env.MAIN_REDIS_USERNAME,
-    ),
-    Password: new sst.Secret(
-      "MainRedisPassword",
-      // process.env.MAIN_REDIS_PASSWORD,
-    ),
+    Username: new sst.Secret("MainRedisUsername"),
+    Password: new sst.Secret("MainRedisPassword"),
   },
 };
