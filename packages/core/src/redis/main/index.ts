@@ -1,12 +1,16 @@
 import { createClient } from "redis";
-import { Resource } from "sst";
+
+const MAIN_REDIS_USERNAME = process.env.MAIN_REDIS_USERNAME;
+const MAIN_REDIS_PASSWORD = process.env.MAIN_REDIS_PASSWORD;
+const MAIN_REDIS_HOST = process.env.MAIN_REDIS_HOST;
+const MAIN_REDIS_PORT = process.env.MAIN_REDIS_PORT;
 
 export const redis = createClient({
-  username: Resource.MainRedis.username,
-  password: Resource.MainRedis.password,
+  username: MAIN_REDIS_USERNAME,
+  password: MAIN_REDIS_PASSWORD,
   socket: {
-    host: Resource.MainRedis.host,
-    port: Resource.MainRedis.port,
+    host: MAIN_REDIS_HOST,
+    port: parseInt(MAIN_REDIS_PORT!),
     // tls: true // NOTE: enable for external services
   },
 });

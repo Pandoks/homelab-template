@@ -3,14 +3,15 @@ import { encodeHex } from "oslo/encoding";
 import { sha1 } from "@oslojs/crypto/sha1";
 import { DatabaseAdapter } from "./adapter";
 import { database } from "../../database/main";
-import { Resource } from "sst";
+
+const APP_STAGE = process.env.APP_STAGE;
 
 const adapter = new DatabaseAdapter(database);
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     attributes: {
-      secure: Resource.App.stage === "production", // sets `Secure` flag in HTTPS
+      secure: APP_STAGE === "production", // sets `Secure` flag in HTTPS
     },
   },
   getUserAttributes: (attributes) => {

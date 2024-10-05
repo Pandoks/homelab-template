@@ -1,5 +1,10 @@
 import { defineConfig } from "drizzle-kit";
-import { Resource } from "sst";
+
+const MAIN_DATABASE_USERNAME = process.env.MAIN_DATABASE_USERNAME;
+const MAIN_DATABASE_PASSWORD = process.env.MAIN_DATABASE_PASSWORD;
+const MAIN_DATABASE_HOST = process.env.MAIN_DATABASE_HOST;
+const MAIN_DATABASE_PORT = process.env.MAIN_DATABASE_PORT;
+const MAIN_DATABASE_NAME = process.env.MAIN_DATABASE_NAME;
 
 export default defineConfig({
   schema: "./schema/*.sql.ts",
@@ -9,11 +14,11 @@ export default defineConfig({
     prefix: "timestamp", // compatible with Supabase
   },
   dbCredentials: {
-    user: Resource.MainDatabase.username,
-    password: Resource.MainDatabase.password,
-    host: Resource.MainDatabase.host,
-    port: Resource.MainDatabase.port,
-    database: Resource.MainDatabase.name,
+    user: MAIN_DATABASE_USERNAME,
+    password: MAIN_DATABASE_PASSWORD,
+    host: MAIN_DATABASE_HOST!,
+    port: parseInt(MAIN_DATABASE_PORT!),
+    database: MAIN_DATABASE_NAME!,
     // ssl: false, // NOTE: enable ssl for external db connections
   },
   verbose: true,

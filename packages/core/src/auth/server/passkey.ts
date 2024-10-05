@@ -22,13 +22,15 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import { database } from "../../database/main";
 import { passkeys } from "../../database/main/schema/auth.sql";
 import { ResponseError } from "../../util/error";
-import { Resource } from "sst";
 import { redis } from "../../redis/main";
+
+const DOMAIN = process.env.DOMAIN;
+const ORIGIN = process.env.ORIGIN;
 
 export const verifyAuthenticatorData = (
   authenticatorData: AuthenticatorData,
 ): void => {
-  if (!authenticatorData.verifyRelyingPartyIdHash(Resource.DNS.domain)) {
+  if (!authenticatorData.verifyRelyingPartyIdHash(DOMAIN!)) {
     throw new ResponseError(406, "Invalid relying party ID hash");
   } else if (
     !authenticatorData.userPresent ||
@@ -47,10 +49,7 @@ export const verifyClientData = ({
 }): void => {
   if (clientData.type !== type) {
     throw new ResponseError(406, "Invalid client data type");
-  } else if (
-    clientData.origin !== Resource.DNS.origin ||
-    clientData.crossOrigin
-  ) {
+  } else if (clientData.origin !== ORIGIN || clientData.crossOrigin) {
     throw new ResponseError(406, "Invalid origin");
   }
 };

@@ -9,14 +9,17 @@ import {
   FixedRefillTokenBucketLimiter,
   Throttler,
 } from ".";
-import { Resource } from "sst";
+
+const MAIN_REDIS_USERNAME = process.env.MAIN_REDIS_USERNAME;
+const MAIN_REDIS_PASSWORD = process.env.MAIN_REDIS_PASSWORD;
+const MAIN_REDIS_PORT = process.env.MAIN_REDIS_PORT;
 
 const storage = await createClient({
-  username: Resource.MainRedis.username,
-  password: Resource.MainRedis.password,
+  username: MAIN_REDIS_USERNAME!,
+  password: MAIN_REDIS_PASSWORD!,
   socket: {
     host: "127.0.0.1",
-    port: Resource.MainRedis.port,
+    port: parseInt(MAIN_REDIS_PORT!),
   },
 }).connect();
 
