@@ -2,6 +2,8 @@ export const secrets = {
   DigitalOceanToken: new sst.Secret("DigitalOceanToken"),
   CloudflareApiToken: new sst.Secret("CloudflareApiToken"),
 
+  PublicSSHKey: new sst.Secret("PublicSSHKey"),
+
   MainDatabase: {
     Username: new sst.Secret("MainDatabaseUsername"),
     Password: new sst.Secret("MainDatabasePassword"),

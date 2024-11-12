@@ -14,27 +14,19 @@ export default $config({
         "pulumi-stripe": true,
         github: true,
         docker: true,
-        digitalocean: true,
+        hcloud: true,
       },
     };
   },
   // Your app's resources
   async run() {
     let outputs = {};
-    const importFiles = async (dir: string) => {
-      for (const item of readdirSync(dir, { withFileTypes: true })) {
-        const path = `${dir}/${item.name}`;
-        if (item.isDirectory()) {
-          await importFiles(path);
-        } else if (item.isFile() && item.name.endsWith(".ts")) {
-          const result = await import(`./${path}`);
-          if (result.outputs) {
-            outputs = { ...outputs, ...result.outputs };
-          }
-        }
+    for (const infraPackage of readdirSync("./infra/")) {
+      const result = await import(`./infra/${infraPackage}`);
+      if (result.outputs) {
+        outputs = { ...outputs, ...result.outputs };
       }
-    };
-    await importFiles("./infra");
+    }
     return outputs;
   },
 });
