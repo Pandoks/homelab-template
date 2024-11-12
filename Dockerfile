@@ -6,6 +6,6 @@ WORKDIR /app
 COPY pnpm-lock.yaml .
 RUN pnpm fetch
 COPY . .
-RUN npx --yes sst shell --stage pandoks -- pnpm run -r build
+RUN pnpm run -r build
 
 RUN pnpm deploy --filter=web --prod /prod/web

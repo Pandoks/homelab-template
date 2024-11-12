@@ -6,3 +6,16 @@ services:
     ports:
       - "3000:3000"
     networks:
+      - internal_network
+
+  cache:
+    image: redis:7.4.1-alpine
+    command: redis-server --requirepass weakPassword
+    ports:
+      - "6379:6379"
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
