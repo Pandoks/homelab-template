@@ -10,6 +10,10 @@ import { Throttler } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
+import { decodeHex } from '@oslojs/encoding';
+import { verifyTOTP } from '@oslojs/otp';
+import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 
 const throttler = !building
   ? new Throttler({
@@ -53,14 +57,14 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorSecret }] = await mainDatabase
+    const [{ twoFactorKey }] = await mainDatabase
       .select({
-        twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+        twoFactorKey: twoFactorAuthenticationCredentials.twoFactorKey
       })
       .from(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
       .limit(1);
-    if (!twoFactorSecret) {
+    if (!twoFactorKey) {
       return fail(400, {
         success: false,
         throttled: false,
@@ -68,10 +72,7 @@ export const actions: Actions = {
       });
     }
 
-    const validOTP = await new TOTPController().verify(
-      otpForm.data.otp,
-      decodeHex(twoFactorSecret)
-    );
+    const validOTP = verifyTOTP(decodeHex(twoFactorKey), 30, 6, otpForm.data.otp);
     if (!validOTP) {
       await throttler?.increment(throttleKey);
       otpForm.errors.otp = ['Invalid code'];
@@ -83,15 +84,18 @@ export const actions: Actions = {
     }
 
     const throttleReset = throttler?.reset(throttleKey);
-    const sessionCreation = lucia.createSession(user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken: sessionToken,
+      userId: user.id,
       isTwoFactorVerified: true,
       isPasskeyVerified: false
     });
     const [newSession] = await Promise.all([sessionCreation, throttleReset]);
-    const sessionCookie = lucia.createSessionCookie(newSession.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
+    setSessionTokenCookie({
+      event: event,
+      sessionToken: sessionToken,
+      expiresAt: newSession.expiresAt
     });
 
     return redirect(302, '/');

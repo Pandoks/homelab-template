@@ -89,7 +89,7 @@ export const twoFactorAuthenticationCredentials = pgTable(
     userId: text("user_id")
       .primaryKey()
       .references(() => users.id, { onDelete: "cascade" }),
-    twoFactorSecret: text("two_factor_secret"),
+    twoFactorKey: text("two_factor_secret"),
     twoFactorRecoveryHash: text("two_factor_recovery_hash"),
     activated: boolean("activated").default(false).notNull(),
   },

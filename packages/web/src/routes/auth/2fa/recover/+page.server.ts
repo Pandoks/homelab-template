@@ -10,6 +10,14 @@ import { Throttler } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { encodeHexLowerCase } from '@oslojs/encoding';
+import {
+  createSession,
+  generateSessionToken,
+  invalidateUserSessions
+} from '@startup-template/core/auth/server/index';
+import { sha256 } from '@oslojs/crypto/sha2';
+import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 
 const throttler = !building
   ? new Throttler({
@@ -53,8 +61,8 @@ export const actions: Actions = {
       });
     }
 
-    const twoFactorRecoveryCodeHash = encodeHexLower(
-      await sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
+    const twoFactorRecoveryCodeHash = encodeHexLowerCase(
+      sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
     );
 
     const [twoFactorRecovery] = await mainDatabase
@@ -80,17 +88,20 @@ export const actions: Actions = {
       .delete(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
-    await lucia.invalidateUserSessions(user.id);
+    await invalidateUserSessions(user.id);
     const throttleReset = throttler?.reset(throttleKey);
-    const sessionCreation = lucia.createSession(user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken,
+      userId: user.id,
       isTwoFactorVerified: false,
       isPasskeyVerified: false
     });
     const [session] = await Promise.all([sessionCreation, throttleReset, twoFactorDeletion]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
+    setSessionTokenCookie({
+      event,
+      sessionToken,
+      expiresAt: session.expiresAt
     });
 
     return redirect(302, '/');

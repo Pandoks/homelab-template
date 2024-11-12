@@ -26,6 +26,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials),
 }));
 export type User = InferSelectModel<typeof users> & {
+  email: string;
   isEmailVerified: boolean;
   hasTwoFactor: boolean;
 };
@@ -49,6 +50,7 @@ export const getUserDataFromSession = async (sessionId: string) => {
     .select({
       user: users,
       session: sessions,
+      email: emails.email,
       isEmailVerified: emails.isVerified,
       hasTwoFactor: twoFactorAuthenticationCredentials.activated,
     })

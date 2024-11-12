@@ -18,6 +18,12 @@ import {
 } from '@startup-template/core/auth/server/email';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
+import {
+  createSession,
+  generateSessionToken,
+  invalidateUserSessions
+} from '@startup-template/core/auth/server/index';
+import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 
 const verificationBucket = !building
   ? new FixedRefillTokenBucketLimiter({
@@ -91,14 +97,17 @@ export const actions: Actions = {
       });
     }
 
-    await lucia.invalidateUserSessions(user.id);
+    await invalidateUserSessions(user.id);
     const emailUpdate = mainDatabase
       .update(emails)
       .set({ isVerified: true })
       .where(eq(emails.userId, user.id));
     const verificationBucketReset = verificationBucket?.reset(user.id);
     const resendBucketReset = resendBucket?.reset(user.id);
-    const sessionCreation = lucia.createSession(user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken,
+      userId: user.id,
       isTwoFactorVerified: false,
       isPasskeyVerified: existingSession.isPasskeyVerified
     });
@@ -108,11 +117,7 @@ export const actions: Actions = {
       verificationBucketReset,
       emailUpdate
     ]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
-    });
+    setSessionTokenCookie({ event, sessionToken, expiresAt: session.expiresAt });
 
     redirect(302, '/');
   },

@@ -4,6 +4,10 @@ import { redirect } from '@sveltejs/kit';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
+import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
+import { sha256 } from '@oslojs/crypto/sha2';
 
 export const ssr = false;
 
@@ -24,15 +28,18 @@ export const actions: Actions = {
       })
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
-    const sessionCreation = lucia.createSession(user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken,
+      userId: user.id,
       isTwoFactorVerified: true,
       isPasskeyVerified: false
     });
     const [session] = await Promise.all([sessionCreation, dbUpdate]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
+    setSessionTokenCookie({
+      event,
+      sessionToken,
+      expiresAt: session.expiresAt
     });
 
     return redirect(302, '/');
@@ -46,14 +53,14 @@ export const actions: Actions = {
       return redirect(302, '/');
     }
 
-    const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-    const twoFactorRecoveryCodeHashBuffer = await sha256(
-      new TextEncoder().encode(twoFactorRecoveryCode)
-    );
+    const twoFactorRecoveryCode = encodeBase32LowerCaseNoPadding(
+      crypto.getRandomValues(new Uint8Array(25))
+    ); // 40 characters
+    const twoFactorRecoveryCodeHashBuffer = sha256(new TextEncoder().encode(twoFactorRecoveryCode));
 
     await mainDatabase
       .update(twoFactorAuthenticationCredentials)
-      .set({ twoFactorRecoveryHash: encodeHex(twoFactorRecoveryCodeHashBuffer) })
+      .set({ twoFactorRecoveryHash: encodeHexLowerCase(twoFactorRecoveryCodeHashBuffer) })
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
     return {
@@ -83,9 +90,12 @@ export const load: PageServerLoad = async (event) => {
     };
   }
 
-  const twoFactorRecoveryCode = generateIdFromEntropySize(25); // 40 characters
-  const twoFactorRecoveryCodeHash = encodeHex(
-    await sha256(new TextEncoder().encode(twoFactorRecoveryCode))
+  const twoFactorRecoveryCode = encodeBase32LowerCaseNoPadding(
+    crypto.getRandomValues(new Uint8Array(25))
+  ); // 40 characters
+  // 40 characters
+  const twoFactorRecoveryCodeHash = encodeHexLowerCase(
+    sha256(new TextEncoder().encode(twoFactorRecoveryCode))
   );
 
   await mainDatabase

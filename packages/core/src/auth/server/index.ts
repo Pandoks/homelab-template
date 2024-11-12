@@ -49,13 +49,12 @@ export const validateSessionToken = async (
   const sessionId = encodeHexLowerCase(
     sha256(new TextEncoder().encode(sessionToken)),
   );
-  const { basicUserInfo, passkeyInfo } =
-    await getUserDataFromSession(sessionId);
+  const { basicUserInfo } = await getUserDataFromSession(sessionId);
   if (!basicUserInfo) {
     return { session: null, user: null };
   }
 
-  const { user, session, isEmailVerified, hasTwoFactor } = basicUserInfo;
+  const { user, session, email, isEmailVerified, hasTwoFactor } = basicUserInfo;
 
   if (Date.now() >= session.expiresAt.getTime()) {
     await database.delete(sessions).where(eq(sessions.id, session.id));
@@ -70,11 +69,15 @@ export const validateSessionToken = async (
       })
       .where(eq(sessions.id, session.id));
   }
-  return { session, user: { ...user, isEmailVerified, hasTwoFactor } };
+  return { session, user: { ...user, email, isEmailVerified, hasTwoFactor } };
 };
 
 export const invalidateSession = async (sessionId: string): Promise<void> => {
   await database.delete(sessions).where(eq(sessions.id, sessionId));
+};
+
+export const invalidateUserSessions = async (userId: string): Promise<void> => {
+  await database.delete(sessions).where(eq(sessions.userId, userId));
 };
 
 export type SessionValidationResult =

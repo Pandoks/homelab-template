@@ -18,6 +18,7 @@ import {
 } from '@startup-template/core/auth/server/passkey';
 import { database } from '@startup-template/core/database/main/index';
 import { passkeys } from '@startup-template/core/database/main/schema/auth.sql';
+import { decodeBase64url, encodeBase64url } from '@oslojs/encoding';
 
 /**
  * Client hits this endpoint to add a new passkey to their EXISTING account. (must be logged in)
@@ -35,7 +36,7 @@ export const POST: RequestHandler = async (event) => {
   }
   const data = parseResult.data;
 
-  const attestationObject = base64url.decode(data.attestationObject);
+  const attestationObject = decodeBase64url(data.attestationObject);
 
   const { attestationStatement, authenticatorData } = parseAttestationObject(attestationObject);
   if (attestationStatement.format !== AttestationStatementFormat.None) {
@@ -54,7 +55,7 @@ export const POST: RequestHandler = async (event) => {
     return error(406, { message: 'Unsupported algorithm' });
   }
 
-  const clientDataJSON = base64url.decode(data.clientDataJSON);
+  const clientDataJSON = decodeBase64url(data.clientDataJSON);
   const clientData = parseClientDataJSON(clientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Create });
   await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
@@ -62,7 +63,7 @@ export const POST: RequestHandler = async (event) => {
   try {
     await database.insert(passkeys).values({
       userId: event.locals.user.id,
-      credentialId: base64url.encode(credential.id),
+      credentialId: encodeBase64url(credential.id),
       algorithm: algorithm,
       encodedPublicKey: publicKey,
       name: data.name

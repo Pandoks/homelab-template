@@ -1,5 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { invalidateSession } from '@startup-template/core/auth/server/index';
+import { deleteSessionTokenCookie } from '$lib/auth/server/sessions';
 
 export const POST: RequestHandler = async (event) => {
   const currentSession = event.locals.session;
@@ -7,12 +9,8 @@ export const POST: RequestHandler = async (event) => {
     return error(401);
   }
 
-  await lucia.invalidateSession(currentSession.id);
-  const sessionCookie = lucia.createBlankSessionCookie();
-  event.cookies.set(sessionCookie.name, sessionCookie.value, {
-    path: '/',
-    ...sessionCookie.attributes
-  });
+  await invalidateSession(currentSession.id);
+  deleteSessionTokenCookie(event);
 
   return redirect(302, '/');
 };

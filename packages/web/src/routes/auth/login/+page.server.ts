@@ -16,6 +16,8 @@ import { database as mainDatabase } from '@startup-template/core/database/main/i
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { verifyPasskey } from '@startup-template/core/auth/server/passkey';
+import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
+import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 
 const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180, 300, 600];
 const throttler = !building
@@ -73,7 +75,7 @@ export const actions: Actions = {
             passwordHash: users.passwordHash
           },
           isEmailVerified: emails.isVerified,
-          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorKey
         })
         .from(users)
         .innerJoin(emails, eq(emails.userId, users.id))
@@ -91,7 +93,7 @@ export const actions: Actions = {
             passwordHash: users.passwordHash
           },
           isEmailVerified: emails.isVerified,
-          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret
+          twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorKey
         })
         .from(emails)
         .innerJoin(users, eq(users.id, emails.userId))
@@ -127,15 +129,18 @@ export const actions: Actions = {
     }
 
     const throttleReset = throttler?.reset(ipAddress);
-    const sessionCreation = lucia.createSession(userInfo.user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken,
+      userId: userInfo.user.id,
       isTwoFactorVerified: false,
       isPasskeyVerified: false
     });
     const [session] = await Promise.all([sessionCreation, throttleReset]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
+    setSessionTokenCookie({
+      event,
+      sessionToken,
+      expiresAt: session.expiresAt
     });
 
     if (!userInfo.isEmailVerified) {
@@ -229,15 +234,18 @@ export const actions: Actions = {
     }
 
     const throttleReset = throttler?.reset(ipAddress);
-    const sessionCreation = lucia.createSession(userInfo.user.id, {
+    const sessionToken = generateSessionToken();
+    const sessionCreation = createSession({
+      sessionToken,
+      userId: userInfo.user.id,
       isTwoFactorVerified: false,
       isPasskeyVerified: true
     });
     const [session] = await Promise.all([sessionCreation, throttleReset]);
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
+    setSessionTokenCookie({
+      event,
+      sessionToken,
+      expiresAt: session.expiresAt
     });
 
     if (!userInfo.isEmailVerified) {

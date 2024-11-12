@@ -60,6 +60,7 @@
   "dependencies": {
     "@node-rs/argon2": "^1.8.3",
     "@oslojs/crypto": "^0.6.0",
+    "@oslojs/encoding": "^1.1.0",
     "@oslojs/otp": "^1.0.0",
     "@oslojs/webauthn": "^0.6.0",
     "@startup-template/core": "workspace:^",
@@ -71,11 +72,11 @@
     "highlight.js": "^11.10.0",
     "lucide-svelte": "^0.416.0",
     "postgres": "^3.4.4",
-    "qrcode-generator": "^1.4.4",
     "redis": "^4.6.15",
     "sveltekit-superforms": "^2.15.2",
     "tailwind-merge": "^2.3.0",
     "tailwind-variants": "^0.2.1",
+    "uqr": "^0.1.2",
     "zod": "^3.23.8"
   }
 }

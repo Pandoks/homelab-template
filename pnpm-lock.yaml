@@ -57,6 +57,9 @@ importers:
       '@oslojs/crypto':
         specifier: ^0.6.0
         version: 0.6.2
+      '@oslojs/encoding':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@oslojs/otp':
         specifier: ^1.0.0
         version: 1.0.0
@@ -90,9 +93,6 @@ importers:
       postgres:
         specifier: ^3.4.4
         version: 3.4.4
-      qrcode-generator:
-        specifier: ^1.4.4
-        version: 1.4.4
       redis:
         specifier: ^4.6.15
         version: 4.7.0
@@ -105,6 +105,9 @@ importers:
       tailwind-variants:
         specifier: ^0.2.1
         version: 0.2.1(tailwindcss@3.4.10)
+      uqr:
+        specifier: ^0.1.2
+        version: 0.1.2
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -2102,9 +2105,6 @@ packages:
   property-expr@2.0.6:
     resolution: {integrity: sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==}
 
-  qrcode-generator@1.4.4:
-    resolution: {integrity: sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==}
-
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -2428,6 +2428,9 @@ packages:
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
+
+  uqr@0.1.2:
+    resolution: {integrity: sha512-MJu7ypHq6QasgF5YRTjqscSzQp/W11zoUk6kvmlH+fmWEs63Y0Eib13hYFwAzagRJcVY8WVnlV+eBDUGMJ5IbA==}
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -4135,8 +4138,6 @@ snapshots:
   property-expr@2.0.6:
     optional: true
 
-  qrcode-generator@1.4.4: {}
-
   queue-microtask@1.2.3: {}
 
   react-is@17.0.2: {}
@@ -4495,6 +4496,8 @@ snapshots:
       browserslist: 4.23.3
       escalade: 3.2.0
       picocolors: 1.1.0
+
+  uqr@0.1.2: {}
 
   util-deprecate@1.0.2: {}
 

@@ -2,10 +2,10 @@
   import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
   import { CopySecret } from '$lib/components/ui/copy';
-  import { QRCode } from '$lib/components/ui/qr';
   import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
   import { goto } from '$app/navigation';
+  import { renderSVG } from 'uqr';
 
   export let data: PageData;
   export let form: ActionData;
@@ -21,8 +21,10 @@
 
       <div class="py-10 flex flex-col items-center gap-12">
         <Card class="p-3">
-          <QRCode class="w-[100px]" value={data.qrCodeLink} /></Card
-        >
+          <div class="w-[100px]">
+            {@html renderSVG(data.qrCodeLink)}
+          </div>
+        </Card>
 
         <div class="flex flex-col gap-3">
           <p class=" text-muted-foreground text-sm text-center">

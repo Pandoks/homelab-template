@@ -18,7 +18,11 @@ import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { verifyPasswordStrength } from '@startup-template/core/auth/server/index';
+import {
+  createSession,
+  generateSessionToken,
+  verifyPasswordStrength
+} from '@startup-template/core/auth/server/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import {
@@ -35,6 +39,8 @@ import {
   verifyChallenge,
   verifyClientData
 } from '@startup-template/core/auth/server/passkey';
+import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
+import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building
@@ -89,7 +95,7 @@ export const actions: Actions = {
       outputLen: 32,
       parallelism: 1
     });
-    const userId = generateIdFromEntropySize(10); // 16 characters long
+    const userId = encodeBase32LowerCaseNoPadding(crypto.getRandomValues(new Uint8Array(10))); // 16 characters long
     const email = signupForm.data.email.toLowerCase();
     const username = signupForm.data.username.toLowerCase();
 
@@ -106,7 +112,7 @@ export const actions: Actions = {
           userId: userId
         });
         await tsx.insert(twoFactorAuthenticationCredentials).values({
-          twoFactorSecret: null,
+          twoFactorKey: null,
           twoFactorRecoveryHash: null,
           activated: false,
           userId: userId
@@ -118,16 +124,19 @@ export const actions: Actions = {
         email: email
       });
       const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
-      const sessionCreation = lucia.createSession(userId, {
+      const sessionToken = generateSessionToken();
+      const sessionCreation = createSession({
+        userId,
+        sessionToken,
         isTwoFactorVerified: false,
         isPasskeyVerified: false
       });
       const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
 
-      const sessionCookie = lucia.createSessionCookie(session.id);
-      event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '/',
-        ...sessionCookie.attributes
+      setSessionTokenCookie({
+        event,
+        sessionToken: sessionToken,
+        expiresAt: session.expiresAt
       });
     } catch (err) {
       // @ts-ignore
@@ -185,7 +194,7 @@ export const actions: Actions = {
     }
 
     const { attestationStatement, authenticatorData } = parseAttestationObject(
-      base64url.decode(signupForm.data.attestationObject)
+      decodeBase64url(signupForm.data.attestationObject)
     );
     if (attestationStatement.format !== AttestationStatementFormat.None) {
       return error(406, { message: 'Invalid attestation statement format' });
@@ -204,7 +213,7 @@ export const actions: Actions = {
     }
     const publicKey = getPublicKeyFromCredential(credential);
 
-    const clientData = parseClientDataJSON(base64url.decode(signupForm.data.clientDataJSON));
+    const clientData = parseClientDataJSON(decodeBase64url(signupForm.data.clientDataJSON));
     verifyClientData({ clientData: clientData, type: ClientDataType.Create });
     await verifyChallenge({
       challengeId: signupForm.data.challengeId,
@@ -212,7 +221,7 @@ export const actions: Actions = {
     });
 
     try {
-      const userId = generateIdFromEntropySize(10);
+      const userId = encodeBase32LowerCaseNoPadding(crypto.getRandomValues(new Uint8Array(10))); // 40 characters
       const email = signupForm.data.email.toLowerCase();
       const username = signupForm.data.username.toLowerCase();
 
@@ -228,13 +237,13 @@ export const actions: Actions = {
           userId: userId
         });
         await tsx.insert(twoFactorAuthenticationCredentials).values({
-          twoFactorSecret: null,
+          twoFactorKey: null,
           twoFactorRecoveryHash: null,
           activated: false,
           userId: userId
         });
         await tsx.insert(passkeys).values({
-          credentialId: base64url.encode(credential.id),
+          credentialId: encodeBase64url(credential.id),
           name: 'Main Passkey',
           algorithm: algorithm,
           encodedPublicKey: publicKey,
@@ -248,17 +257,15 @@ export const actions: Actions = {
       });
 
       const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
-      const sessionCreation = lucia.createSession(userId, {
+      const sessionToken = generateSessionToken();
+      const sessionCreation = createSession({
+        sessionToken,
+        userId: userId,
         isTwoFactorVerified: false,
         isPasskeyVerified: true
       });
       const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
-
-      const sessionCookie = lucia.createSessionCookie(session.id);
-      event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '/',
-        ...sessionCookie.attributes
-      });
+      setSessionTokenCookie({ event, sessionToken, expiresAt: session.expiresAt });
     } catch (err) {
       // @ts-ignore
       if (err!.code) {
@@ -299,11 +306,7 @@ export const load: PageServerLoad = async (event) => {
     // not email verified: delete account if signing up again
     await mainDatabase.delete(users).where(eq(users.id, user.id));
 
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
-    });
+    deleteSessionTokenCookie(event);
   }
 
   const [signupForm, signupPasskeyForm] = await Promise.all([

@@ -1,10 +1,17 @@
+import {
+  decodeBase32,
+  decodeBase64,
+  decodeBase64url,
+  encodeBase32LowerCase,
+  encodeBase64,
+  encodeBase64url
+} from '@oslojs/encoding';
 import { z } from 'zod';
-import { base64, base32, base64url } from 'oslo/encoding';
 
 export const base64Schema = z.string().refine(
   (str) => {
     try {
-      return base64.encode(base64.decode(str)) === str;
+      return encodeBase64(decodeBase64(str)) === str;
     } catch {
       return false;
     }
@@ -15,7 +22,7 @@ export const base64Schema = z.string().refine(
 export const base64UrlSchema = z.string().refine(
   (str) => {
     try {
-      return base64url.encode(base64url.decode(str)) === str;
+      return encodeBase64url(decodeBase64url(str)) === str;
     } catch {
       return false;
     }
@@ -26,7 +33,7 @@ export const base64UrlSchema = z.string().refine(
 export const base32Schema = z.string().refine(
   (str) => {
     try {
-      return base32.encode(base32.decode(str)) === str;
+      return encodeBase32LowerCase(decodeBase32(str)) === str;
     } catch {
       return false;
     }

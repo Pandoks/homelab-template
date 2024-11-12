@@ -22,6 +22,11 @@ import { database } from "../../database/main";
 import { passkeys } from "../../database/main/schema/auth.sql";
 import { ResponseError } from "../../util/error";
 import { redis } from "../../redis/main";
+import {
+  decodeBase64url,
+  encodeBase64url,
+  encodeHexLowerCase,
+} from "@oslojs/encoding";
 
 const DOMAIN = process.env.DOMAIN;
 const ORIGIN = process.env.ORIGIN;
@@ -61,7 +66,7 @@ export const verifyChallenge = async ({
   challenge: Uint8Array;
 }): Promise<void> => {
   const redisQuery = `passkey-challenge:${challengeId}`;
-  const clientChallengeHash = encodeHex(sha256(challenge));
+  const clientChallengeHash = encodeHexLowerCase(sha256(challenge));
   const challengeHash = await redis.get(redisQuery);
   if (!challengeHash) {
     throw new ResponseError(404);
@@ -78,7 +83,7 @@ export const getPublicKeyFromCredential = (credential: WebAuthnCredential) => {
     throw new ResponseError(406, "Unsupported algorithm");
   }
 
-  return base64url.encode(
+  return encodeBase64url(
     new ECDSAPublicKey(
       p256,
       cosePublicKey.x,
@@ -103,9 +108,9 @@ export const verifyPasskey = async ({
   encodedAuthenticatorData: string;
   clientDataJSON: string;
 }): Promise<boolean> => {
-  const decodedSignature = base64url.decode(signature);
-  const decodedAuthenticatorData = base64url.decode(encodedAuthenticatorData);
-  const decodedClientDataJSON = base64url.decode(clientDataJSON);
+  const decodedSignature = decodeBase64url(signature);
+  const decodedAuthenticatorData = decodeBase64url(encodedAuthenticatorData);
+  const decodedClientDataJSON = decodeBase64url(clientDataJSON);
 
   const authenticatorData = parseAuthenticatorData(decodedAuthenticatorData);
   verifyAuthenticatorData(authenticatorData);
@@ -136,7 +141,7 @@ export const verifyPasskey = async ({
     if (passkeyInfo.algorithm === coseAlgorithmES256) {
       const ecdsaPublicKey = decodeSEC1PublicKey(
         p256,
-        base64url.decode(passkeyInfo.encodedPublicKey),
+        decodeBase64url(passkeyInfo.encodedPublicKey),
       );
       const hash = sha256(
         createAssertionSignatureMessage(

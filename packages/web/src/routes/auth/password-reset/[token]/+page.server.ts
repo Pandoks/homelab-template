@@ -9,6 +9,14 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
 import { users } from '@startup-template/core/database/main/schema/user.sql';
+import { sha256 } from '@oslojs/crypto/sha2';
+import { encodeHexLowerCase } from '@oslojs/encoding';
+import {
+  invalidateUserSessions,
+  verifyPasswordStrength
+} from '@startup-template/core/auth/server/index';
+import { deleteSessionTokenCookie } from '$lib/auth/server/sessions';
+import { isWithinExpirationDate } from '@startup-template/core/util/time';
 
 export const actions: Actions = {
   'new-password': async (event) => {
@@ -27,8 +35,8 @@ export const actions: Actions = {
     }
 
     const passwordResetToken = event.params.token;
-    const passwordResetTokenHash = encodeHex(
-      await sha256(new TextEncoder().encode(passwordResetToken))
+    const passwordResetTokenHash = encodeHexLowerCase(
+      sha256(new TextEncoder().encode(passwordResetToken))
     );
     const [token] = await mainDatabase
       .select({
@@ -45,7 +53,7 @@ export const actions: Actions = {
         newPasswordForm
       });
     }
-    const sessionInvalidation = lucia.invalidateUserSessions(token.userId);
+    const sessionInvalidation = invalidateUserSessions(token.userId);
 
     const password = newPasswordForm.data.password;
     const passwordCheck = verifyPasswordStrength(password);
@@ -69,11 +77,7 @@ export const actions: Actions = {
       await tsx.delete(passwordResets).where(eq(passwordResets.tokenHash, passwordResetTokenHash));
       await tsx.update(users).set({ passwordHash: passwordHash }).where(eq(users.id, token.userId));
     });
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
-    });
+    deleteSessionTokenCookie(event);
     event.setHeaders({
       'Referrer-Policy': 'strict-origin' // see why in load function
     });
@@ -98,8 +102,8 @@ export const load: PageServerLoad = async (event) => {
 
   // Check if the token is valid let the user know
   const passwordResetToken = event.params.token;
-  const passwordResetTokenHash = encodeHex(
-    await sha256(new TextEncoder().encode(passwordResetToken))
+  const passwordResetTokenHash = encodeHexLowerCase(
+    sha256(new TextEncoder().encode(passwordResetToken))
   );
   const tokenQuery = mainDatabase
     .select({ expiresAt: passwordResets.expiresAt })

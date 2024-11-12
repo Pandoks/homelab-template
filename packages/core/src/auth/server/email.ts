@@ -2,6 +2,10 @@ import { and, eq, sql } from "drizzle-orm";
 import { database } from "../../database/main";
 import { emailVerifications } from "../../database/main/schema/auth.sql";
 import { emails, users } from "../../database/main/schema/user.sql";
+import { generateRandomString } from "@oslojs/crypto/random";
+import { alphabet } from "@startup-template/core/util/index";
+import { createDate, TimeSpan } from "@startup-template/core/util/time";
+import { User } from "@startup-template/core/database/main/schema/user.sql";
 
 // TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
@@ -11,7 +15,15 @@ export const generateEmailVerification = async ({
   userId: string;
   email: string;
 }): Promise<string> => {
-  const code = generateRandomString(6, alphabet("0-9", "A-Z"));
+  const code = generateRandomString(
+    {
+      read(bytes) {
+        crypto.getRandomValues(bytes);
+      },
+    },
+    alphabet({ options: ["0-9", "A-Z"] }),
+    6,
+  );
   await database.transaction(async (tsx) => {
     await tsx.execute(sql`
       DELETE FROM ${emailVerifications}
@@ -68,7 +80,7 @@ export const verifyVerificationCode = async ({
       .where(eq(emailVerifications.id, emailVerificationCode.id));
 
     if (
-      !isWithinExpirationDate(emailVerificationCode.expiresAt) ||
+      !(Date.now() < emailVerificationCode.expiresAt.getTime()) ||
       emailVerificationCode.email !== user.email
     ) {
       return false;

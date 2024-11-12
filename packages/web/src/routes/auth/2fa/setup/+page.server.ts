@@ -10,8 +10,10 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { decodeHex, encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
+import { createTOTPKeyURI, verifyTOTP } from '@oslojs/otp';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {
@@ -32,12 +34,12 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorSecret }] = await mainDatabase
-      .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
+    const [{ twoFactorKey }] = await database
+      .select({ twoFactorKey: twoFactorAuthenticationCredentials.twoFactorKey })
       .from(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
       .limit(1);
-    if (!twoFactorSecret) {
+    if (!twoFactorKey) {
       return fail(400, {
         success: false,
         message: 'Internal Server Error',
@@ -45,10 +47,7 @@ export const actions: Actions = {
       });
     }
 
-    const isValidOtp = await new TOTPController().verify(
-      otpForm.data.otp,
-      decodeHex(twoFactorSecret)
-    );
+    const isValidOtp = verifyTOTP(decodeHex(twoFactorKey), 30, 6, otpForm.data.otp);
     if (!isValidOtp) {
       return fail(400, {
         success: false,
@@ -74,35 +73,33 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  let [{ twoFactorSecret }] = await mainDatabase
-    .select({ twoFactorSecret: twoFactorAuthenticationCredentials.twoFactorSecret })
+  let [{ twoFactorKey: twoFactorKey }] = await database
+    .select({ twoFactorKey: twoFactorAuthenticationCredentials.twoFactorKey })
     .from(twoFactorAuthenticationCredentials)
     .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
     .limit(1);
 
-  if (!twoFactorSecret) {
-    twoFactorSecret = encodeHex(crypto.getRandomValues(new Uint8Array(20)));
-    await mainDatabase
+  if (!twoFactorKey) {
+    twoFactorKey = encodeHexLowerCase(crypto.getRandomValues(new Uint8Array(20)));
+    await database
       .insert(twoFactorAuthenticationCredentials)
       .values({
         userId: user.id,
-        twoFactorSecret: twoFactorSecret,
+        twoFactorKey: twoFactorKey,
         activated: false
       })
       .onConflictDoUpdate({
         target: twoFactorAuthenticationCredentials.userId,
-        set: { twoFactorSecret: twoFactorSecret, activated: false }
+        set: { twoFactorKey: twoFactorKey, activated: false }
       });
   }
 
   // create TOTP with app name, and user identifier (username/email)
-  const decodedSecret = decodeHex(twoFactorSecret);
-  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, decodedSecret, {
-    period: new TimeSpan(30, 's')
-  });
+  const decodedKey = decodeHex(twoFactorKey);
+  const uri = createTOTPKeyURI(PUBLIC_APP_NAME, user.username, decodedKey, 30, 6);
   return {
     qrCodeLink: uri,
-    twoFactorSecret: base32.encode(decodedSecret),
+    twoFactorKey: encodeBase32LowerCase(decodedKey),
     otpForm: await superValidate(zod(twoFactorSetupSchema))
   };
 };
