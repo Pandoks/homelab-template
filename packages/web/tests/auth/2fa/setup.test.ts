@@ -2,8 +2,12 @@ import { expect, type Page } from '@playwright/test';
 import { test, type AuthTest } from '../../utils';
 import { db } from '../../db';
 import { eq } from 'drizzle-orm';
+import { decodeBase32, encodeHexLowerCase } from '@oslojs/encoding';
+import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { sha256 } from '@oslojs/crypto/sha2';
+import { users } from '@startup-template/core/database/main/schema/user.sql';
+import { generateTOTP } from '@oslojs/otp';
 
-const totpController = new TOTPController();
 const setupPageTOTP = async (page: Page) => {
   await page.goto('/auth/2fa/setup');
   await page.locator('button[data-button-root]:has(svg.lucide-eye)').click();
@@ -11,12 +15,12 @@ const setupPageTOTP = async (page: Page) => {
   const plainTwoFactor = await page.locator('input[type="text"][disabled]').inputValue();
   expect(plainTwoFactor).toBeTruthy();
 
-  const twoFactorSecret = base32.decode(plainTwoFactor);
+  const twoFactorKey = decodeBase32(plainTwoFactor);
 
   const twoFactorInfo = await db.main
     .select()
     .from(twoFactorAuthenticationCredentials)
-    .where(eq(twoFactorAuthenticationCredentials.twoFactorSecret, encodeHex(twoFactorSecret)));
+    .where(eq(twoFactorAuthenticationCredentials.twoFactorKey, encodeHexLowerCase(twoFactorKey)));
   expect(twoFactorInfo.length).toBe(1);
   expect(twoFactorInfo[0].activated).toBe(false);
 
@@ -30,7 +34,7 @@ const setupPageTOTP = async (page: Page) => {
   await expect(page.getByRole('button', { name: 'Continue' })).toBeDisabled();
 
   await page.getByPlaceholder('XXXXXX').click();
-  await page.getByPlaceholder('XXXXXX').fill(await totpController.generate(twoFactorSecret));
+  await page.getByPlaceholder('XXXXXX').fill(generateTOTP(twoFactorKey, 30, 6));
   const totpCodeVerificationResponse = page.waitForResponse('/auth/2fa/setup?/verify-otp');
   await Promise.all([
     page.locator('form').getByRole('button').click(),
@@ -85,7 +89,7 @@ test.describe('logged in user', () => {
         .where(
           eq(
             twoFactorAuthenticationCredentials.twoFactorRecoveryHash,
-            encodeHex(await sha256(new TextEncoder().encode(plainRecoveryCode)))
+            encodeHexLowerCase(sha256(new TextEncoder().encode(plainRecoveryCode)))
           )
         );
       expect(twoFactorInfo.length).toBe(1);
@@ -147,7 +151,7 @@ test.describe('logged in user', () => {
         .where(
           eq(
             twoFactorAuthenticationCredentials.twoFactorRecoveryHash,
-            encodeHex(await sha256(new TextEncoder().encode(plainRecoveryCode)))
+            encodeHexLowerCase(sha256(new TextEncoder().encode(plainRecoveryCode)))
           )
         );
       expect(twoFactorInfo.length).toBe(1);

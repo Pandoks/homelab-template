@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { test } from '../utils';
 import { expect } from '@playwright/test';
+import { emailVerifications } from '@startup-template/core/database/main/schema/auth.sql';
+import { emails } from '@startup-template/core/database/main/schema/user.sql';
 
 test.describe('logged in user', () => {
   test('should redirect if email is already verified', async ({ fullPass }) => {

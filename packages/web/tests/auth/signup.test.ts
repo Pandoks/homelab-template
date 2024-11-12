@@ -2,6 +2,12 @@ import { expect } from '@playwright/test';
 import { and, eq, or } from 'drizzle-orm';
 import { db } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
+import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
+import {
+  emailVerifications,
+  passkeys,
+  sessions
+} from '@startup-template/core/database/main/schema/auth.sql';
 
 test.describe('new user', () => {
   test('should not allow duplicate credentials', async ({ page }) => {

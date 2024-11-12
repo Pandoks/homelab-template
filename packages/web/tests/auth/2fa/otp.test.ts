@@ -1,3 +1,4 @@
+import { generateTOTP } from '@oslojs/otp';
 import { logout, test } from '../../utils';
 
 test('should allow user past when correct 2fa', async ({ twoFacPass }) => {
@@ -12,11 +13,8 @@ test('should allow user past when correct 2fa', async ({ twoFacPass }) => {
   const otpWait = page.waitForURL('/auth/2fa/otp');
   await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), otpWait]);
 
-  const totpController = new TOTPController();
   await page.getByPlaceholder('XXXXXX').click();
-  await page
-    .getByPlaceholder('XXXXXX')
-    .fill(await totpController.generate(twoFacPass.twoFacSecret!));
+  await page.getByPlaceholder('XXXXXX').fill(generateTOTP(twoFacPass.twoFacKey!, 30, 6));
   const waitHome = page.waitForURL('/');
   await Promise.all([page.locator('form').getByRole('button').click(), waitHome]);
 });

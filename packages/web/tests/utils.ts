@@ -6,6 +6,12 @@ import type { RedisClientType, RedisClusterType } from 'redis';
 import { hash } from '@node-rs/argon2';
 import { test as testBase, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
+import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
+import { generateRandomString } from '@oslojs/crypto/random';
+import { alphabet } from '@startup-template/core/util/index';
+import { decodeBase32, encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
+import { emailVerifications } from '@startup-template/core/database/main/schema/auth.sql';
+import { generateTOTP } from '@oslojs/otp';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');
@@ -90,7 +96,15 @@ export const createNewTestUser = async ({
 /** Generates the credentials for a random test user (remember to lowercase username and email for db queries) */
 export const generateRandomTestUser = async (prefix: string) => {
   const createUsername = async () => {
-    let username = `${prefix}_${generateRandomString(6, alphabet('0-9', 'a-z', 'A-Z'))}`;
+    let username = `${prefix}_${generateRandomString(
+      {
+        read(bytes) {
+          crypto.getRandomValues(bytes);
+        }
+      },
+      alphabet({ options: ['0-9', 'a-z', 'A-Z'] }),
+      6
+    )}`;
     const [existingUser] = await db.main.select().from(users).where(eq(users.username, username));
     if (existingUser) {
       username = await createUsername();
@@ -103,7 +117,7 @@ export const generateRandomTestUser = async (prefix: string) => {
   return {
     username,
     email: `${username}@example.com`,
-    password: generateIdFromEntropySize(25)
+    password: encodeBase32LowerCaseNoPadding(crypto.getRandomValues(new Uint8Array(25))) // 40 characters
   };
 };
 
@@ -113,7 +127,7 @@ export type AuthTest = {
   email: string;
   password?: string;
   authenticatorId?: string;
-  twoFacSecret?: Uint8Array;
+  twoFacKey?: Uint8Array;
   twoFacRecovery?: string;
 };
 export type AuthFixture = {
@@ -208,11 +222,10 @@ export const test = testBase.extend<AuthFixture>({
     await page.locator('input[type="text"][disabled]').waitFor({ state: 'visible' });
     const plainTwoFactor = await page.locator('input[type="text"][disabled]').inputValue();
 
-    const twoFactorSecret = base32.decode(plainTwoFactor);
+    const twoFactorKey = decodeBase32(plainTwoFactor);
 
-    const totpController = new TOTPController();
     await page.getByPlaceholder('XXXXXX').click();
-    await page.getByPlaceholder('XXXXXX').fill(await totpController.generate(twoFactorSecret));
+    await page.getByPlaceholder('XXXXXX').fill(generateTOTP(twoFactorKey, 30, 6));
     const totpCodeVerificationResponse = page.waitForResponse('/auth/2fa/setup?/verify-otp');
     await Promise.all([
       page.locator('form').getByRole('button').click(),
@@ -238,7 +251,7 @@ export const test = testBase.extend<AuthFixture>({
       username,
       email,
       password,
-      twoFacSecret: twoFactorSecret,
+      twoFacKey: twoFactorKey,
       twoFacRecovery: plainRecoveryCode
     });
   },
@@ -379,11 +392,10 @@ export const test = testBase.extend<AuthFixture>({
     await page.locator('input[type="text"][disabled]').waitFor({ state: 'visible' });
     const plainTwoFactor = await page.locator('input[type="text"][disabled]').inputValue();
 
-    const twoFactorSecret = base32.decode(plainTwoFactor);
+    const twoFactorKey = decodeBase32(plainTwoFactor);
 
-    const totpController = new TOTPController();
     await page.getByPlaceholder('XXXXXX').click();
-    await page.getByPlaceholder('XXXXXX').fill(await totpController.generate(twoFactorSecret));
+    await page.getByPlaceholder('XXXXXX').fill(generateTOTP(twoFactorKey, 30, 6));
     const totpCodeVerificationResponse = page.waitForResponse('/auth/2fa/setup?/verify-otp');
     await Promise.all([
       page.locator('form').getByRole('button').click(),
@@ -409,7 +421,7 @@ export const test = testBase.extend<AuthFixture>({
       username,
       email,
       authenticatorId,
-      twoFacSecret: twoFactorSecret,
+      twoFacKey: twoFactorKey,
       twoFacRecovery: plainRecoveryCode
     });
   }

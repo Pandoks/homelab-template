@@ -1,4 +1,3 @@
-import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { db } from '../../db';
 import { logout, test } from '../../utils';
