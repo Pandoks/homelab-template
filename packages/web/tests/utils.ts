@@ -3,15 +3,9 @@ import { db } from './db';
 import { eq, sql } from 'drizzle-orm';
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType, RedisClusterType } from 'redis';
-import { emails, users } from '$lib/db/postgres/schema';
 import { hash } from '@node-rs/argon2';
 import { test as testBase, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
-import { alphabet, generateRandomString } from 'oslo/crypto';
-import { generateIdFromEntropySize } from 'lucia';
-import { emailVerifications } from '$lib/db/postgres/schema/auth';
-import { base32 } from 'oslo/encoding';
-import { TOTPController } from 'oslo/otp';
 
 const { parsed: env } = dotenv.config({ path: `.env.test` });
 if (!env) throw new Error('Need .env.test');

@@ -1,9 +1,7 @@
-import { emailVerifications } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { test } from '../utils';
 import { expect } from '@playwright/test';
-import { emails } from '$lib/db/postgres/schema';
 
 test.describe('logged in user', () => {
   test('should redirect if email is already verified', async ({ fullPass }) => {

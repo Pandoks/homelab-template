@@ -1,12 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import { test, type AuthTest } from '../../utils';
-import { base32, encodeHex } from 'oslo/encoding';
 import { db } from '../../db';
-import { twoFactorAuthenticationCredentials } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
-import { TOTPController } from 'oslo/otp';
-import { sha256 } from 'oslo/crypto';
-import { users } from '$lib/db/postgres/schema';
 
 const totpController = new TOTPController();
 const setupPageTOTP = async (page: Page) => {

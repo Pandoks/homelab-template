@@ -1,5 +1,3 @@
-import { users, emails } from '$lib/db/postgres/schema';
-import { passwordResets } from '$lib/db/postgres/schema/auth';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';

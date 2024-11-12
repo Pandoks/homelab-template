@@ -1,4 +1,3 @@
-import { TOTPController } from 'oslo/otp';
 import { logout, test } from '../../utils';
 
 test('should allow user past when correct 2fa', async ({ twoFacPass }) => {

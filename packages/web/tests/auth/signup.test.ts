@@ -1,9 +1,7 @@
-import { emails, users } from '$lib/db/postgres/schema';
 import { expect } from '@playwright/test';
 import { and, eq, or } from 'drizzle-orm';
 import { db } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
-import { emailVerifications, passkeys, sessions } from '$lib/db/postgres/schema/auth';
 
 test.describe('new user', () => {
   test('should not allow duplicate credentials', async ({ page }) => {
