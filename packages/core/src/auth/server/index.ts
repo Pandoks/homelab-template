@@ -1,5 +1,4 @@
 import { sha1 } from "@oslojs/crypto/sha1";
-import { DatabaseAdapter } from "./adapter";
 import { database } from "../../database/main";
 import {
   encodeBase32LowerCaseNoPadding,
@@ -7,10 +6,11 @@ import {
 } from "@oslojs/encoding";
 import { Session, sessions } from "../../database/main/schema/auth.sql";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { User, users } from "../../database/main/schema/user.sql";
+import {
+  User,
+  getUserDataFromSession,
+} from "../../database/main/schema/user.sql";
 import { eq } from "drizzle-orm";
-
-const APP_STAGE = process.env.APP_STAGE;
 
 export const generateSessionToken = (): string => {
   const bytes = new Uint8Array(20);
@@ -49,15 +49,14 @@ export const validateSessionToken = async (
   const sessionId = encodeHexLowerCase(
     sha256(new TextEncoder().encode(sessionToken)),
   );
-  const result = await database
-    .select({ user: users, session: sessions })
-    .from(sessions)
-    .innerJoin(users, eq(sessions.userId, users.id))
-    .where(eq(sessions.id, sessionId));
-  if (result.length < 1) {
+  const { basicUserInfo, passkeyInfo } =
+    await getUserDataFromSession(sessionId);
+  if (!basicUserInfo) {
     return { session: null, user: null };
   }
-  const { user, session } = result[0];
+
+  const { user, session, isEmailVerified, hasTwoFactor } = basicUserInfo;
+
   if (Date.now() >= session.expiresAt.getTime()) {
     await database.delete(sessions).where(eq(sessions.id, session.id));
     return { session: null, user: null };
@@ -71,7 +70,7 @@ export const validateSessionToken = async (
       })
       .where(eq(sessions.id, session.id));
   }
-  return { session, user };
+  return { session, user: { ...user, isEmailVerified, hasTwoFactor } };
 };
 
 export const invalidateSession = async (sessionId: string): Promise<void> => {
@@ -82,55 +81,8 @@ export type SessionValidationResult =
   | { session: Session; user: User }
   | { session: null; user: null };
 
-const adapter = new DatabaseAdapter(database);
-
-export const lucia = new Lucia(adapter, {
-  sessionCookie: {
-    attributes: {
-      secure: APP_STAGE === "production", // sets `Secure` flag in HTTPS
-    },
-  },
-  getUserAttributes: (attributes) => {
-    return {
-      username: attributes.username,
-      email: attributes.email,
-      isEmailVerified: attributes.isEmailVerified,
-      hasTwoFactor: attributes.hasTwoFactor,
-    };
-  },
-  getSessionAttributes: (attributes) => {
-    return {
-      isTwoFactorVerified: attributes.isTwoFactorVerified,
-      isPasskeyVerified: attributes.isPasskeyVerified,
-    };
-  },
-});
-
-// gives lucia's module types
-declare module "lucia" {
-  interface Register {
-    Lucia: typeof lucia;
-    DatabaseUserAttributes: DatabaseUserAttributes;
-    DatabaseSessionAttributes: DatabaseSessionAttributes;
-  }
-}
-
-// attributes of user for auth from the database
-export interface DatabaseUserAttributes {
-  username: string;
-  email: string;
-  isEmailVerified: boolean;
-  hasTwoFactor: boolean;
-}
-
-// attributes of session for a user from the database
-export interface DatabaseSessionAttributes {
-  isTwoFactorVerified: boolean;
-  isPasskeyVerified: boolean;
-}
-
 export const verifyPasswordStrength = async (password: string) => {
-  const hash = encodeHex(sha1(new TextEncoder().encode(password)));
+  const hash = encodeHexLowerCase(sha1(new TextEncoder().encode(password)));
   const hashPrefix = hash.slice(0, 5);
 
   const response = await fetch(

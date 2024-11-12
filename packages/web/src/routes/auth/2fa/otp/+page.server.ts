@@ -1,6 +1,4 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { TOTPController } from 'oslo/otp';
-import { decodeHex } from 'oslo/encoding';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
@@ -8,7 +6,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
 import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
-import { lucia } from '@startup-template/core/auth/server/index';
 import { Throttler } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';

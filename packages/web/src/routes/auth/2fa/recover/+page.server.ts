@@ -1,8 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { count, eq } from 'drizzle-orm';
-import { sha256 } from 'oslo/crypto';
-import { encodeHex } from 'oslo/encoding';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
@@ -12,7 +10,6 @@ import { Throttler } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
-import { lucia } from '@startup-template/core/auth/server/index';
 
 const throttler = !building
   ? new Throttler({
@@ -56,7 +53,7 @@ export const actions: Actions = {
       });
     }
 
-    const twoFactorRecoveryCodeHash = encodeHex(
+    const twoFactorRecoveryCodeHash = encodeHexLower(
       await sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
     );
 

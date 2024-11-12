@@ -1,12 +1,14 @@
-import { InferSelectModel, relations } from "drizzle-orm";
-import { boolean, pgTable, text } from "drizzle-orm/pg-core";
+import { InferSelectModel, eq, relations } from "drizzle-orm";
+import { boolean, pgTable, pgView, text } from "drizzle-orm/pg-core";
 import {
+  Session,
   emailVerifications,
   passkeys,
   passwordResets,
   sessions,
   twoFactorAuthenticationCredentials,
 } from "./auth.sql";
+import { database } from "..";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -24,7 +26,10 @@ export const userRelations = relations(users, ({ one, many }) => ({
   email: one(emails),
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials),
 }));
-export type User = InferSelectModel<typeof users>;
+export type User = InferSelectModel<typeof users> & {
+  isEmailVerified: boolean;
+  hasTwoFactor: boolean;
+};
 
 export const emails = pgTable("emails", {
   email: text("email").primaryKey(), // will be converted to lower case
@@ -39,3 +44,30 @@ export const emailRelations = relations(emails, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const getUserDataFromSession = async (sessionId: string) => {
+  const [basicUserInfo] = await database
+    .select({
+      user: users,
+      session: sessions,
+      isEmailVerified: emails.isVerified,
+      hasTwoFactor: twoFactorAuthenticationCredentials.activated,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .innerJoin(emails, eq(emails.userId, users.id))
+    .innerJoin(
+      twoFactorAuthenticationCredentials,
+      eq(twoFactorAuthenticationCredentials, users.id),
+    )
+    .where(eq(sessions.id, sessionId))
+    .limit(1);
+  if (!basicUserInfo) return { basicUserInfo: null, passkeyInfo: null };
+
+  const passkeyInfo = await database
+    .select({ name: passkeys.name })
+    .from(passkeys)
+    .where(eq(passkeys.userId, basicUserInfo.user.id));
+
+  return { basicUserInfo, passkeyInfo };
+};
