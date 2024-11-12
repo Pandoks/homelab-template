@@ -10,7 +10,6 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { passkeyRegistrationSchema } from '../schema';
-import { base64url } from 'oslo/encoding';
 import {
   getPublicKeyFromCredential,
   verifyAuthenticatorData,

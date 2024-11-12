@@ -1,7 +1,6 @@
 import { InferSelectModel, eq, relations } from "drizzle-orm";
-import { boolean, pgTable, pgView, text } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text } from "drizzle-orm/pg-core";
 import {
-  Session,
   emailVerifications,
   passkeys,
   passwordResets,

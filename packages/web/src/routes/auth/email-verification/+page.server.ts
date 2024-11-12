@@ -16,7 +16,6 @@ import {
   sendVerification,
   verifyVerificationCode
 } from '@startup-template/core/auth/server/email';
-import { lucia } from '@startup-template/core/auth/server/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 

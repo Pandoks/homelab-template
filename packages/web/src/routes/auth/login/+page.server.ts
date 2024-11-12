@@ -15,7 +15,6 @@ import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
-import { lucia } from '@startup-template/core/auth/server/index';
 import { verifyPasskey } from '@startup-template/core/auth/server/passkey';
 
 const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180, 300, 600];

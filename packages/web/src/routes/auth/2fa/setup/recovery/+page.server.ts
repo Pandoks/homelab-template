@@ -1,13 +1,9 @@
-import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
-import { encodeHex } from 'oslo/encoding';
-import { sha256 } from 'oslo/crypto';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
-import { lucia } from '@startup-template/core/auth/server/index';
 
 export const ssr = false;
 

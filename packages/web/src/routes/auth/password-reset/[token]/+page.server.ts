@@ -1,9 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { encodeHex } from 'oslo/encoding';
-import { sha256 } from 'oslo/crypto';
 import { eq } from 'drizzle-orm';
-import { isWithinExpirationDate } from 'oslo';
 import { hash } from '@node-rs/argon2';
 import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
@@ -11,7 +8,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
-import { lucia, verifyPasswordStrength } from '@startup-template/core/auth/server/index';
 import { users } from '@startup-template/core/database/main/schema/user.sql';
 
 export const actions: Actions = {

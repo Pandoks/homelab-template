@@ -1,8 +1,6 @@
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { generateEmailVerification } from "./email";
-import { createDate } from "oslo";
-import { TimeSpan } from "lucia";
 import { eq } from "drizzle-orm";
 import { database } from "../../database/main";
 import { emails, users } from "../../database/main/schema/user.sql";

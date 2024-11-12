@@ -16,7 +16,6 @@ import {
   p256,
   verifyECDSASignature,
 } from "@oslojs/crypto/ecdsa";
-import { base64url, encodeHex } from "oslo/encoding";
 import { and, eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { database } from "../../database/main";

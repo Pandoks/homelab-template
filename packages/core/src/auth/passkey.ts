@@ -1,4 +1,3 @@
-import { base64url } from "oslo/encoding";
 import { coseAlgorithmES256 } from "@oslojs/webauthn";
 
 /**

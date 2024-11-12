@@ -1,7 +1,3 @@
-import type {
-  DatabaseSessionAttributes,
-  DatabaseUserAttributes
-} from '@startup-template/core/auth/server/index';
 import { error, redirect, type RequestEvent, type ServerLoadEvent } from '@sveltejs/kit';
 
 export const handleAlreadyLoggedIn = (event: ServerLoadEvent | RequestEvent): void => {

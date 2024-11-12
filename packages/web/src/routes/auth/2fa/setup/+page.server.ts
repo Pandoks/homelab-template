@@ -5,11 +5,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { base32, decodeHex, encodeHex } from 'oslo/encoding';
-import { createTOTPKeyURI, TOTPController } from 'oslo/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
-import { TimeSpan } from 'lucia';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';

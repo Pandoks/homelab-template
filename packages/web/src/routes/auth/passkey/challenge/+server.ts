@@ -1,9 +1,6 @@
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { generateIdFromEntropySize, TimeSpan } from 'lucia';
 import type { RequestHandler } from './$types';
 import { getRandomValues } from 'crypto';
-import { base64url, encodeHex } from 'oslo/encoding';
-import { sha256 } from 'oslo/crypto';
 import { json } from '@sveltejs/kit';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 

@@ -5,7 +5,6 @@ import {
   parseAttestationObject,
   parseClientDataJSON
 } from '@oslojs/webauthn';
-import { generateIdFromEntropySize } from 'lucia';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -13,14 +12,13 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import { base64url } from 'oslo/encoding';
 import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
 import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { lucia, verifyPasswordStrength } from '@startup-template/core/auth/server/index';
+import { verifyPasswordStrength } from '@startup-template/core/auth/server/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import {

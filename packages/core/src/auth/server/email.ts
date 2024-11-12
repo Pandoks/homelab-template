@@ -1,7 +1,4 @@
 import { and, eq, sql } from "drizzle-orm";
-import { alphabet, generateRandomString } from "oslo/crypto";
-import { createDate, isWithinExpirationDate, TimeSpan } from "oslo";
-import { type User } from "lucia";
 import { database } from "../../database/main";
 import { emailVerifications } from "../../database/main/schema/auth.sql";
 import { emails, users } from "../../database/main/schema/user.sql";
