@@ -59,7 +59,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@lucia-auth/adapter-drizzle": "^1.0.7",
     "@node-rs/argon2": "^1.8.3",
     "@oslojs/crypto": "^0.6.0",
     "@oslojs/webauthn": "^0.6.0",
@@ -70,9 +69,7 @@
     "drizzle-zod": "^0.5.1",
     "formsnap": "^1.0.1",
     "highlight.js": "^11.10.0",
-    "lucia": "^3.2.0",
     "lucide-svelte": "^0.416.0",
-    "oslo": "^1.2.1",
     "postgres": "^3.4.4",
     "qrcode-generator": "^1.4.4",
     "redis": "^4.6.15",

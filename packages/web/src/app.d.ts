@@ -1,7 +1,8 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 
-import type { Session, User } from 'lucia';
+import type { User } from '@startup-template/core/database/main/schema/user.sql';
+import type { Session } from '@startup-template/core/database/main/schema/auth.sql';
 
 declare global {
   namespace App {

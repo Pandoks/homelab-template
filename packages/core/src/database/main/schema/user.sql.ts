@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 import { boolean, pgTable, text } from "drizzle-orm/pg-core";
 import {
   emailVerifications,
@@ -24,6 +24,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
   email: one(emails),
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials),
 }));
+export type User = InferSelectModel<typeof users>;
 
 export const emails = pgTable("emails", {
   email: text("email").primaryKey(), // will be converted to lower case

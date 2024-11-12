@@ -7,7 +7,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 import { emails, users } from "./user.sql";
-import { relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 
 // TODO: setup cron job to clear invalid sessions with lucia
 export const sessions = pgTable("sessions", {
@@ -30,6 +30,7 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+export type Session = InferSelectModel<typeof sessions>;
 
 export const emailVerifications = pgTable("email_verifications", {
   id: serial("id").primaryKey(),
