@@ -1,5 +1,6 @@
 // Middleware
-import { lucia } from '@startup-template/core/auth/server/index';
+import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { validateSessionToken } from '@startup-template/core/auth/server/index';
 import { error, json, text, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
@@ -17,32 +18,25 @@ const nakedPaths: string[] = [];
 
 // Gets auth information of a user accessing the website
 const luciaAuth: Handle = async ({ event, resolve }) => {
-  const isNakedPath = nakedPaths.includes(event.url.pathname);
-  const sessionId = isNakedPath
-    ? lucia.readBearerToken(event.request.headers.get('Authorization') ?? '') // bearer token
-    : event.cookies.get(lucia.sessionCookieName); // cookies
+  let sessionToken = null;
+  if (nakedPaths.includes(event.url.pathname)) {
+    const token = event.request.headers.get('Authorization')?.split(' '); // bearer token
+    sessionToken = token && token[0] === 'Bearer' ? token[1] : null;
+  } else {
+    sessionToken = event.cookies.get('session'); // cookies
+  }
 
-  if (!sessionId) {
+  if (!sessionToken) {
     event.locals.user = null;
     event.locals.session = null;
     return resolve(event);
   }
 
-  const { session, user } = await lucia.validateSession(sessionId);
-  if (session && session.fresh) {
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
-    });
-  }
-
-  if (!session) {
-    const sessionCookie = lucia.createBlankSessionCookie();
-    event.cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '/',
-      ...sessionCookie.attributes
-    });
+  const { session, user } = await validateSessionToken(sessionToken);
+  if (session) {
+    setSessionTokenCookie({ event, sessionToken, expiresAt: session.expiresAt });
+  } else {
+    deleteSessionTokenCookie(event);
   }
 
   event.locals.user = user;
