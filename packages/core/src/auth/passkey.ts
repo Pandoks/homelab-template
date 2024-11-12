@@ -1,3 +1,4 @@
+import { decodeBase64url, encodeBase64url } from "@oslojs/encoding";
 import { coseAlgorithmES256 } from "@oslojs/webauthn";
 
 /**
@@ -23,7 +24,7 @@ export const registerPasskey = async ({
     method: "POST",
   });
   const challengeData = await challengeResponse.json();
-  const challenge = base64url.decode(challengeData.challenge);
+  const challenge = decodeBase64url(challengeData.challenge);
 
   const credential = await navigator.credentials.create({
     publicKey: {
@@ -34,7 +35,7 @@ export const registerPasskey = async ({
         name: appName,
       },
       user: {
-        id: base64url.decode(challengeData.userId as string),
+        id: decodeBase64url(challengeData.userId as string),
         name: username,
         displayName: name,
       },
@@ -62,8 +63,8 @@ export const registerPasskey = async ({
 
   return {
     challengeId: challengeData.id as string,
-    clientDataJSON: base64url.encode(new Uint8Array(response.clientDataJSON)),
-    attestationObject: base64url.encode(
+    clientDataJSON: encodeBase64url(new Uint8Array(response.clientDataJSON)),
+    attestationObject: encodeBase64url(
       new Uint8Array(response.attestationObject),
     ),
   };
@@ -75,7 +76,7 @@ export const authenticatePasskey = async () => {
       method: "POST",
     });
     const challengeData = await challengeResponse.json();
-    const challenge = base64url.decode(challengeData.challenge);
+    const challenge = decodeBase64url(challengeData.challenge);
 
     const credential = await navigator.credentials.get({
       publicKey: {
@@ -95,12 +96,12 @@ export const authenticatePasskey = async () => {
 
     return {
       challengeId: challengeData.id as string,
-      credentialId: base64url.encode(new Uint8Array(credential.rawId)),
-      signature: base64url.encode(new Uint8Array(response.signature)),
-      authenticatorData: base64url.encode(
+      credentialId: encodeBase64url(new Uint8Array(credential.rawId)),
+      signature: encodeBase64url(new Uint8Array(response.signature)),
+      authenticatorData: encodeBase64url(
         new Uint8Array(response.authenticatorData),
       ),
-      clientDataJSON: base64url.encode(new Uint8Array(response.clientDataJSON)),
+      clientDataJSON: encodeBase64url(new Uint8Array(response.clientDataJSON)),
     };
   } catch (err) {
     if (err instanceof DOMException) {
