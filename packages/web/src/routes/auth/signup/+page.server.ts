@@ -5,24 +5,11 @@ import {
   parseAttestationObject,
   parseClientDataJSON
 } from '@oslojs/webauthn';
-import type { Actions, PageServerLoad } from './$types';
-import { hash } from '@node-rs/argon2';
-import { error, fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { signupPasskeySchema, signupSchema } from './schema';
-import { eq } from 'drizzle-orm';
-import { building } from '$app/environment';
-import { NODE_ENV } from '$env/static/private';
-import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
-import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import {
   createSession,
   generateSessionToken,
   verifyPasswordStrength
 } from '@startup-template/core/auth/server/index';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import {
   passkeys,
   twoFactorAuthenticationCredentials
@@ -37,6 +24,19 @@ import {
   verifyChallenge,
   verifyClientData
 } from '@startup-template/core/auth/server/passkey';
+import type { Actions, PageServerLoad } from './$types';
+import { hash } from '@node-rs/argon2';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { signupPasskeySchema, signupSchema } from './schema';
+import { eq } from 'drizzle-orm';
+import { building } from '$app/environment';
+import { NODE_ENV } from '$env/static/private';
+import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
+import { handleAlreadyLoggedIn } from '$lib/auth/server';
+import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
@@ -138,6 +138,7 @@ export const actions: Actions = {
         expiresAt: session.expiresAt
       });
     } catch (err) {
+      console.error(err);
       // @ts-ignore
       if (err.code) {
         // @ts-ignore

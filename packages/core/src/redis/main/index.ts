@@ -9,6 +9,5 @@ export const redis = createClient({
   socket: {
     host: MAIN_REDIS_HOST,
     port: parseInt(MAIN_REDIS_PORT!),
-    // tls: true // NOTE: enable for external services
   },
 });

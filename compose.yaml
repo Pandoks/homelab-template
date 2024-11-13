@@ -1,10 +1,13 @@
 # WARN: should not be used in production since credentials are in plain text. Should ONLY be used for dev/test
+networks:
+  startup-template-network:
+    driver: bridge
+
 services:
   base:
     build:
       context: .
       dockerfile: Dockerfile
-    # image: startup-template-base:latest
 
   web:
     build:
@@ -16,26 +19,29 @@ services:
       - NODE_ENV=production
       - USER_DB_USERNAME=user
       - USER_DB_PASSWORD=password
-      - USER_DB_HOST=127.0.0.1
+      - USER_DB_HOST=userdb
       - USER_DB_PORT=5432
       - USER_DB_DATABASE=userdb
-      - MAIN_REDIS_USERNAME=''
       - MAIN_REDIS_PASSWORD=password
-      - MAIN_REDIS_HOST=127.0.0.1
+      - MAIN_REDIS_HOST=cache
       - MAIN_REDIS_PORT=6379
       - PUBLIC_PROTOCOL=http
-      - PUBLIC_DOMAIN=localhost:5173
+      - PUBLIC_DOMAIN=localhost:3000
       - PUBLIC_APP_NAME='Startup Template'
     depends_on:
       - base
       - cache
       - userdb
+    networks:
+      - startup-template-network
 
   cache:
     image: redis:7-alpine
     command: redis-server --requirepass password
     ports:
       - "6379:6379"
+    networks:
+      - startup-template-network
 
   userdb:
     image: postgres:15-alpine
@@ -45,3 +51,5 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=userdb
+    networks:
+      - startup-template-network
