@@ -4,13 +4,11 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import {
   ConstantRefillTokenBucketLimiter,
   FixedRefillTokenBucketLimiter
 } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import {
   generateEmailVerification,
   sendVerification,
@@ -24,13 +22,14 @@ import {
   invalidateUserSessions
 } from '@startup-template/core/auth/server/index';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { mainRedis } from '$lib/redis';
 
 const verificationBucket = !building
   ? new FixedRefillTokenBucketLimiter({
       name: 'email-verification',
       max: 5,
       refillIntervalSeconds: 60 * 30, // 30 minutes
-      storage: mainRedis as RedisClientType
+      storage: mainRedis
     })
   : undefined;
 const resendBucket = !building
@@ -38,7 +37,7 @@ const resendBucket = !building
       name: 'email-resend',
       max: 5,
       refillIntervalSeconds: 60, // 1 minute
-      storage: mainRedis as RedisClientType
+      storage: mainRedis
     })
   : undefined;
 

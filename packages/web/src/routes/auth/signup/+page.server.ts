@@ -12,11 +12,9 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import {
   createSession,
@@ -41,6 +39,7 @@ import {
 } from '@startup-template/core/auth/server/passkey';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { mainRedis } from '$lib/redis';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building
@@ -48,7 +47,7 @@ const bucket = !building
       name: 'signup-limiter',
       max: 10,
       refillIntervalSeconds: refillIntervalSeconds,
-      storage: mainRedis as RedisClientType
+      storage: mainRedis
     })
   : undefined;
 

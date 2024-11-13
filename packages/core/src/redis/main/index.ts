@@ -1,12 +1,10 @@
 import { createClient } from "redis";
 
-const MAIN_REDIS_USERNAME = process.env.MAIN_REDIS_USERNAME;
 const MAIN_REDIS_PASSWORD = process.env.MAIN_REDIS_PASSWORD;
 const MAIN_REDIS_HOST = process.env.MAIN_REDIS_HOST;
 const MAIN_REDIS_PORT = process.env.MAIN_REDIS_PORT;
 
 export const redis = createClient({
-  username: MAIN_REDIS_USERNAME,
   password: MAIN_REDIS_PASSWORD,
   socket: {
     host: MAIN_REDIS_HOST,

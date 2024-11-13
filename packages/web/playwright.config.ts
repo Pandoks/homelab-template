@@ -2,8 +2,8 @@ import { type PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
-    command: 'vite preview --mode test --port 4173',
-    port: 4173
+    command: 'docker compose -f ../../compose.yaml up',
+    port: 3000
   },
   projects: [
     {

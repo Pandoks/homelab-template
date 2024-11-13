@@ -7,23 +7,22 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { verifyPasskey } from '@startup-template/core/auth/server/passkey';
 import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { mainRedis } from '$lib/redis';
 
 const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180, 300, 600];
 const throttler = !building
   ? new Throttler({
       name: 'login-throttle',
-      storage: mainRedis as RedisClientType,
+      storage: mainRedis,
       timeoutSeconds: timeoutSeconds,
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,

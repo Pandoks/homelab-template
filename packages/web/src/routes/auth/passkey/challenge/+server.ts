@@ -2,7 +2,6 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import type { RequestHandler } from './$types';
 import { getRandomValues } from 'crypto';
 import { json } from '@sveltejs/kit';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import {
   encodeBase32LowerCaseNoPadding,
   encodeBase64url,
@@ -10,6 +9,7 @@ import {
 } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { TimeSpan } from '@startup-template/core/util/time';
+import { mainRedis } from '$lib/redis';
 
 /**
  * Client hits this endpoint to request a challenge and an id for the challenge.

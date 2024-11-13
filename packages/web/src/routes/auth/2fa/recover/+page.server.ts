@@ -4,10 +4,8 @@ import { count, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { encodeHexLowerCase } from '@oslojs/encoding';
@@ -18,11 +16,12 @@ import {
 } from '@startup-template/core/auth/server/index';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { mainRedis } from '$lib/redis';
 
 const throttler = !building
   ? new Throttler({
       name: '2fa-recovery',
-      storage: mainRedis as RedisClientType,
+      storage: mainRedis,
       timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,

@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: startup-template-base:latest
+    # image: startup-template-base:latest
 
   web:
     build:
@@ -33,11 +33,9 @@ services:
 
   cache:
     image: redis:7-alpine
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: redis-server --requirepass password
     ports:
       - "6379:6379"
-    environment:
-      - REDIS_PASSWORD=password
 
   userdb:
     image: postgres:15-alpine

@@ -4,21 +4,20 @@ import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
 import { decodeHex } from '@oslojs/encoding';
 import { verifyTOTP } from '@oslojs/otp';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { mainRedis } from '$lib/redis';
 
 const throttler = !building
   ? new Throttler({
       name: '2fa-otp',
-      storage: mainRedis as RedisClientType,
+      storage: mainRedis,
       timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,

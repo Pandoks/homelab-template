@@ -5,10 +5,8 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
-import type { RedisClientType } from 'redis';
 import { building } from '$app/environment';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
-import { redis as mainRedis } from '@startup-template/core/redis/main/index';
 import { database as mainDatabase } from '@startup-template/core/database/main/index';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 import {
@@ -16,13 +14,14 @@ import {
   sendPasswordReset
 } from '@startup-template/core/auth/server/password-reset';
 import { PUBLIC_DOMAIN, PUBLIC_PROTOCOL } from '$env/static/public';
+import { mainRedis } from '$lib/redis';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
       name: 'password-reset-request',
       max: 3,
       refillIntervalSeconds: 30,
-      storage: mainRedis as RedisClientType
+      storage: mainRedis
     })
   : undefined;
 
