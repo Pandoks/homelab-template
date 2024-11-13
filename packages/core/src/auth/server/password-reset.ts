@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { database } from "../../database/main";
 import { passwordResets } from "../../database/main/schema/auth.sql";
 import {
   encodeBase32LowerCaseNoPadding,
@@ -7,14 +6,17 @@ import {
 } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { createDate, TimeSpan } from "@startup-template/core/util/time";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // Token should be valid for at most a few hours
 // Token should be hashed before storage as it's essentially a password
 // SHA256 because token is long and random unlike use passwords
 export const createPasswordResetToken = async ({
   userId,
+  database,
 }: {
   userId: string;
+  database: PostgresJsDatabase;
 }): Promise<string> => {
   const token = encodeBase32LowerCaseNoPadding(
     crypto.getRandomValues(new Uint8Array(25)),

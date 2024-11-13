@@ -1,19 +1,21 @@
 import { and, eq, sql } from "drizzle-orm";
-import { database } from "../../database/main";
 import { emailVerifications } from "../../database/main/schema/auth.sql";
 import { emails, users } from "../../database/main/schema/user.sql";
 import { generateRandomString } from "@oslojs/crypto/random";
 import { alphabet } from "@startup-template/core/util/index";
 import { createDate, TimeSpan } from "@startup-template/core/util/time";
 import { User } from "@startup-template/core/database/main/schema/user.sql";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // TODO: make everything only handle lowercase username and email
 export const generateEmailVerification = async ({
   userId,
   email,
+  database,
 }: {
   userId: string;
   email: string;
+  database: PostgresJsDatabase;
 }): Promise<string> => {
   const code = generateRandomString(
     {
@@ -55,9 +57,11 @@ export const sendVerification = async ({
 export const verifyVerificationCode = async ({
   user,
   code,
+  database,
 }: {
   user: User;
   code: string;
+  database: PostgresJsDatabase;
 }) => {
   return await database.transaction(async (tsx) => {
     const [emailVerificationCode] = await tsx

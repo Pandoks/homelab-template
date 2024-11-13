@@ -18,7 +18,6 @@ import {
 } from "@oslojs/crypto/ecdsa";
 import { and, eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { database } from "../../database/main";
 import { passkeys } from "../../database/main/schema/auth.sql";
 import { ResponseError } from "../../util/error";
 import { redis } from "../../redis/main";
@@ -27,6 +26,7 @@ import {
   encodeBase64url,
   encodeHexLowerCase,
 } from "@oslojs/encoding";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 const DOMAIN = process.env.DOMAIN;
 const ORIGIN = process.env.ORIGIN;
@@ -100,6 +100,7 @@ export const verifyPasskey = async ({
   signature,
   encodedAuthenticatorData,
   clientDataJSON,
+  database,
 }: {
   userId: string;
   challengeId: string;
@@ -107,6 +108,7 @@ export const verifyPasskey = async ({
   signature: string;
   encodedAuthenticatorData: string;
   clientDataJSON: string;
+  database: PostgresJsDatabase;
 }): Promise<boolean> => {
   const decodedSignature = decodeBase64url(signature);
   const decodedAuthenticatorData = decodeBase64url(encodedAuthenticatorData);

@@ -71,6 +71,7 @@
     "formsnap": "^1.0.1",
     "highlight.js": "^11.10.0",
     "lucide-svelte": "^0.416.0",
+    "postgres": "^3.4.4",
     "redis": "^4.6.15",
     "sveltekit-superforms": "^2.15.2",
     "tailwind-merge": "^2.3.0",

@@ -1,5 +1,4 @@
 import { sha1 } from "@oslojs/crypto/sha1";
-import { database } from "../../database/main";
 import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,
@@ -11,6 +10,7 @@ import {
   getUserDataFromSession,
 } from "../../database/main/schema/user.sql";
 import { eq } from "drizzle-orm";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 export const generateSessionToken = (): string => {
   const bytes = new Uint8Array(20);
@@ -23,11 +23,13 @@ export const createSession = async ({
   userId,
   isTwoFactorVerified,
   isPasskeyVerified,
+  database,
 }: {
   sessionToken: string;
   userId: string;
   isTwoFactorVerified: boolean;
   isPasskeyVerified: boolean;
+  database: PostgresJsDatabase;
 }): Promise<Session> => {
   const sessionId = encodeHexLowerCase(
     sha256(new TextEncoder().encode(sessionToken)),
@@ -43,9 +45,13 @@ export const createSession = async ({
   return session;
 };
 
-export const validateSessionToken = async (
-  sessionToken: string,
-): Promise<SessionValidationResult> => {
+export const validateSessionToken = async ({
+  sessionToken,
+  database,
+}: {
+  sessionToken: string;
+  database: PostgresJsDatabase;
+}): Promise<SessionValidationResult> => {
   const sessionId = encodeHexLowerCase(
     sha256(new TextEncoder().encode(sessionToken)),
   );
@@ -72,11 +78,23 @@ export const validateSessionToken = async (
   return { session, user: { ...user, email, isEmailVerified, hasTwoFactor } };
 };
 
-export const invalidateSession = async (sessionId: string): Promise<void> => {
+export const invalidateSession = async ({
+  sessionId,
+  database,
+}: {
+  sessionId: string;
+  database: PostgresJsDatabase;
+}): Promise<void> => {
   await database.delete(sessions).where(eq(sessions.id, sessionId));
 };
 
-export const invalidateUserSessions = async (userId: string): Promise<void> => {
+export const invalidateUserSessions = async ({
+  userId,
+  database,
+}: {
+  userId: string;
+  database: PostgresJsDatabase;
+}): Promise<void> => {
   await database.delete(sessions).where(eq(sessions.userId, userId));
 };
 
