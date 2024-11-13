@@ -15,7 +15,7 @@ import {
   createPasswordResetToken,
   sendPasswordReset
 } from '@startup-template/core/auth/server/password-reset';
-import { PUBLIC_ORIGIN } from '$env/static/public';
+import { PUBLIC_DOMAIN, PUBLIC_PROTOCOL } from '$env/static/public';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
@@ -67,7 +67,7 @@ export const actions: Actions = {
     const bucketReset = bucket?.reset(email);
     const verificationTokenCreation = createPasswordResetToken({ userId: emailInfo.userId });
     const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
-    const verificationLink = `${PUBLIC_ORIGIN}/auth/password-reset/${verificationToken}`;
+    const verificationLink = `${PUBLIC_PROTOCOL}://${PUBLIC_DOMAIN}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });
     return { success: true, throttled: false, passwordResetForm: passwordResetForm };
