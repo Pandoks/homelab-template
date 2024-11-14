@@ -10,7 +10,7 @@ import { emailSchema } from '../schema';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { verifyPasskey } from '@startup-template/core/auth/server/passkey';
@@ -133,7 +133,8 @@ export const actions: Actions = {
       sessionToken,
       userId: userInfo.user.id,
       isTwoFactorVerified: false,
-      isPasskeyVerified: false
+      isPasskeyVerified: false,
+      database: mainDatabase
     });
     const [session] = await Promise.all([sessionCreation, throttleReset]);
     setSessionTokenCookie({
@@ -221,7 +222,8 @@ export const actions: Actions = {
       credentialId: loginForm.data.credentialId,
       signature: loginForm.data.signature,
       encodedAuthenticatorData: loginForm.data.encodedAuthenticatorData,
-      clientDataJSON: loginForm.data.clientDataJSON
+      clientDataJSON: loginForm.data.clientDataJSON,
+      database: mainDatabase
     });
     if (!isValidPasskey) {
       throttler?.increment(ipAddress);
@@ -238,7 +240,8 @@ export const actions: Actions = {
       sessionToken,
       userId: userInfo.user.id,
       isTwoFactorVerified: false,
-      isPasskeyVerified: true
+      isPasskeyVerified: true,
+      database: mainDatabase
     });
     const [session] = await Promise.all([sessionCreation, throttleReset]);
     setSessionTokenCookie({

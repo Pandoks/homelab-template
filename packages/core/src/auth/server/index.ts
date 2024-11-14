@@ -55,7 +55,10 @@ export const validateSessionToken = async ({
   const sessionId = encodeHexLowerCase(
     sha256(new TextEncoder().encode(sessionToken)),
   );
-  const { basicUserInfo } = await getUserDataFromSession(sessionId);
+  const { basicUserInfo } = await getUserDataFromSession({
+    sessionId: sessionId,
+    database: database,
+  });
   if (!basicUserInfo) {
     return { session: null, user: null };
   }

@@ -10,7 +10,7 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
-import { database } from '@startup-template/core/database/main/index';
+import { database } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { decodeHex, encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
 import { createTOTPKeyURI, verifyTOTP } from '@oslojs/otp';

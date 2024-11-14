@@ -6,7 +6,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
 import { building } from '$app/environment';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { encodeHexLowerCase } from '@oslojs/encoding';
 import {
@@ -87,14 +87,15 @@ export const actions: Actions = {
       .delete(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
 
-    await invalidateUserSessions(user.id);
+    await invalidateUserSessions({ userId: user.id, database: mainDatabase });
     const throttleReset = throttler?.reset(throttleKey);
     const sessionToken = generateSessionToken();
     const sessionCreation = createSession({
       sessionToken,
       userId: user.id,
       isTwoFactorVerified: false,
-      isPasskeyVerified: false
+      isPasskeyVerified: false,
+      database: mainDatabase
     });
     const [session] = await Promise.all([sessionCreation, throttleReset, twoFactorDeletion]);
     setSessionTokenCookie({

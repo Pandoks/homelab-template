@@ -2,7 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
@@ -33,7 +33,8 @@ export const actions: Actions = {
       sessionToken,
       userId: user.id,
       isTwoFactorVerified: true,
-      isPasskeyVerified: false
+      isPasskeyVerified: false,
+      database: mainDatabase
     });
     const [session] = await Promise.all([sessionCreation, dbUpdate]);
     setSessionTokenCookie({

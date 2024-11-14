@@ -7,7 +7,7 @@ import {
   sessions,
   twoFactorAuthenticationCredentials,
 } from "./auth.sql";
-import { database } from "..";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -45,7 +45,13 @@ export const emailRelations = relations(emails, ({ one }) => ({
   }),
 }));
 
-export const getUserDataFromSession = async (sessionId: string) => {
+export const getUserDataFromSession = async ({
+  sessionId,
+  database,
+}: {
+  sessionId: string;
+  database: PostgresJsDatabase;
+}) => {
   const [basicUserInfo] = await database
     .select({
       user: users,

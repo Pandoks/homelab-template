@@ -14,7 +14,7 @@ import {
   sendVerification,
   verifyVerificationCode
 } from '@startup-template/core/auth/server/email';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 import {
   createSession,
@@ -76,7 +76,8 @@ export const actions: Actions = {
     try {
       const isValidCode = await verifyVerificationCode({
         user: user,
-        code: emailVerificationForm.data.code
+        code: emailVerificationForm.data.code,
+        database: mainDatabase
       });
       if (!isValidCode) {
         emailVerificationForm.errors.code = ['Invalid'];
@@ -96,7 +97,7 @@ export const actions: Actions = {
       });
     }
 
-    await invalidateUserSessions(user.id);
+    await invalidateUserSessions({ userId: user.id, database: mainDatabase });
     const emailUpdate = mainDatabase
       .update(emails)
       .set({ isVerified: true })
@@ -108,7 +109,8 @@ export const actions: Actions = {
       sessionToken,
       userId: user.id,
       isTwoFactorVerified: false,
-      isPasskeyVerified: existingSession.isPasskeyVerified
+      isPasskeyVerified: existingSession.isPasskeyVerified,
+      database: mainDatabase
     });
     const [session] = await Promise.all([
       sessionCreation,
@@ -142,7 +144,8 @@ export const actions: Actions = {
     }
     const verificationCode = await generateEmailVerification({
       userId: user.id,
-      email: user.email
+      email: user.email,
+      database: mainDatabase
     });
     await sendVerification({ email: user.email, code: verificationCode });
 

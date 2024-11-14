@@ -7,7 +7,7 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
 import { building } from '$app/environment';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 import {
   createPasswordResetToken,
@@ -64,7 +64,10 @@ export const actions: Actions = {
     }
 
     const bucketReset = bucket?.reset(email);
-    const verificationTokenCreation = createPasswordResetToken({ userId: emailInfo.userId });
+    const verificationTokenCreation = createPasswordResetToken({
+      userId: emailInfo.userId,
+      database: mainDatabase
+    });
     const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
     const verificationLink = `${PUBLIC_PROTOCOL}://${PUBLIC_DOMAIN}/auth/password-reset/${verificationToken}`;
 

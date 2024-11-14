@@ -35,7 +35,7 @@ import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
@@ -120,7 +120,8 @@ export const actions: Actions = {
 
       const verificationCode = await generateEmailVerification({
         userId: userId,
-        email: email
+        email: email,
+        database: mainDatabase
       });
       const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
       const sessionToken = generateSessionToken();
@@ -128,7 +129,8 @@ export const actions: Actions = {
         userId,
         sessionToken,
         isTwoFactorVerified: false,
-        isPasskeyVerified: false
+        isPasskeyVerified: false,
+        database: mainDatabase
       });
       const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
 
@@ -253,7 +255,8 @@ export const actions: Actions = {
 
       const verificationCode = await generateEmailVerification({
         userId: userId,
-        email: email
+        email: email,
+        database: mainDatabase
       });
 
       const sendVerificationCode = sendVerification({ email: email, code: verificationCode });
@@ -262,7 +265,8 @@ export const actions: Actions = {
         sessionToken,
         userId: userId,
         isTwoFactorVerified: false,
-        isPasskeyVerified: true
+        isPasskeyVerified: true,
+        database: mainDatabase
       });
       const [session] = await Promise.all([sessionCreation, sendVerificationCode]);
       setSessionTokenCookie({ event, sessionToken, expiresAt: session.expiresAt });

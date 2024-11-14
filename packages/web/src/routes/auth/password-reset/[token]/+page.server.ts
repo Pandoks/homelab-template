@@ -6,7 +6,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
 import { users } from '@startup-template/core/database/main/schema/user.sql';
 import { sha256 } from '@oslojs/crypto/sha2';
@@ -53,7 +53,10 @@ export const actions: Actions = {
         newPasswordForm
       });
     }
-    const sessionInvalidation = invalidateUserSessions(token.userId);
+    const sessionInvalidation = invalidateUserSessions({
+      userId: token.userId,
+      database: mainDatabase
+    });
 
     const password = newPasswordForm.data.password;
     const passwordCheck = verifyPasswordStrength(password);

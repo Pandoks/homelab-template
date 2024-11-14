@@ -2,6 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { invalidateSession } from '@startup-template/core/auth/server/index';
 import { deleteSessionTokenCookie } from '$lib/auth/server/sessions';
+import { database } from '$lib/postgres';
 
 export const POST: RequestHandler = async (event) => {
   const currentSession = event.locals.session;
@@ -9,7 +10,7 @@ export const POST: RequestHandler = async (event) => {
     return error(401);
   }
 
-  await invalidateSession(currentSession.id);
+  await invalidateSession({ sessionId: currentSession.id, database: database });
   deleteSessionTokenCookie(event);
 
   return redirect(302, '/');

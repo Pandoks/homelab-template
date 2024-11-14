@@ -16,7 +16,7 @@ import {
   verifyChallenge,
   verifyClientData
 } from '@startup-template/core/auth/server/passkey';
-import { database } from '@startup-template/core/database/main/index';
+import { database } from '$lib/postgres';
 import { passkeys } from '@startup-template/core/database/main/schema/auth.sql';
 import { decodeBase64url, encodeBase64url } from '@oslojs/encoding';
 

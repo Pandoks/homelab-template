@@ -6,7 +6,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
 import { building } from '$app/environment';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '@startup-template/core/database/main/index';
+import { database as mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
 import { decodeHex } from '@oslojs/encoding';
@@ -88,7 +88,8 @@ export const actions: Actions = {
       sessionToken: sessionToken,
       userId: user.id,
       isTwoFactorVerified: true,
-      isPasskeyVerified: false
+      isPasskeyVerified: false,
+      database: mainDatabase
     });
     const [newSession] = await Promise.all([sessionCreation, throttleReset]);
     setSessionTokenCookie({
