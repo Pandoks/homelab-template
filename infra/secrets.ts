@@ -7,6 +7,9 @@ export const secrets = {
   MainDatabase: {
     Username: new sst.Secret("MainDatabaseUsername"),
     Password: new sst.Secret("MainDatabasePassword"),
+    Host: new sst.Secret("MainDatabaseHost"),
+    Port: new sst.Secret("MainDatabasePort"),
+    Database: new sst.Secret("MainDatabaseName"),
   },
 
   MainRedis: {

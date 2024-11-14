@@ -19,7 +19,19 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "MainDatabaseHost": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDatabaseName": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "MainDatabasePassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDatabasePort": {
       "type": "sst.sst.Secret"
       "value": string
     }
