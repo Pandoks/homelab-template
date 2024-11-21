@@ -1,4 +1,4 @@
-import { InferSelectModel, eq, relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 import { boolean, pgTable, text } from "drizzle-orm/pg-core";
 import {
   emailVerifications,
@@ -7,7 +7,6 @@ import {
   sessions,
   twoFactorAuthenticationCredentials,
 } from "./auth.sql";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -44,37 +43,3 @@ export const emailRelations = relations(emails, ({ one }) => ({
     references: [users.id],
   }),
 }));
-
-export const getUserDataFromSession = async ({
-  sessionId,
-  database,
-}: {
-  sessionId: string;
-  database: PostgresJsDatabase;
-}) => {
-  const [basicUserInfo] = await database
-    .select({
-      user: users,
-      session: sessions,
-      email: emails.email,
-      isEmailVerified: emails.isVerified,
-      hasTwoFactor: twoFactorAuthenticationCredentials.activated,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(sessions.userId, users.id))
-    .innerJoin(emails, eq(emails.userId, users.id))
-    .innerJoin(
-      twoFactorAuthenticationCredentials,
-      eq(twoFactorAuthenticationCredentials, users.id),
-    )
-    .where(eq(sessions.id, sessionId))
-    .limit(1);
-  if (!basicUserInfo) return { basicUserInfo: null, passkeyInfo: null };
-
-  const passkeyInfo = await database
-    .select({ name: passkeys.name })
-    .from(passkeys)
-    .where(eq(passkeys.userId, basicUserInfo.user.id));
-
-  return { basicUserInfo, passkeyInfo };
-};

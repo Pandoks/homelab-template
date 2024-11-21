@@ -1,8 +1,8 @@
 # WARN: should not be used in production since credentials are in plain text.
-# Should ONLY be used for TEST environments
-# Represents infrastructure in an unscalable way
+# Should ONLY be used for dev/test environments
+# Represents infrastructure as a monolith
 networks:
-  homelab-test-network:
+  homelab-network:
     driver: bridge
 
 services:
@@ -29,13 +29,13 @@ services:
       - MAIN_REDIS_PORT=6379
       - PUBLIC_PROTOCOL=http
       - PUBLIC_DOMAIN=localhost:3000
-      - PUBLIC_APP_NAME='Startup Template'
+      - PUBLIC_APP_NAME='Homelab Template'
     depends_on:
       - base
       - cache
       - userdb
     networks:
-      - startup-template-network
+      - homelab-network
 
   cache:
     image: redis:7-alpine
@@ -43,7 +43,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - startup-template-network
+      - homelab-network
 
   userdb:
     image: postgres:15-alpine
@@ -54,4 +54,4 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=userdb
     networks:
-      - startup-template-network
+      - homelab-network

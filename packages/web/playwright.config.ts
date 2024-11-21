@@ -2,7 +2,9 @@ import { type PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   webServer: {
-    command: 'docker compose -f ../../compose.yaml up',
+    command:
+      // drizzle-kit push is used after vite build so that it gives time for database to setup
+      'docker compose stop && docker compose rm --force && docker compose up -d && NODE_ENV=test vite build --mode test && drizzle-kit push --force && vite preview',
     port: 3000
   },
   projects: [

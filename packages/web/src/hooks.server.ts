@@ -1,5 +1,6 @@
 // Middleware
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
+import { database } from '$lib/postgres';
 import { validateSessionToken } from '@startup-template/core/auth/server/index';
 import { error, json, text, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -32,7 +33,7 @@ const luciaAuth: Handle = async ({ event, resolve }) => {
     return resolve(event);
   }
 
-  const { session, user } = await validateSessionToken(sessionToken);
+  const { session, user } = await validateSessionToken({ sessionToken, database: database });
   if (session) {
     setSessionTokenCookie({ event, sessionToken, expiresAt: session.expiresAt });
   } else {

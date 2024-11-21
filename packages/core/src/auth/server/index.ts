@@ -3,12 +3,14 @@ import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,
 } from "@oslojs/encoding";
-import { Session, sessions } from "../../database/main/schema/auth.sql";
-import { sha256 } from "@oslojs/crypto/sha2";
 import {
-  User,
-  getUserDataFromSession,
-} from "../../database/main/schema/user.sql";
+  Session,
+  passkeys,
+  sessions,
+  twoFactorAuthenticationCredentials,
+} from "../../database/main/schema/auth.sql";
+import { sha256 } from "@oslojs/crypto/sha2";
+import { User, emails, users } from "../../database/main/schema/user.sql";
 import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
@@ -122,4 +124,38 @@ export const verifyPasswordStrength = async (password: string) => {
     }
   }
   return true;
+};
+
+export const getUserDataFromSession = async ({
+  sessionId,
+  database,
+}: {
+  sessionId: string;
+  database: PostgresJsDatabase;
+}) => {
+  const [basicUserInfo] = await database
+    .select({
+      user: users,
+      session: sessions,
+      email: emails.email,
+      isEmailVerified: emails.isVerified,
+      hasTwoFactor: twoFactorAuthenticationCredentials.activated,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .innerJoin(emails, eq(emails.userId, users.id))
+    .innerJoin(
+      twoFactorAuthenticationCredentials,
+      eq(twoFactorAuthenticationCredentials.userId, users.id),
+    )
+    .where(eq(sessions.id, sessionId))
+    .limit(1);
+  if (!basicUserInfo) return { basicUserInfo: null, passkeyInfo: null };
+
+  const passkeyInfo = await database
+    .select({ name: passkeys.name })
+    .from(passkeys)
+    .where(eq(passkeys.userId, basicUserInfo.user.id));
+
+  return { basicUserInfo, passkeyInfo };
 };
