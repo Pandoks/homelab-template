@@ -1,0 +1,24 @@
+# Used to setup applications needed to run application in dev environment
+networks:
+  homelab-dev-network:
+    driver: bridge
+
+services:
+  cache:
+    image: redis:7-alpine
+    command: redis-server --requirepass password
+    ports:
+      - '6379:6379'
+    networks:
+      - homelab-dev-network
+
+  userdb:
+    image: postgres:15-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=userdb
+    networks:
+      - homelab-dev-network

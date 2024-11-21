@@ -1,20 +1,18 @@
 import { defineConfig } from "drizzle-kit";
-import { Resource } from "sst";
 
 export default defineConfig({
-  schema: "./schema/*.sql.ts",
+  schema: "./src/database/main/schema/*.sql.ts",
   dialect: "postgresql",
-  out: "./migrations",
+  out: "./src/database/main/migrations",
   migrations: {
     prefix: "timestamp", // compatible with Supabase
   },
   dbCredentials: {
-    user: Resource.MainDatabaseUsername.value,
-    password: Resource.MainDatabasePassword.value,
-    host: Resource.MainDatabaseHost.value,
-    port: parseInt(Resource.MainDatabasePort.value),
-    database: Resource.MainDatabaseName.value,
-    // ssl: false, // NOTE: enable ssl for external db connections
+    user: "user",
+    password: "password",
+    host: "userdb",
+    port: 5432,
+    database: "userdb",
   },
   verbose: true,
   strict: true,

@@ -1,6 +1,8 @@
-# WARN: should not be used in production since credentials are in plain text. Should ONLY be used for dev/test
+# WARN: should not be used in production since credentials are in plain text.
+# Should ONLY be used for TEST environments
+# Represents infrastructure in an unscalable way
 networks:
-  startup-template-network:
+  homelab-test-network:
     driver: bridge
 
 services:

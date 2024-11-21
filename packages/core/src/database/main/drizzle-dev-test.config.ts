@@ -1,9 +1,9 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  schema: "./schema/*.sql.ts",
+  schema: "./src/database/main/schema/*.sql.ts",
   dialect: "postgresql",
-  out: "./migrations",
+  out: "./src/database/main/migrations",
   migrations: {
     prefix: "timestamp", // compatible with Supabase
   },
