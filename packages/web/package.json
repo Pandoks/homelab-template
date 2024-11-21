@@ -5,10 +5,8 @@
     "build"
   ],
   "scripts": {
-    "dev": "vite dev",
-    "setup": "docker compose -f ./compose.yaml up",
+    "dev": "docker compose -f ./compose.yaml up -d && drizzle-kit push --force && vite dev",
     "build": "vite build",
-    "build:prod": "vite build",
     "build:local": "NODE_ENV=development vite build",
     "build:test": "NODE_ENV=test vite build --mode test",
     "preview": "vite preview",
@@ -34,6 +32,7 @@
     "@types/node": "^20.14.9",
     "autoprefixer": "^10.4.19",
     "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.24.2",
     "postcss": "^8.4.38",
     "prettier": "^3.1.1",
     "prettier-plugin-svelte": "^3.1.2",
