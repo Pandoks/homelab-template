@@ -71,6 +71,8 @@ builder:
 # Use accessory services (secrets come from .kamal/secrets).
 #
 # accessories:
+# Use SSL when putting db in another machine
+# Make sure filesystem is encrypted with LUKS
 #   db:
 #     image: mysql:8.0
 #     host: 192.168.0.2
