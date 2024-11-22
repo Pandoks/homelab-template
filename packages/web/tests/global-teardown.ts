@@ -1,8 +1,9 @@
 import type { FullConfig } from '@playwright/test';
 import { resetTestDatabases } from './utils';
-import { redis, type RedisInstance } from './redis';
-import { db } from './db';
+import { mainDb } from './db';
+import { mainRedis } from './redis';
+import type { RedisClientType } from 'redis';
 
 export default async (config: FullConfig) => {
-  await resetTestDatabases({ redis: redis as { [key: string]: RedisInstance }, db: db });
+  await resetTestDatabases({ redis: [mainRedis as RedisClientType], db: [mainDb] });
 };

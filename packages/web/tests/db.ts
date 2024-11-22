@@ -11,7 +11,7 @@ if (!env) throw new Error('Need .env.test');
 
 // add {prepare: false} if using "Transaction" pool mode in Supabase (serverless hosting)
 // otherwise nothing needs to be changed for "Session" (long running hosting)
-const main = drizzle(
+export const mainDb = drizzle(
   postgres({
     username: env.USER_DB_USERNAME,
     password: env.USER_DB_PASSWORD,
@@ -21,5 +21,3 @@ const main = drizzle(
     onnotice: () => {}
   })
 );
-
-export const db = { main: main };

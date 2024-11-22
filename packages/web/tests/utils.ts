@@ -1,8 +1,7 @@
-import { type RedisInstance } from './redis';
-import { db } from './db';
+import { mainDb } from './db';
 import { eq, sql } from 'drizzle-orm';
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { RedisClientType, RedisClusterType } from 'redis';
+import type { RedisClientType } from 'redis';
 import { hash } from '@node-rs/argon2';
 import { test as testBase, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
@@ -20,33 +19,16 @@ export const resetTestDatabases = async ({
   redis,
   db
 }: {
-  redis: { [key: string]: RedisInstance };
-  db: { [key: string]: PostgresJsDatabase };
+  redis: RedisClientType[];
+  db: PostgresJsDatabase[];
 }) => {
   let cemetary: Promise<any>[] = [];
 
-  const redisIds = Object.keys(redis);
-  const dbIds = Object.keys(db);
-
-  for (const redisId of redisIds) {
-    const redisInstance = (redis as { [id: string]: RedisInstance })[redisId];
-    if (redisInstance.type === 'client') {
-      const redisClient = redisInstance.instance as RedisClientType;
-      cemetary.push(redisClient.flushAll());
-    } else if (redisInstance.type === 'cluster') {
-      const redisCluster = redisInstance.instance as RedisClusterType;
-      const masterNodes = redisCluster.masters;
-      // gotta use a boomer loop because masterNodes' iterator returns strings
-      for (let i = 0; i < masterNodes.length; i++) {
-        const masterNode = masterNodes[i];
-        const nodeClient = redisCluster.nodeClient(masterNode) as RedisClientType;
-        cemetary.push(nodeClient.flushAll());
-      }
-    }
+  for (const redisClient of redis) {
+    cemetary.push(redisClient.flushAll());
   }
 
-  for (const dbId of dbIds) {
-    const dbInstance = (db as { [id: string]: PostgresJsDatabase })[dbId];
+  for (const dbInstance of db) {
     const tables: { table_name: string }[] =
       (await dbInstance.execute(sql`
         SELECT table_name
@@ -57,6 +39,7 @@ export const resetTestDatabases = async ({
       cemetary.push(dbInstance!.execute(sql.raw(`TRUNCATE TABLE ${table.table_name} CASCADE`)));
     }
   }
+
   await Promise.all(cemetary);
 };
 
@@ -79,7 +62,7 @@ export const createNewTestUser = async ({
   email: string;
   emailVerified: boolean;
 }) => {
-  await db.main.transaction(async (tsx) => {
+  await mainDb.transaction(async (tsx) => {
     await tsx.insert(users).values({
       id: username,
       username: username.toLowerCase(),
@@ -105,7 +88,7 @@ export const generateRandomTestUser = async (prefix: string) => {
       alphabet({ options: ['0-9', 'a-z', 'A-Z'] }),
       6
     )}`;
-    const [existingUser] = await db.main.select().from(users).where(eq(users.username, username));
+    const [existingUser] = await mainDb.select().from(users).where(eq(users.username, username));
     if (existingUser) {
       username = await createUsername();
     }
@@ -179,7 +162,7 @@ export const test = testBase.extend<AuthFixture>({
       emailVerifyWait
     ]);
 
-    const [emailVerification] = await db.main
+    const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -208,7 +191,7 @@ export const test = testBase.extend<AuthFixture>({
       emailVerifyWait
     ]);
 
-    const [emailVerification] = await db.main
+    const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -331,7 +314,7 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
-    const [emailVerification] = await db.main
+    const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -378,7 +361,7 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
-    const [emailVerification] = await db.main
+    const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));

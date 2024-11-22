@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "docker compose -f ./compose.yaml up -d && sleep 1 && drizzle-kit push --force && dotenv vite dev",
     "build": "vite build",
-    "build:local": "NODE_ENV=development vite build",
     "build:test": "NODE_ENV=test vite build --mode test",
     "preview": "vite preview",
     "test": "npm run test:int && npm run test:unit",
