@@ -36,10 +36,10 @@ import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { database as mainDatabase } from '$lib/postgres';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
+import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building

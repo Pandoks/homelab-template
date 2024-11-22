@@ -30,7 +30,7 @@
           <p class=" text-muted-foreground text-sm text-center">
             If you are unable to scan, enter this secret code:
           </p>
-          <CopySecret class="w-[320px]" copy={data.twoFactorSecret} size="xs" align="left" />
+          <CopySecret class="w-[320px]" copy={data.twoFactorKey} size="xs" align="left" />
         </div>
       </div>
 

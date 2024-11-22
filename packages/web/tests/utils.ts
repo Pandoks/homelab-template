@@ -4,15 +4,12 @@ import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType } from 'redis';
 import { hash } from '@node-rs/argon2';
 import { test as testBase, type Page } from '@playwright/test';
-import dotenv from 'dotenv';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { generateRandomString } from '@oslojs/crypto/random';
 import { alphabet } from '@startup-template/core/util/index';
 import { decodeBase32, encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
 import { emailVerifications } from '@startup-template/core/database/main/schema/auth.sql';
 import { generateTOTP } from '@oslojs/otp';
-
-dotenv.config({ path: '../../../.env' });
 
 export const resetTestDatabases = async ({
   redis,
@@ -356,10 +353,12 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
     const emailVerifyWait = page.waitForURL('/auth/email-verification');
+    console.log('here');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
+    console.log('after');
     const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
