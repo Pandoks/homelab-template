@@ -1,6 +1,7 @@
 FROM node:20-alpine AS builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="${PNPM_HOME}:$PATH"
+ENV PUBLIC_APP_NAME='homelab-template'
 RUN corepack enable pnpm
 WORKDIR /app
 COPY pnpm-lock.yaml .

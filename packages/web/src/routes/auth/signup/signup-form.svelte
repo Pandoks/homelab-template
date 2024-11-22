@@ -18,7 +18,7 @@
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
   import { registerPasskey } from '@startup-template/core/auth/passkey';
-  import { env } from '$env/dynamic/public';
+  import { PUBLIC_APP_NAME } from '$env/static/public';
 
   // TODO: add show and hide password
 
@@ -51,7 +51,7 @@
         const { challengeId, clientDataJSON, attestationObject } = await registerPasskey({
           username: username,
           name: username,
-          appName: env.PUBLIC_APP_NAME
+          appName: PUBLIC_APP_NAME
         });
         if (!challengeId || !clientDataJSON || !attestationObject) {
           form.cancel();
@@ -61,7 +61,8 @@
         data.set('challengeId', challengeId);
         data.set('clientDataJSON', clientDataJSON);
         data.set('attestationObject', attestationObject);
-      } catch {
+      } catch (error) {
+        console.error(error);
         // TODO: delete the passkey (wait for https://github.com/w3c/webauthn/pull/2093)
         form.cancel();
         return;

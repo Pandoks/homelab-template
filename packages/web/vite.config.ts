@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 
 export default defineConfig({
   plugins: [sveltekit()],
+  envDir: '../..',
   test: {
     include: ['src/**/*.test.{js,ts}'],
     env: {

@@ -5,7 +5,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { PUBLIC_APP_NAME } from '$env/static/public';
 import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -14,6 +13,7 @@ import { database } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { decodeHex, encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
 import { createTOTPKeyURI, verifyTOTP } from '@oslojs/otp';
+import { PUBLIC_APP_NAME } from '$env/static/public';
 
 export const actions: Actions = {
   'verify-otp': async (event) => {

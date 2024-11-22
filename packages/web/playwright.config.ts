@@ -4,7 +4,7 @@ const config: PlaywrightTestConfig = {
   webServer: {
     command:
       // drizzle-kit push is used after vite build so that it gives time for database to setup
-      'docker compose -p setup up -d && NODE_ENV=test vite build --mode test && drizzle-kit push --force && vite preview',
+      'pnpm run setup && NODE_ENV=test vite build --mode test && NODE_ENV=test PORT=4173 vite preview',
     port: 4173
   },
   projects: [

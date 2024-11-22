@@ -97,6 +97,7 @@ test.describe('logging in user', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), homeWait]);
   });
+
   test('should not give information about wrong email credentials', async ({ page }) => {
     const { email } = await generateRandomTestUser('password-reset');
 

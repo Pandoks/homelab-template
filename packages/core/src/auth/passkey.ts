@@ -6,18 +6,15 @@ import { coseAlgorithmES256 } from "@oslojs/webauthn";
  *
  * @param username username of user
  * @param name     name of user
- * @param domain   domain of the website
  * @param appName  name of the app
  */
 export const registerPasskey = async ({
   username,
   name,
-  domain,
   appName,
 }: {
   username: string;
   name: string;
-  domain: string;
   appName: string;
 }) => {
   const challengeResponse = await fetch("/auth/passkey/challenge", {
@@ -31,7 +28,7 @@ export const registerPasskey = async ({
       attestation: "none",
       rp: {
         // application info
-        id: domain,
+        // don't need id because browser automatically fills in domain
         name: appName,
       },
       user: {
