@@ -41,3 +41,6 @@ package-lock.json
 # Docker
 .docker-cache
 .build-cache
+
+# Build Visualizer
+stats.html
