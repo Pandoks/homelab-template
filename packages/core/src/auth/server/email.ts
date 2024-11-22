@@ -4,7 +4,7 @@ import { emails, users } from "../../database/main/schema/user.sql";
 import { generateRandomString } from "@oslojs/crypto/random";
 import { alphabet } from "@startup-template/core/util/index";
 import { createDate, TimeSpan } from "@startup-template/core/util/time";
-import { User } from "@startup-template/core/database/main/schema/user.sql";
+import { type User } from "@startup-template/core/database/main/schema/user.sql";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // TODO: make everything only handle lowercase username and email

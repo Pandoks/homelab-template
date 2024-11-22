@@ -7,7 +7,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 import { emails, users } from "./user.sql";
-import { InferSelectModel, relations } from "drizzle-orm";
+import { type InferSelectModel, relations } from "drizzle-orm";
 
 // TODO: setup cron job to clear invalid sessions with lucia
 export const sessions = pgTable("sessions", {

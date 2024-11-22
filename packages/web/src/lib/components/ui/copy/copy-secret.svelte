@@ -75,7 +75,7 @@
     on:mouseenter={() => (inputStyle = cn(inputStyles.base, inputStyles.variants.hover))}
     on:mouseleave={() => (inputStyle = inputStyles.base)}
     aria-label="Copy password"
-  />
+  ></button>
   <Button
     class={buttonStyle}
     variant="outline"

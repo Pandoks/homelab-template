@@ -4,13 +4,13 @@ import {
   encodeHexLowerCase,
 } from "@oslojs/encoding";
 import {
-  Session,
+  type Session,
   passkeys,
   sessions,
   twoFactorAuthenticationCredentials,
 } from "../../database/main/schema/auth.sql";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { User, emails, users } from "../../database/main/schema/user.sql";
+import { type User, emails, users } from "../../database/main/schema/user.sql";
 import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 

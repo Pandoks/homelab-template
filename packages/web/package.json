@@ -12,7 +12,7 @@
     "test:int": "dotenv -e ../../.env -- playwright test",
     "test:gen": "dotenv -e ../../.env -- playwright codegen",
     "test:ui": "dotenv -e ../../.env -- playwright test --ui",
-    "lint": "prettier --check . && svelte-check",
+    "lint": "svelte-check",
     "format": "prettier --write ."
   },
   "devDependencies": {

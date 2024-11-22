@@ -1,8 +1,8 @@
 import {
-  AuthenticatorData,
-  ClientData,
+  type AuthenticatorData,
+  type ClientData,
   ClientDataType,
-  WebAuthnCredential,
+  type WebAuthnCredential,
   coseAlgorithmES256,
   coseEllipticCurveP256,
   createAssertionSignatureMessage,
