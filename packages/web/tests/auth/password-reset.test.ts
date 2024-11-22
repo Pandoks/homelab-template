@@ -121,6 +121,7 @@ test.describe('logging in user', () => {
 
     await expect(page.getByText('Password reset instructions sent to email')).toBeVisible();
   });
+
   test('should not accept bad password reset tokens', async ({ page }) => {
     await page.goto('/auth/password-reset/badpasswordresettoken');
     await expect(page.getByText('Password reset link has expired')).toBeVisible();

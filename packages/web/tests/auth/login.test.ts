@@ -14,6 +14,7 @@ test.describe('user logins', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), homeWait]);
   });
+
   test('should allow username password login', async ({ fullPass }) => {
     const page = fullPass.page;
     await logout(page);
@@ -26,6 +27,7 @@ test.describe('user logins', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), homeWait]);
   });
+
   test('should allow email passkey login', async ({ fullKey }) => {
     const page = fullKey.page;
     await logout(page);
@@ -47,6 +49,7 @@ test.describe('user logins', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), homeWait]);
   });
+
   test('should allow username passkey login', async ({ fullKey }) => {
     const page = fullKey.page;
     await logout(page);
@@ -68,6 +71,7 @@ test.describe('user logins', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), homeWait]);
   });
+
   test('should not give information about bad username, email, or password', async ({
     fullPass
   }) => {

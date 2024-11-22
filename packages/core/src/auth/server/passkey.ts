@@ -55,8 +55,6 @@ export const verifyClientData = ({
     clientData.origin !== getAppInfo("origin") ||
     clientData.crossOrigin
   ) {
-    console.error(clientData.origin);
-    console.error(getAppInfo("origin"));
     throw new ResponseError(406, "Invalid origin");
   }
 };
