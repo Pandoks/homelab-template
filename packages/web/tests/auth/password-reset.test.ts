@@ -35,7 +35,7 @@ test.describe('logging in user', () => {
       .where(eq(users.username, username.toLowerCase()));
     expect(passwordResetToken).toBeTruthy();
 
-    await page.goto(`/auth/password-reset/${passwordResetToken.users.id}-test`);
+    await page.goto(`/auth/password-reset/${passwordResetToken.users.id}`);
     await Promise.all([
       expect(page.getByRole('heading', { name: 'New Password' })).toBeVisible(),
       expect(page.locator('form div').first()).toBeVisible(),
@@ -56,7 +56,7 @@ test.describe('logging in user', () => {
     await page.getByLabel('Confirm Password').click();
     await page.getByLabel('Confirm Password').fill('password');
     const weakPasswordResponse = page.waitForResponse(
-      `/auth/password-reset/${passwordResetToken.users.id}-test?/new-password`
+      `/auth/password-reset/${passwordResetToken.users.id}?/new-password`
     );
     await Promise.all([page.getByRole('button', { name: 'Submit' }).click(), weakPasswordResponse]);
     await expect(page.getByText('Weak password')).toBeVisible();
@@ -66,7 +66,7 @@ test.describe('logging in user', () => {
     await page.getByLabel('Confirm Password').click();
     await page.getByLabel('Confirm Password').fill(password);
     const newPasswordResponse = page.waitForResponse(
-      `/auth/password-reset/${passwordResetToken.users.id}-test?/new-password`
+      `/auth/password-reset/${passwordResetToken.users.id}?/new-password`
     );
     await Promise.all([page.getByRole('button', { name: 'Submit' }).click(), newPasswordResponse]);
     const [passwordReset] = await mainDb

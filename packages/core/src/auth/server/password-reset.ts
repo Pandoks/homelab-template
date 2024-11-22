@@ -18,9 +18,12 @@ export const createPasswordResetToken = async ({
   userId: string;
   database: PostgresJsDatabase;
 }): Promise<string> => {
-  const token = encodeBase32LowerCaseNoPadding(
-    crypto.getRandomValues(new Uint8Array(25)),
-  ); // 40 characters
+  const token =
+    process.env.NODE_ENV === "test"
+      ? userId
+      : encodeBase32LowerCaseNoPadding(
+          crypto.getRandomValues(new Uint8Array(25)),
+        ); // 40 characters
 
   await database.transaction(async (tsx) => {
     const tokenHash = encodeHexLowerCase(

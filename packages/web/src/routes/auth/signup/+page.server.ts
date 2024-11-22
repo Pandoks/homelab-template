@@ -140,7 +140,6 @@ export const actions: Actions = {
         expiresAt: session.expiresAt
       });
     } catch (err) {
-      console.error(err);
       // @ts-ignore
       if (err.code) {
         // @ts-ignore

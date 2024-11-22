@@ -100,6 +100,7 @@ export const generateRandomTestUser = async (prefix: string) => {
   };
 };
 
+// TODO: Figure out why the fuck these are flaky
 export type AuthTest = {
   page: Page;
   username: string;
@@ -353,12 +354,10 @@ export const test = testBase.extend<AuthFixture>({
     await page.getByLabel('Email').click();
     await page.getByLabel('Email').fill(email);
     const emailVerifyWait = page.waitForURL('/auth/email-verification');
-    console.log('here');
     await Promise.all([
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
-    console.log('after');
     const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
