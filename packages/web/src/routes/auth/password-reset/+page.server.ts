@@ -13,8 +13,8 @@ import {
   createPasswordResetToken,
   sendPasswordReset
 } from '@startup-template/core/auth/server/password-reset';
-import { PUBLIC_DOMAIN, PUBLIC_PROTOCOL } from '$env/static/public';
 import { mainRedis } from '$lib/redis';
+import { getAppInfo } from '@startup-template/core/util/index';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({
@@ -69,7 +69,7 @@ export const actions: Actions = {
       database: mainDatabase
     });
     const [verificationToken] = await Promise.all([verificationTokenCreation, bucketReset]);
-    const verificationLink = `${PUBLIC_PROTOCOL}://${PUBLIC_DOMAIN}/auth/password-reset/${verificationToken}`;
+    const verificationLink = `${getAppInfo('origin')}/auth/password-reset/${verificationToken}`;
 
     await sendPasswordReset({ email: email, verificationLink: verificationLink });
     return { success: true, throttled: false, passwordResetForm: passwordResetForm };

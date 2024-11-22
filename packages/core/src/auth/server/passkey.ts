@@ -27,14 +27,12 @@ import {
   encodeHexLowerCase,
 } from "@oslojs/encoding";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
-const DOMAIN = process.env.DOMAIN;
-const ORIGIN = process.env.ORIGIN;
+import { getAppInfo } from "../../util";
 
 export const verifyAuthenticatorData = (
   authenticatorData: AuthenticatorData,
 ): void => {
-  if (!authenticatorData.verifyRelyingPartyIdHash(DOMAIN!)) {
+  if (!authenticatorData.verifyRelyingPartyIdHash(getAppInfo("domain")!)) {
     throw new ResponseError(406, "Invalid relying party ID hash");
   } else if (
     !authenticatorData.userPresent ||
@@ -53,7 +51,10 @@ export const verifyClientData = ({
 }): void => {
   if (clientData.type !== type) {
     throw new ResponseError(406, "Invalid client data type");
-  } else if (clientData.origin !== ORIGIN || clientData.crossOrigin) {
+  } else if (
+    clientData.origin !== getAppInfo("origin") ||
+    clientData.crossOrigin
+  ) {
     throw new ResponseError(406, "Invalid origin");
   }
 };
