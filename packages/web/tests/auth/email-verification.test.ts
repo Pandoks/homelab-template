@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
+import { mainDb } from '../db';
 import { test } from '../utils';
 import { expect } from '@playwright/test';
 import { emailVerifications } from '@startup-template/core/database/main/schema/auth.sql';
@@ -25,7 +25,7 @@ test.describe('logged in user', () => {
     ]);
     await expect(partPass.page.getByText('Invalid code')).toBeVisible();
 
-    const [emailVerification] = await db.main
+    const [emailVerification] = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, partPass.email.toLowerCase()));
@@ -39,7 +39,7 @@ test.describe('logged in user', () => {
       homeRedirect
     ]);
 
-    const [emailInfo] = await db.main
+    const [emailInfo] = await mainDb
       .select()
       .from(emails)
       .where(eq(emails.email, partPass.email.toLowerCase()));
@@ -49,7 +49,7 @@ test.describe('logged in user', () => {
   test('should throttle user to resend verification code', async ({ partPass }) => {
     await expect(partPass.page.getByLabel('Verification Code')).toBeVisible();
 
-    const oldEmailVerification = await db.main
+    const oldEmailVerification = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, partPass.email.toLowerCase()));
@@ -66,7 +66,7 @@ test.describe('logged in user', () => {
       resendEmailVerificationResponse,
       resendButtonDetach
     ]);
-    const newEmailVerification = await db.main
+    const newEmailVerification = await mainDb
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, partPass.email.toLowerCase()));

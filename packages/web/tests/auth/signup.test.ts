@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { and, eq, or } from 'drizzle-orm';
-import { db } from '../db';
+import { mainDb } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import {
@@ -90,7 +90,7 @@ test.describe('new user', () => {
 
     await expect(page.locator('form').getByText('Weak password')).toBeVisible();
 
-    const [badUser] = await db.main
+    const [badUser] = await mainDb
       .select()
       .from(users)
       .where(eq(users.username, username.toLowerCase()));
@@ -127,7 +127,7 @@ test.describe('new user', () => {
       expect(page.getByLabel('Email')).toHaveValue(email)
     ]);
 
-    const [badUser] = await db.main
+    const [badUser] = await mainDb
       .select()
       .from(users)
       .where(eq(users.username, username.toLowerCase()));
@@ -151,7 +151,7 @@ test.describe('new user', () => {
       emailVerificationWait
     ]);
 
-    const [newUser] = await db.main
+    const [newUser] = await mainDb
       .select()
       .from(users)
       .innerJoin(emails, and(eq(users.id, emails.userId)))
@@ -169,7 +169,7 @@ test.describe('new user', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
-    const [verifiedUser] = await db.main
+    const [verifiedUser] = await mainDb
       .select()
       .from(emails)
       .leftJoin(emailVerifications, eq(emailVerifications.email, emails.email))
@@ -224,7 +224,7 @@ test.describe('new user', () => {
     });
     expect(passkey.credentials).toHaveLength(1);
 
-    const [newUser] = await db.main
+    const [newUser] = await mainDb
       .select()
       .from(users)
       .innerJoin(emails, and(eq(users.id, emails.userId)))
@@ -243,7 +243,7 @@ test.describe('new user', () => {
     const homeWait = page.waitForURL('/');
     await Promise.all([page.getByRole('button', { name: 'Activate' }).click(), homeWait]);
 
-    const [verifiedUser] = await db.main
+    const [verifiedUser] = await mainDb
       .select()
       .from(emails)
       .leftJoin(emailVerifications, eq(emailVerifications.email, emails.email))
@@ -271,7 +271,7 @@ test('should not allow already logged in', async ({ partPass, fullPass, partKey,
     ...waits
   ]);
 
-  const deletedUsers = await db.main
+  const deletedUsers = await mainDb
     .select()
     .from(users)
     .where(
@@ -282,7 +282,7 @@ test('should not allow already logged in', async ({ partPass, fullPass, partKey,
     );
   expect(deletedUsers.length).toBe(0);
 
-  const noChangedUsers = await db.main
+  const noChangedUsers = await mainDb
     .select()
     .from(users)
     .where(

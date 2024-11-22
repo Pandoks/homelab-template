@@ -1,7 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../../db';
+import { mainDb } from '../../db';
 import { logout, test } from '../../utils';
 import { expect } from '@playwright/test';
+import { users } from '@startup-template/core/database/main/schema/user.sql';
+import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 
 test('should disable 2fa with recovery code', async ({ twoFacPass }) => {
   const page = twoFacPass.page;
@@ -26,7 +28,7 @@ test('should disable 2fa with recovery code', async ({ twoFacPass }) => {
     homeWait
   ]);
 
-  const twoFactorInfo = await db.main
+  const twoFactorInfo = await mainDb
     .select()
     .from(users)
     .innerJoin(
