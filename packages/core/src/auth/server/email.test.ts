@@ -1,17 +1,25 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { generateEmailVerification } from "./email";
 import { eq } from "drizzle-orm";
 import { createDate, TimeSpan } from "@startup-template/core/util/time";
-import { database } from "../../database/main";
 import { emails, users } from "../../database/main/schema/user.sql";
 import { emailVerifications } from "../../database/main/schema/auth.sql";
+import postgres from "postgres";
 
 describe("generateEmailVerification", () => {
   let db: PostgresJsDatabase;
 
   beforeAll(async () => {
-    db = database;
+    db = drizzle(
+      postgres({
+        username: process.env.USER_DB_USERNAME,
+        password: process.env.USER_DB_PASSWORD,
+        host: process.env.USER_DB_HOST,
+        port: parseInt(process.env.USER_DB_PORT!),
+        database: process.env.USER_DB_DATABASE,
+      }),
+    );
   });
 
   beforeEach(async () => {
@@ -43,6 +51,7 @@ describe("generateEmailVerification", () => {
     await generateEmailVerification({
       userId: "user",
       email: "test@example.com",
+      database: db,
     });
 
     const results = await db
@@ -78,6 +87,7 @@ describe("generateEmailVerification", () => {
     await generateEmailVerification({
       userId: "user",
       email: "test@example.com",
+      database: db,
     });
 
     const databaseResult = await db

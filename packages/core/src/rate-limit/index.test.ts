@@ -10,16 +10,11 @@ import {
   Throttler,
 } from ".";
 
-const MAIN_REDIS_USERNAME = process.env.MAIN_REDIS_USERNAME;
-const MAIN_REDIS_PASSWORD = process.env.MAIN_REDIS_PASSWORD;
-const MAIN_REDIS_PORT = process.env.MAIN_REDIS_PORT;
-
 const storage = await createClient({
-  username: MAIN_REDIS_USERNAME!,
-  password: MAIN_REDIS_PASSWORD!,
+  password: process.env.MAIN_REDIS_PASSWORD,
   socket: {
-    host: "127.0.0.1",
-    port: parseInt(MAIN_REDIS_PORT!),
+    host: process.env.MAIN_REDIS_HOST,
+    port: parseInt(process.env.MAIN_REDIS_PORT!),
   },
 }).connect();
 

@@ -1,4 +1,3 @@
-// NOTE: This should only be used in dev/test environments
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
@@ -9,11 +8,11 @@ export default defineConfig({
     prefix: "timestamp", // compatible with Supabase
   },
   dbCredentials: {
-    user: "user",
-    password: "password",
-    host: "localhost",
-    port: 5432,
-    database: "userdb",
+    user: Resource.MainDatabaseUsername.value,
+    password: Resource.MainDatabasePassword.value,
+    host: Resource.MainDatabaseHost.value,
+    port: parseInt(Resource.MainDatabasePort.value),
+    database: Resource.MainDatabaseName.value,
   },
   verbose: true,
   strict: true,

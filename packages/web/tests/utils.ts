@@ -12,8 +12,7 @@ import { decodeBase32, encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
 import { emailVerifications } from '@startup-template/core/database/main/schema/auth.sql';
 import { generateTOTP } from '@oslojs/otp';
 
-const { parsed: env } = dotenv.config({ path: `.env.test` });
-if (!env) throw new Error('Need .env.test');
+dotenv.config({ path: '../../../.env' });
 
 export const resetTestDatabases = async ({
   redis,
