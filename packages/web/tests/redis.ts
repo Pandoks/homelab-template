@@ -7,6 +7,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log(process.env);
+
 const main = createClient({
   password: process.env.MAIN_REDIS_PASSWORD,
   socket: {
