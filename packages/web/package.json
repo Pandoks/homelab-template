@@ -25,6 +25,7 @@
     "@types/highlightjs": "^9.12.6",
     "@types/node": "^22.9.1",
     "autoprefixer": "^10.4.19",
+    "bits-ui": "1.0.0-next.64",
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.4",
     "drizzle-kit": "^0.28.1",
@@ -48,7 +49,6 @@
     "@oslojs/otp": "^1.0.0",
     "@oslojs/webauthn": "^1.0.0",
     "@startup-template/core": "workspace:^",
-    "bits-ui": "^0.21.16",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
     "drizzle-zod": "^0.5.1",
@@ -60,6 +60,7 @@
     "sveltekit-superforms": "^2.20.1",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "^0.3.0",
+    "tailwindcss-animate": "^1.0.7",
     "uqr": "^0.1.2",
     "zod": "^3.23.8"
   }

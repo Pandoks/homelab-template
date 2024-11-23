@@ -136,7 +136,7 @@
       <Separator class="w-[43%] ml-4" orientation="horizontal" />
     </div>
 
-    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>
+    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
       {#if passwordFormSwitching}
         Password Login
       {:else}
@@ -174,6 +174,6 @@
       <Separator class="w-[43%] ml-4" orientation="horizontal" />
     </div>
 
-    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>Password Login</Button>
+    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>Password Login</Button>
   </form>
 {/if}

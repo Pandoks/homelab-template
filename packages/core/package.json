@@ -4,7 +4,8 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "test": "docker compose -p setup up -d && sleep 1 && drizzle-kit push --config=./src/database/main/drizzle.config.ts --force && sst shell vitest",
+    "setup": "docker compose -p setup up -d && sleep 1 && drizzle-kit push --config=./src/database/main/drizzle.config.ts --force",
+    "test:unit": "pnpm run setup && sst shell vitest",
     "generate": "drizzle-kit generate --config ./src/database/main/drizzle.config.ts"
   },
   "exports": {

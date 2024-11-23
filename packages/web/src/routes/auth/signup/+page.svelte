@@ -1,16 +1,15 @@
 <script lang="ts">
   import authPlaceholderImage from '$lib/assets/auth-placeholder.svg';
-  import type { ActionData, PageData } from './$types';
   import SignupForm from './signup-form.svelte';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  $: if (form) {
-    formInteracted = false;
-  }
-
-  let formInteracted = false;
+  let formInteracted = $state(false);
+  $effect(() => {
+    if (form) {
+      formInteracted = false;
+    }
+  });
 </script>
 
 <div class="w-full h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">

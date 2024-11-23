@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import { superForm, type SuperForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import {
     signupPasskeySchema,
     signupSchema,
@@ -22,11 +22,15 @@
 
   // TODO: add show and hide password
 
-  export let data: {
-    signupForm: SuperValidated<Infer<SignupSchema>>;
-    passkeyForm: SuperValidated<Infer<SignupPasskeySchema>>;
-  };
-  let type: 'password' | 'passkey' = 'password';
+  let {
+    data
+  }: {
+    data: {
+      signupForm: SuperValidated<Infer<SignupSchema>>;
+      passkeyForm: SuperValidated<Infer<SignupPasskeySchema>>;
+    };
+  } = $props();
+  let type: 'password' | 'passkey' = $state('password');
 
   const signupForm = superForm(data.signupForm, {
     validators: zodClient(signupSchema),
@@ -76,40 +80,42 @@
     delayed: passkeyDelayedForm
   } = passkeyForm;
 
-  $: passkeyDelayed = $passkeyDelayedForm;
+  const passkeyDelayed = $derived($passkeyDelayedForm);
 
-  $: if (type === 'password') {
-    $passkeyFormData.username = $signupFormData.username;
-    $passkeyFormData.email = $signupFormData.email;
+  $effect(() => {
+    if (type === 'password') {
+      $passkeyFormData.username = $signupFormData.username;
+      $passkeyFormData.email = $signupFormData.email;
 
-    let errors: { username?: string[]; email?: string[] } = {};
-    const signupErrors = get(signupForm.errors);
-    if ($passkeyFormData.username) {
-      errors.username = signupErrors.username;
+      let errors: { username?: string[]; email?: string[] } = {};
+      const signupErrors = get(signupForm.errors);
+      if ($passkeyFormData.username) {
+        errors.username = signupErrors.username;
+      }
+      if ($passkeyFormData.email) {
+        errors.email = signupErrors.email;
+      }
+
+      passkeyForm.errors.set(errors);
+    } else {
+      $signupFormData.username = $passkeyFormData.username;
+      $signupFormData.email = $passkeyFormData.email;
+
+      let errors: { username?: string[]; email?: string[]; password?: string[] } = {};
+      const passkeyErrors = get(passkeyForm.errors);
+      if ($signupFormData.username) {
+        errors.username = passkeyErrors.username;
+      }
+      if ($signupFormData.email) {
+        errors.email = passkeyErrors.email;
+      }
+
+      signupForm.errors.set(errors);
     }
-    if ($passkeyFormData.email) {
-      errors.email = signupErrors.email;
-    }
+  });
 
-    passkeyForm.errors.set(errors);
-  } else {
-    $signupFormData.username = $passkeyFormData.username;
-    $signupFormData.email = $passkeyFormData.email;
-
-    let errors: { username?: string[]; email?: string[]; password?: string[] } = {};
-    const passkeyErrors = get(passkeyForm.errors);
-    if ($signupFormData.username) {
-      errors.username = passkeyErrors.username;
-    }
-    if ($signupFormData.email) {
-      errors.email = passkeyErrors.email;
-    }
-
-    signupForm.errors.set(errors);
-  }
-
-  let transitionComplete = false;
-  let passwordFormSwitching = false; // only used for password signup because of transition
+  let transitionComplete = $state(false);
+  let passwordFormSwitching = $state(false); // only used for password signup because of transition
 
   const swapLoginType = async () => {
     transitionComplete = false;
@@ -152,7 +158,7 @@
 
     <div
       transition:slide|local={{ duration: 250 }}
-      on:outroend={() => {
+      onoutroend={() => {
         transitionComplete = true;
         passwordFormSwitching = false;
       }}
@@ -193,7 +199,7 @@
       <Separator class="w-[43%] ml-4" orientation="horizontal" />
     </div>
 
-    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>
+    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
       {#if passwordFormSwitching}
         Password Sign Up
       {:else}
@@ -244,7 +250,7 @@
       <Separator class="w-[43%] ml-4" orientation="horizontal" />
     </div>
 
-    <Button class="w-full mt-4" variant="secondary" on:click={swapLoginType}>
+    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
       Password Sign Up
     </Button>
   </form>
