@@ -37,7 +37,7 @@
       <OtpForm data={data.otpForm} {form} />
 
       {#if form && form.success}
-        <Button class="mt-2" on:click={() => goto('/auth/2fa/setup/recovery')}>Continue</Button>
+        <Button class="mt-2" onclick={() => goto('/auth/2fa/setup/recovery')}>Continue</Button>
       {:else}
         <Button disabled class="mt-2">Continue</Button>
       {/if}

@@ -86,7 +86,7 @@
       {#if data.twoFactorRecoveryCode || form?.twoFactorRecoveryCode}
         <AlertDialog.Root closeOnOutsideClick={true} bind:open>
           <AlertDialog.Trigger asChild>
-            <Button class="w-full mt-2" on:click={() => (open = true)}>
+            <Button class="w-full mt-2" onclick={() => (open = true)}>
               Activate 2 Factor Authentication
             </Button>
           </AlertDialog.Trigger>

@@ -38,8 +38,8 @@
   </Form.Field>
 
   <AlertDialog.Root bind:open>
-    <AlertDialog.Trigger asChild>
-      <Button class="w-full mt-2" on:click={() => (open = true)}>Recover</Button>
+    <AlertDialog.Trigger>
+      <Button class="w-full mt-2" onclick={() => (open = true)}>Recover</Button>
     </AlertDialog.Trigger>
     <AlertDialog.Content>
       <AlertDialog.Header>
@@ -51,7 +51,7 @@
       </AlertDialog.Header>
       <AlertDialog.Footer>
         <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-        <AlertDialog.Action asChild>
+        <AlertDialog.Action>
           {#if $delayed}
             <Form.Button disabled>
               <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
