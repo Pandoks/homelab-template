@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { Button, type Props } from './index';
+  import { Button, type ButtonProps } from './index';
 
-  type $$Props = Props & { response: Response };
-
-  let className: $$Props['class'] = undefined;
-  export let variant: $$Props['variant'] = 'default';
-  export let size: $$Props['size'] = 'default';
-  export let builders: $$Props['builders'] = [];
-  export let response: Response; // bind this in parent component
-  export { className as class };
+  let {
+    class: className,
+    variant = 'default',
+    size = 'default',
+    response = $bindable(),
+    children,
+    ...restProps
+  }: ButtonProps & { response: Response } = $props();
 
   const handleSignOut = async () => {
     response = await fetch('/auth/logout', {
@@ -17,6 +17,6 @@
   };
 </script>
 
-<Button {variant} {size} class={className} {builders} on:click={handleSignOut} {...$$restProps}>
-  <slot />
+<Button {variant} {size} class={className} onclick={handleSignOut} {...restProps}>
+  {@render children?.()}
 </Button>
