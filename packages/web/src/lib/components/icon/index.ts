@@ -1,16 +1,9 @@
-import CloseEyeOff from './close-eye-off.svelte';
-
-type Props = {
-  class?: string;
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-};
+import CloseEyeOff, { type IconProps } from './close-eye-off.svelte';
 
 export {
-  type Props,
+  type IconProps as Props,
   CloseEyeOff,
   //
-  type Props as IconProps,
+  type IconProps,
   CloseEyeOff as CloseEyeOffIcon
 };

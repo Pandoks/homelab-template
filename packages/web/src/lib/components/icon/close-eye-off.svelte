@@ -1,13 +1,18 @@
 <script lang="ts">
-  import { type Props } from '.';
+  export type IconProps = {
+    class?: string;
+    size?: number;
+    color?: string;
+    strokeWidth?: number;
+  };
 
-  type $$Props = Props;
-
-  let className: $$Props['class'] = undefined;
-  export let size: $$Props['size'] = 24;
-  export let color: $$Props['color'] = 'currentColor';
-  export let strokeWidth: $$Props['strokeWidth'] = 2;
-  export { className as class };
+  let {
+    class: className,
+    size = 24,
+    color = 'currentColor',
+    strokeWidth = 2,
+    ...restProps
+  }: IconProps = $props();
 </script>
 
 <svg
@@ -21,7 +26,7 @@
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className}
-  {...$$restProps}
+  {...restProps}
 >
   <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
   <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
