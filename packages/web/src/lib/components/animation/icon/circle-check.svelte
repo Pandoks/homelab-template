@@ -1,48 +1,65 @@
 <script lang="ts">
   import { cn } from '$lib/utils';
-  import { createEventDispatcher, tick } from 'svelte';
+  import { tick } from 'svelte';
   import { draw, type DrawParams } from 'svelte/transition';
+  import type { CircleProps } from '.';
 
-  type $$Props = {
+  type CircleCheckProps = CircleProps & {
     drawParams?: {
       check?: DrawParams;
       circle?: DrawParams;
     };
-    class?: string;
-    size?: number;
-    color?: string;
-    strokeWidth?: number;
+    checkintrostart?: () => void;
+    checkintroend?: () => void;
+    checkoutrostart?: () => void;
+    checkoutroend?: () => void;
   };
 
-  let className: $$Props['class'] = undefined;
-  export let drawParams: $$Props['drawParams'] = {
-    check: { duration: 1000 },
-    circle: { duration: 1000 }
-  };
-  export let size: $$Props['size'] = 24;
-  export let color: $$Props['color'] = 'currentColor';
-  export let strokeWidth: $$Props['strokeWidth'] = 2;
-  export { className as class };
+  let {
+    class: className,
+    drawParams = {
+      check: { duration: 1000 },
+      circle: { duration: 1000 }
+    },
+    size = 24,
+    color = 'currentColor',
+    strokeWidth = 2,
+    introend,
+    outroend,
+    circleintrostart,
+    circleintroend,
+    circleoutrostart,
+    circleoutroend,
+    checkintrostart,
+    checkintroend,
+    checkoutrostart,
+    checkoutroend,
+    ...restProps
+  }: CircleCheckProps = $props();
 
-  let show: boolean = true;
+  let show: boolean = $state(true);
   export const restart = async () => {
     show = false;
     await tick();
     show = true;
   };
 
-  const dispatch = createEventDispatcher();
-  let circleIntroEnd: boolean = false;
-  let checkIntroEnd: boolean = false;
-  let circleOutroEnd: boolean = false;
-  let checkOutroEnd: boolean = false;
+  let circleIntroEnd: boolean = $state(false);
+  let checkIntroEnd: boolean = $state(false);
+  let circleOutroEnd: boolean = $state(false);
+  let checkOutroEnd: boolean = $state(false);
 
-  $: if (circleIntroEnd && checkIntroEnd) {
-    dispatch('introend');
-  }
-  $: if (circleOutroEnd && checkOutroEnd) {
-    dispatch('outroend');
-  }
+  $effect(() => {
+    if (circleIntroEnd && checkIntroEnd) {
+      introend?.();
+    }
+  });
+
+  $effect(() => {
+    if (circleOutroEnd && checkOutroEnd) {
+      outroend?.();
+    }
+  });
 </script>
 
 {#if show}
@@ -57,32 +74,32 @@
     stroke-linecap="round"
     stroke-linejoin="round"
     class={cn('lucide lucide-circle-check', className)}
-    {...$$restProps}
+    {...restProps}
   >
     <path
-      on:introstart={() => dispatch('circleintrostart')}
-      on:introend={() => {
+      onintrostart={() => circleintrostart?.()}
+      onintroend={() => {
         circleIntroEnd = true;
-        dispatch('circleintroend');
+        circleintroend?.();
       }}
-      on:outrostart={() => dispatch('circleoutrostart')}
-      on:outroend={() => {
+      onoutrostart={() => circleoutrostart?.()}
+      onoutroend={() => {
         circleOutroEnd = true;
-        dispatch('circleoutroend');
+        circleoutroend?.();
       }}
       d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2"
       in:draw|global={drawParams?.circle}
     />
     <path
-      on:introstart={() => dispatch('checkintrostart')}
-      on:introend={() => {
+      onintrostart={() => checkintrostart?.()}
+      onintroend={() => {
         checkIntroEnd = true;
-        dispatch('checkintroend');
+        checkintroend?.();
       }}
-      on:outrostart={() => dispatch('checkoutrostart')}
-      on:outroend={() => {
+      onoutrostart={() => checkoutrostart?.()}
+      onoutroend={() => {
         checkOutroEnd = true;
-        dispatch('checkoutroend');
+        checkoutroend?.();
       }}
       d="m9 12 2 2 4-4"
       in:draw|global={drawParams?.check}

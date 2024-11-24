@@ -1,52 +1,77 @@
 <script lang="ts">
   import { cn } from '$lib/utils';
-  import { createEventDispatcher, tick } from 'svelte';
+  import { tick } from 'svelte';
   import { draw, type DrawParams } from 'svelte/transition';
+  import type { CircleProps } from '.';
 
-  type $$Props = {
+  type CircleXProps = CircleProps & {
     drawParams?: {
       left: DrawParams;
       right: DrawParams;
       circle: DrawParams;
     };
-    class?: string;
-    size?: number;
-    color?: string;
-    strokeWidth?: number;
+    leftintrostart?: () => void;
+    leftintroend?: () => void;
+    leftoutrostart?: () => void;
+    leftoutroend?: () => void;
+    rightintrostart?: () => void;
+    rightintroend?: () => void;
+    rightoutrostart?: () => void;
+    rightoutroend?: () => void;
   };
 
-  export let drawParams: $$Props['drawParams'] = {
-    left: { duration: 1000 },
-    right: { duration: 1000 },
-    circle: { duration: 1000 }
-  };
-  let className: $$Props['class'] = undefined;
-  export let size: $$Props['size'] = 24;
-  export let color: $$Props['color'] = 'currentColor';
-  export let strokeWidth: $$Props['strokeWidth'] = 2;
-  export { className as class };
+  let {
+    drawParams = {
+      left: { duration: 1000 },
+      right: { duration: 1000 },
+      circle: { duration: 1000 }
+    },
+    class: className,
+    size = 24,
+    color = 'currentColor',
+    strokeWidth = 2,
+    introend,
+    outroend,
+    circleintrostart,
+    circleintroend,
+    circleoutrostart,
+    circleoutroend,
+    leftintrostart,
+    leftintroend,
+    leftoutrostart,
+    leftoutroend,
+    rightintrostart,
+    rightintroend,
+    rightoutrostart,
+    rightoutroend,
+    ...restProps
+  }: CircleXProps = $props();
 
-  let show: boolean = true;
+  let show: boolean = $state(true);
   export const restart = async () => {
     show = false;
     await tick();
     show = true;
   };
 
-  const dispatch = createEventDispatcher();
-  let circleIntroEnd: boolean = false;
-  let circleOutroEnd: boolean = false;
-  let leftIntroEnd: boolean = false;
-  let leftOutroEnd: boolean = false;
-  let rightIntroEnd: boolean = false;
-  let rightOutroEnd: boolean = false;
+  let circleIntroEnd: boolean = $state(false);
+  let circleOutroEnd: boolean = $state(false);
+  let leftIntroEnd: boolean = $state(false);
+  let leftOutroEnd: boolean = $state(false);
+  let rightIntroEnd: boolean = $state(false);
+  let rightOutroEnd: boolean = $state(false);
 
-  $: if (circleIntroEnd && leftIntroEnd && rightIntroEnd) {
-    dispatch('introend');
-  }
-  $: if (circleOutroEnd && leftOutroEnd && rightOutroEnd) {
-    dispatch('outroend');
-  }
+  $effect(() => {
+    if (circleIntroEnd && leftIntroEnd && rightIntroEnd) {
+      introend?.();
+    }
+  });
+
+  $effect(() => {
+    if (circleOutroEnd && leftOutroEnd && rightOutroEnd) {
+      outroend?.();
+    }
+  });
 </script>
 
 {#if show}
@@ -61,46 +86,46 @@
     stroke-linecap="round"
     stroke-linejoin="round"
     class={cn('lucide lucide-circle-x', className)}
-    {...$$restProps}
+    {...restProps}
   >
     <path
-      on:introstart={() => dispatch('circleintrostart')}
-      on:introend={() => {
+      onintrostart={() => circleintrostart?.()}
+      onintroend={() => {
         circleIntroEnd = true;
-        dispatch('circleintroend');
+        circleintroend?.();
       }}
-      on:outrostart={() => dispatch('circleoutrostart')}
-      on:outroend={() => {
+      onoutrostart={() => circleoutrostart?.()}
+      onoutroend={() => {
         circleOutroEnd = true;
-        dispatch('circleoutroend');
+        circleoutroend?.();
       }}
       d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2"
       in:draw|global={drawParams?.circle}
     />
     <path
-      on:introstart={() => dispatch('leftintrostart')}
-      on:introend={() => {
+      onintrostart={() => leftintrostart?.()}
+      onintroend={() => {
         leftIntroEnd = true;
-        dispatch('leftintroend');
+        leftintroend?.();
       }}
-      on:outrostart={() => dispatch('leftoutrostart')}
-      on:outroend={() => {
+      onoutrostart={() => leftoutrostart?.()}
+      onoutroend={() => {
         leftOutroEnd = true;
-        dispatch('leftoutroend');
+        leftoutroend?.();
       }}
       d="m15 9-6 6"
       in:draw|global={drawParams?.left}
     />
     <path
-      on:introstart={() => dispatch('rightintrostart')}
-      on:introend={() => {
+      onintrostart={() => rightintrostart?.()}
+      onintroend={() => {
         rightIntroEnd = true;
-        dispatch('rightintroend');
+        rightintroend?.();
       }}
-      on:outrostart={() => dispatch('rightoutrostart')}
-      on:outroend={() => {
+      onoutrostart={() => rightoutrostart?.()}
+      onoutroend={() => {
         rightOutroEnd = true;
-        dispatch('rightoutroend');
+        rightoutroend?.();
       }}
       d="m9 9 6 6"
       in:draw|global={drawParams?.right}
