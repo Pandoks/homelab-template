@@ -29,6 +29,7 @@
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.4",
     "drizzle-kit": "^0.28.1",
+    "formsnap": "2.0.0-next.1",
     "lucide-svelte": "^0.460.1",
     "postcss": "^8.4.49",
     "prettier": "^3.1.1",
@@ -36,12 +37,14 @@
     "rollup-plugin-visualizer": "^5.12.0",
     "svelte": "^5.2.7",
     "svelte-check": "^4.1.0",
+    "sveltekit-superforms": "^2.20.1",
     "tailwindcss": "^3.4.15",
     "tailwindcss-animate": "^1.0.7",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",
-    "vitest": "^2.1.5"
+    "vitest": "^2.1.5",
+    "zod": "^3.23.8"
   },
   "type": "module",
   "dependencies": {
@@ -54,14 +57,11 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
     "drizzle-zod": "^0.5.1",
-    "formsnap": "^1.0.1",
     "highlight.js": "^11.10.0",
     "postgres": "^3.4.5",
     "redis": "^4.6.15",
-    "sveltekit-superforms": "^2.20.1",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "^0.3.0",
-    "uqr": "^0.1.2",
-    "zod": "^3.23.8"
+    "uqr": "^0.1.2"
   }
 }
