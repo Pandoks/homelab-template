@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { superForm, type SuperForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import {
     signupPasskeySchema,
     signupSchema,
