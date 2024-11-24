@@ -1,16 +1,9 @@
-import Root from './link-countdown.svelte';
-
-type Props = {
-  method?: 'GET' | 'POST';
-  action?: string;
-  duration?: number;
-  class?: string;
-};
+import Root, { type LinkCountdownProps } from './link-countdown.svelte';
 
 export {
-  type Props,
+  type LinkCountdownProps as Props,
   Root,
   //
-  type Props as LinkCountdownProps,
+  type LinkCountdownProps,
   Root as LinkCountdown
 };

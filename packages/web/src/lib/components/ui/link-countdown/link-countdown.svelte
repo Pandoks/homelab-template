@@ -1,16 +1,23 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import type { Props } from '.';
+  import type { WithElementRef } from 'bits-ui';
+  import type { HTMLFormAttributes } from 'svelte/elements';
 
-  type $$Props = Props;
-  let className: $$Props['class'] = undefined;
-  export let method: $$Props['method'] = 'POST';
-  export let action: $$Props['action'] = undefined;
-  export let duration: $$Props['duration'] = 60;
-  export { className as class };
+  export type LinkCountdownProps = WithElementRef<HTMLFormAttributes> & {
+    duration?: number;
+  };
 
-  let sent = false;
-  let time = duration!;
+  let {
+    class: className,
+    method = 'POST',
+    duration = $bindable(60),
+    children,
+    ...restProps
+  }: LinkCountdownProps = $props();
+
+  let sent = $state(false);
+  let time = $state(duration);
+
   let intervalId: NodeJS.Timeout;
   const handleSubmit = () => {
     sent = true;
@@ -28,12 +35,12 @@
   };
 </script>
 
-<form {method} {action} class={className} {...$$restProps} use:enhance on:submit={handleSubmit}>
+<form {method} class={className} {...restProps} use:enhance onsubmit={handleSubmit}>
   {#if sent}
     {time}
   {:else}
     <button type="submit" class="underline">
-      <slot />
+      {@render children?.()}
     </button>
   {/if}
 </form>
