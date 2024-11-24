@@ -1,10 +1,11 @@
 import { type TransitionConfig } from 'svelte/transition';
-import Root from './button.svelte';
-import type { ButtonProps } from '$lib/components/ui/button';
+import Root from './condition-button.svelte';
+import type { Snippet } from 'svelte';
 
 type Transition = (node: Element, params?: any) => TransitionConfig;
 
-type Props = ButtonProps & {
+export type BooleanButtonProps = {
+  class?: string;
   loading?: boolean;
   success?: boolean;
   successDuration?: number;
@@ -35,12 +36,18 @@ type Props = ButtonProps & {
     outTransition?: Transition;
     outParams?: any;
   };
+  loadingChild?: Snippet;
+  successChild?: Snippet;
+  failChild?: Snippet;
+  children?: Snippet;
+  onintrostart?: () => void;
+  onintroend?: () => void;
+  onoutrostart?: () => void;
+  onoutroend?: () => void;
 };
 
 export {
   Root,
-  type Props,
   //
-  Root as Button,
-  type Props as ButtonProps
+  Root as BooleanButton
 };
