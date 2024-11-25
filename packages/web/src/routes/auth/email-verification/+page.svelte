@@ -3,14 +3,16 @@
    * TODO: Use input OTP when available on Shadcn-Svelte
    */
   import LinkCountdown from '$lib/components/ui/link-countdown/link-countdown.svelte';
-  import type { ActionData, PageData } from './$types';
+  import type { ActionData } from './$types';
   import VerificationForm from './verification-form.svelte';
   import { errorShake } from '$lib/components/animation/function';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
+  let formInteracted = $state(false);
+  let resendLimited = $state(false);
+  let resendTimeout: NodeJS.Timeout;
 
-  $: handleFormUpdate(form);
+  $effect(() => handleFormUpdate(form));
 
   const handleFormUpdate = (form: ActionData) => {
     if (!form) {
@@ -25,10 +27,6 @@
       }, 5000); // get rid of limit errors after 5 seconds
     }
   };
-
-  let formInteracted = false;
-  let resendLimited = false;
-  let resendTimeout: NodeJS.Timeout;
 </script>
 
 <div class="w-full h-screen">
@@ -43,7 +41,7 @@
       </div>
 
       <VerificationForm
-        on:interacted={() => (formInteracted = true)}
+        interacted={() => (formInteracted = true)}
         data={data.emailVerificationForm}
       />
 

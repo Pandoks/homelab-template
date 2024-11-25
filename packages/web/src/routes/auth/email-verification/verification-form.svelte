@@ -4,9 +4,11 @@
   import { Input } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
-  import { createEventDispatcher } from 'svelte';
 
-  export let data: SuperValidated<Infer<VerificationSchema>>;
+  let {
+    data,
+    interacted
+  }: { data: SuperValidated<Infer<VerificationSchema>>; interacted?: () => void } = $props();
 
   const form = superForm(data, {
     clearOnSubmit: 'message',
@@ -14,21 +16,23 @@
   });
 
   const { form: formData, enhance, delayed } = form;
-  $: $formData.code = $formData.code.replaceAll(' ', '');
-
-  const dispatch = createEventDispatcher();
+  $effect(() => {
+    $formData.code = $formData.code.replaceAll(' ', '');
+  });
 </script>
 
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-email-code">
   <Form.Field {form} name="code">
-    <Form.Control let:attrs>
-      <Form.Label>Verification Code</Form.Label>
-      <Input
-        on:input={() => dispatch('interacted')}
-        {...attrs}
-        class="text-center"
-        bind:value={$formData.code}
-      />
+    <Form.Control>
+      {#snippet children({ props })}
+        <Form.Label>Verification Code</Form.Label>
+        <Input
+          oninput={() => interacted?.()}
+          {...props}
+          class="text-center"
+          bind:value={$formData.code}
+        />
+      {/snippet}
     </Form.Control>
   </Form.Field>
 
