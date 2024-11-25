@@ -34,7 +34,7 @@
   <button
     onclick={() => (isHidden = !isHidden)}
     type="button"
-    class="absolute top-1/2 -translate-y-1/2 right-[8px] h-6 w-6"
+    class="absolute flex items-center justify-center top-1/2 -translate-y-1/2 right-[8px] h-6 w-6"
   >
     {#if isHidden}
       <Eye size={16} />

@@ -9,20 +9,17 @@
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { Input, PasswordInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
+  import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { slide } from 'svelte/transition';
   import { Button } from '$lib/components/ui/button';
   import { tick } from 'svelte';
-  import { get } from 'svelte/store';
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
   import { registerPasskey } from '@startup-template/core/auth/passkey';
   import { PUBLIC_APP_NAME } from '$env/static/public';
-  import { type SuperFormData } from 'sveltekit-superforms/client';
-  import { render } from 'svelte/server';
 
-  // TODO: add show and hide password
   let {
     data,
     interacted
@@ -33,13 +30,19 @@
     };
     interacted?: () => void;
   } = $props();
-  let type: 'password' | 'passkey' = $state('password');
 
   const signupForm = superForm(data.signupForm, {
     validators: zodClient(signupSchema),
     clearOnSubmit: 'message',
     multipleSubmits: 'prevent'
   });
+  const {
+    form: signupFormData,
+    enhance: signupEnhance,
+    delayed: signupDelayed,
+    errors: signupErrors
+  } = signupForm;
+
   const passkeyForm = superForm(data.passkeyForm, {
     validators: zodClient(signupPasskeySchema),
     clearOnSubmit: 'message',
@@ -76,47 +79,41 @@
       }
     }
   });
-  const { form: signupFormData, enhance: signupEnhance, delayed: signupDelayed } = signupForm;
   const {
     form: passkeyFormData,
     enhance: passkeyEnhance,
-    delayed: passkeyDelayedForm
+    delayed: passkeyDelayedForm,
+    errors: passkeyErrors
   } = passkeyForm;
 
-  const passkeyDelayed = $derived($passkeyDelayedForm);
+  /** Handle synchronizing form data */
+  let type: 'password' | 'passkey' = $state('password');
 
+  const synchronizeFormData = (formData: {
+    username: string;
+    email: string;
+    usernameErrors?: string[];
+    emailErrors?: string[];
+  }) => {
+    $signupFormData.username = $passkeyFormData.username = formData.username;
+    $signupFormData.email = $passkeyFormData.email = formData.email;
+    $signupErrors.username = formData.username ? formData.usernameErrors : undefined;
+    $signupErrors.email = formData.email ? formData.emailErrors : undefined;
+    $passkeyErrors.username = formData.username ? formData.usernameErrors : undefined;
+    $passkeyErrors.email = formData.email ? formData.emailErrors : undefined;
+  };
+
+  const sharedFormData = $derived({
+    username: type === 'password' ? $signupFormData.username : $passkeyFormData.username,
+    email: type === 'password' ? $signupFormData.email : $passkeyFormData.email,
+    usernameErrors: type === 'password' ? $signupErrors.username : $passkeyErrors.username,
+    emailErrors: type === 'password' ? $signupErrors.email : $passkeyErrors.email
+  });
   $effect(() => {
-    if (type === 'password') {
-      $passkeyFormData.username = $signupFormData.username;
-      $passkeyFormData.email = $signupFormData.email;
-
-      let errors: { username?: string[]; email?: string[] } = {};
-      const signupErrors = get(signupForm.errors);
-      if ($passkeyFormData.username) {
-        errors.username = signupErrors.username;
-      }
-      if ($passkeyFormData.email) {
-        errors.email = signupErrors.email;
-      }
-
-      passkeyForm.errors.set(errors);
-    } else {
-      $signupFormData.username = $passkeyFormData.username;
-      $signupFormData.email = $passkeyFormData.email;
-
-      let errors: { username?: string[]; email?: string[]; password?: string[] } = {};
-      const passkeyErrors = get(passkeyForm.errors);
-      if ($signupFormData.username) {
-        errors.username = passkeyErrors.username;
-      }
-      if ($signupFormData.email) {
-        errors.email = passkeyErrors.email;
-      }
-
-      signupForm.errors.set(errors);
-    }
+    console.log($signupErrors.username);
   });
 
+  /** Handle animations */
   let transitionComplete = $state(false);
   let passwordFormSwitching = $state(false); // only used for password signup because of transition
 
@@ -124,6 +121,7 @@
     transitionComplete = false;
     passwordFormSwitching = true;
 
+    // update the buttons first before transition starts
     await tick();
 
     type = type === 'password' ? 'passkey' : 'password';
@@ -131,12 +129,13 @@
   };
 </script>
 
-{#snippet formField({
+<!-- your lsp will hate this snippet but it works -->
+{#snippet sharedFormField({
   label,
   form,
   $formData
 }: {
-  label: string;
+  label: 'Username' | 'Email';
   form: SuperForm<any, any>;
   $formData: Record<string, unknown>;
 })}
@@ -145,8 +144,11 @@
       {#snippet children({ props })}
         <Form.Label>{label}</Form.Label>
         <Input
-          oninput={() => interacted?.()}
-          bind:value={$formData[label.toLowerCase()]}
+          oninput={(e) => {
+            $formData[label.toLowerCase()] = e.target.value;
+            interacted?.();
+          }}
+          value={sharedFormData[label.toLowerCase()]}
           {...props}
         />
       {/snippet}
@@ -165,8 +167,8 @@
 
 {#if type === 'password'}
   <form class="flex flex-col" method="POST" use:signupEnhance action="?/signup">
-    {@render formField({ label: 'Username', form: signupForm, $formData: $signupFormData })}
-    {@render formField({ label: 'Email', form: signupForm, $formData: $signupFormData })}
+    {@render sharedFormField({ label: 'Username', form: signupForm, $formData: $signupFormData })}
+    {@render sharedFormField({ label: 'Email', form: signupForm, $formData: $signupFormData })}
 
     <div
       transition:slide|local={{ duration: 250 }}
@@ -209,7 +211,14 @@
 
     {@render divider()}
 
-    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
+    <Button
+      class="w-full mt-4"
+      variant="secondary"
+      onclick={async () => {
+        synchronizeFormData(sharedFormData);
+        await swapLoginType();
+      }}
+    >
       {#if passwordFormSwitching}
         Password Sign Up
       {:else}
@@ -220,11 +229,11 @@
   </form>
 {:else if transitionComplete}
   <form class="flex flex-col" method="POST" use:passkeyEnhance action="?/signup-passkey">
-    {@render formField({ label: 'Username', form: passkeyForm, $formData: $passkeyFormData })}
-    {@render formField({ label: 'Email', form: passkeyForm, $formData: $passkeyFormData })}
+    {@render sharedFormField({ label: 'Username', form: passkeyForm, $formData: $passkeyFormData })}
+    {@render sharedFormField({ label: 'Email', form: passkeyForm, $formData: $passkeyFormData })}
 
-    <Form.Button disabled={passkeyDelayed} class="w-full mt-4">
-      {#if passkeyDelayed}
+    <Form.Button disabled={$passkeyDelayedForm} class="w-full mt-4">
+      {#if $passkeyDelayedForm}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Signing Up
       {:else}
@@ -235,7 +244,14 @@
 
     {@render divider()}
 
-    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
+    <Button
+      class="w-full mt-4"
+      variant="secondary"
+      onclick={async () => {
+        synchronizeFormData(sharedFormData);
+        await swapLoginType();
+      }}
+    >
       Password Sign Up
     </Button>
   </form>
