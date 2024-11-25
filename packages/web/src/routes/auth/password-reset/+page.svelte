@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { ActionData, PageData } from './$types';
   import PasswordResetForm from './password-reset-form.svelte';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  $: if (form) {
-    formInteracted = false;
-  }
-
-  let formInteracted = false;
+  let formInteracted = $state(false);
+  $effect(() => {
+    if (form) {
+      formInteracted = false;
+    }
+  });
 </script>
 
 <div class="w-full h-screen">
