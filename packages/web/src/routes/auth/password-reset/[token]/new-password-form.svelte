@@ -5,10 +5,16 @@
   import * as Form from '$lib/components/ui/form';
   import { LoaderCircle } from 'lucide-svelte';
   import { newPasswordSchema, type NewPasswordSchema } from './schema';
-  import { createEventDispatcher } from 'svelte';
 
-  export let data: SuperValidated<Infer<NewPasswordSchema>>;
-  export let disabled: boolean = false;
+  let {
+    data,
+    disabled = false,
+    interacted
+  }: {
+    data: SuperValidated<Infer<NewPasswordSchema>>;
+    disabled: boolean;
+    interacted: () => void;
+  } = $props();
 
   const form = superForm(data, {
     validators: zodClient(newPasswordSchema),
@@ -17,35 +23,37 @@
   });
 
   const { form: formData, enhance, delayed } = form;
-
-  const dispatch = createEventDispatcher();
 </script>
 
 <form class="grid gap-4" method="POST" use:enhance action="?/new-password">
   <Form.Field {form} name="password">
-    <Form.Control let:attrs>
-      <Form.Label>Password</Form.Label>
-      <Input
-        on:input={() => dispatch('interacted')}
-        {...attrs}
-        type="password"
-        autocomplete="on"
-        bind:value={$formData.password}
-      />
+    <Form.Control>
+      {#snippet children({ props })}
+        <Form.Label>Password</Form.Label>
+        <Input
+          oninput={() => interacted?.()}
+          {...props}
+          type="password"
+          autocomplete="on"
+          bind:value={$formData.password}
+        />
+      {/snippet}
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>
 
   <Form.Field {form} name="passwordConfirmation">
-    <Form.Control let:attrs>
-      <Form.Label>Confirm Password</Form.Label>
-      <Input
-        on:input={() => dispatch('interacted')}
-        {...attrs}
-        type="password"
-        autocomplete="on"
-        bind:value={$formData.passwordConfirmation}
-      />
+    <Form.Control>
+      {#snippet children({ props })}
+        <Form.Label>Confirm Password</Form.Label>
+        <Input
+          oninput={() => interacted?.()}
+          {...props}
+          type="password"
+          autocomplete="on"
+          bind:value={$formData.passwordConfirmation}
+        />
+      {/snippet}
     </Form.Control>
     <Form.FieldErrors />
   </Form.Field>

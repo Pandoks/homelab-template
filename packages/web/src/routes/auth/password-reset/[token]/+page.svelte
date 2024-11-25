@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { ActionData, PageData } from './$types';
   import NewPasswordForm from './new-password-form.svelte';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  $: if (form) {
-    formInteracted = false;
-  }
-
-  let formInteracted = false;
+  let formInteracted = $state(false);
+  $effect(() => {
+    if (form) {
+      formInteracted = false;
+    }
+  });
 </script>
 
 <div class="w-full h-screen">
@@ -27,7 +26,7 @@
       </div>
 
       <NewPasswordForm
-        on:interacted={() => (formInteracted = true)}
+        interacted={() => (formInteracted = true)}
         data={data.newPasswordForm}
         disabled={!data.success}
       />

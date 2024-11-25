@@ -24,10 +24,7 @@
         {/if}
       </div>
 
-      <PasswordResetForm
-        on:interacted={() => (formInteracted = true)}
-        data={data.passwordResetForm}
-      />
+      <PasswordResetForm interacted={() => (formInteracted = true)} data={data.passwordResetForm} />
     </div>
   </div>
 </div>

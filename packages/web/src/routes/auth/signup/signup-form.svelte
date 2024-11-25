@@ -152,7 +152,7 @@
       <Form.Control>
         {#snippet children({ props })}
           <Form.Label>Username</Form.Label>
-          <Input bind:value={$signupFormData.username} {...props} />
+          <Input bind:value={$signupFormData.username} oninput={() => interacted?.()} {...props} />
         {/snippet}
       </Form.Control>
       <Form.FieldErrors class="text-xs" />
@@ -162,7 +162,7 @@
       <Form.Control>
         {#snippet children({ props })}
           <Form.Label>Email</Form.Label>
-          <Input bind:value={$signupFormData.email} {...props} />
+          <Input bind:value={$signupFormData.email} oninput={() => interacted?.()} {...props} />
         {/snippet}
       </Form.Control>
       <Form.FieldErrors class="text-xs" />
@@ -231,7 +231,7 @@
       <Form.Control>
         {#snippet children({ props })}
           <Form.Label>Username</Form.Label>
-          <Input bind:value={$passkeyFormData.username} {...props} />
+          <Input bind:value={$passkeyFormData.username} oninput={() => interacted?.()} {...props} />
         {/snippet}
       </Form.Control>
       <Form.FieldErrors class="text-xs" />
@@ -241,7 +241,7 @@
       <Form.Control>
         {#snippet children({ props })}
           <Form.Label>Email</Form.Label>
-          <Input bind:value={$passkeyFormData.email} {...props} />
+          <Input bind:value={$passkeyFormData.email} oninput={() => interacted?.()} {...props} />
         {/snippet}
       </Form.Control>
       <Form.FieldErrors class="text-xs" />
