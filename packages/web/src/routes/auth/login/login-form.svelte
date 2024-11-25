@@ -1,28 +1,35 @@
 <script lang="ts">
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import { type LoginFormSchema, type LoginPasskeySchema } from './schema';
-  import { Input, ToggleInput } from '$lib/components/ui/input';
+  import { Input, PasswordInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
-  import { createEventDispatcher, tick } from 'svelte';
+  import { tick } from 'svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { Button } from '$lib/components/ui/button';
   import { slide } from 'svelte/transition';
   import { get } from 'svelte/store';
   import { authenticatePasskey } from '@startup-template/core/auth/passkey';
 
-  export let data: {
-    loginForm: SuperValidated<Infer<LoginFormSchema>>;
-    passkeyForm: SuperValidated<Infer<LoginPasskeySchema>>;
-  };
-  let type: 'password' | 'passkey' = 'password';
+  let {
+    data,
+    interacted
+  }: {
+    data: {
+      loginForm: SuperValidated<Infer<LoginFormSchema>>;
+      passkeyForm: SuperValidated<Infer<LoginPasskeySchema>>;
+    };
+    interacted?: () => void;
+  } = $props();
 
   const loginForm = superForm(data.loginForm, {
     clearOnSubmit: 'none',
     multipleSubmits: 'prevent',
     dataType: 'json' // needed for union zod types
   });
+  const { form: loginFormData, enhance: loginEnhance, delayed: loginDelayed } = loginForm;
+
   const passkeyForm = superForm(data.passkeyForm, {
     clearOnSubmit: 'none',
     multipleSubmits: 'prevent',
@@ -32,7 +39,7 @@
         await authenticatePasskey();
 
       if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
-        passkeyDelayed = false;
+        $passkeyDelayedForm = false;
         form.cancel();
       }
 
@@ -46,74 +53,87 @@
       });
     }
   });
-
-  const { form: loginFormData, enhance: loginEnhance, delayed: loginDelayed } = loginForm;
   const {
     form: passkeyFormData,
     enhance: passkeyEnhance,
     delayed: passkeyDelayedForm
   } = passkeyForm;
 
-  $: passkeyDelayed = $passkeyDelayedForm;
+  /** Handle synchronizing form data */
+  let type: 'password' | 'passkey' = $state('password');
+  const sharedFormData = $derived({
+    usernameOrEmail:
+      type === 'password' ? $loginFormData.usernameOrEmail : $passkeyFormData.usernameOrEmail
+  });
 
-  $: if (type === 'password') {
-    $passkeyFormData.usernameOrEmail = $loginFormData.usernameOrEmail;
-  } else {
-    $loginFormData.usernameOrEmail = $passkeyFormData.usernameOrEmail;
-  }
+  const synchronizeFormData = (formData: { usernameOrEmail: string }) => {
+    $passkeyFormData.usernameOrEmail = $loginFormData.usernameOrEmail = formData.usernameOrEmail;
+  };
 
-  let transitionComplete = false;
-  let passwordFormSwitching = false; // only used for password signup because of transition
+  /** Handle animations */
+  let transitionComplete = $state(false);
+  let passwordFormSwitching = $state(false); // only used for password signup because of transition
 
   const swapLoginType = async () => {
     transitionComplete = false;
     passwordFormSwitching = true;
 
+    // update the buttons first before transition starts
     await tick();
 
     type = type === 'password' ? 'passkey' : 'password';
     passwordFormSwitching = false;
   };
-
-  const dispatch = createEventDispatcher();
 </script>
+
+{#snippet divider()}
+  <div class="flex justify-center items-center pt-4">
+    <Separator class="w-[43%] mr-4" orientation="horizontal" />
+    <p class="text-xs text-muted-foreground">or</p>
+    <Separator class="w-[43%] ml-4" orientation="horizontal" />
+  </div>
+{/snippet}
 
 {#if type === 'password'}
   <form class="flex flex-col" method="POST" use:loginEnhance action="?/login">
     <Form.Field form={loginForm} name="usernameOrEmail">
-      <Form.Control let:attrs>
-        <Label>Email/Username</Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$loginFormData.usernameOrEmail}
-        />
+      <Form.Control>
+        {#snippet children({ props })}
+          <Label>Email/Username</Label>
+          <Input
+            oninput={() => interacted?.()}
+            {...props}
+            bind:value={$loginFormData.usernameOrEmail}
+          />
+        {/snippet}
       </Form.Control>
     </Form.Field>
 
     <div
       transition:slide|local={{ duration: 250 }}
-      on:outroend={() => {
+      onoutroend={() => {
         transitionComplete = true;
         passwordFormSwitching = false;
       }}
       class="mt-5"
     >
       <Form.Field form={loginForm} name="password">
-        <Form.Control let:attrs>
-          <div class="flex items-center">
-            <Label for="password">Password</Label>
-            <a href="/auth/password-reset" class="ml-auto inline-block text-sm underline">
-              Forgot your password?
-            </a>
-          </div>
-          <ToggleInput
-            on:input={() => dispatch('interacted')}
-            {...attrs}
-            bind:value={$loginFormData.password}
-            autocomplete="on"
-            type="password"
-          />
+        <Form.Control>
+          {#snippet children({ props })}
+            <div class="flex items-center">
+              <Label for="password">Password</Label>
+              <a href="/auth/password-reset" class="ml-auto inline-block text-sm underline">
+                Forgot your password?
+              </a>
+            </div>
+            <PasswordInput
+              oninput={() => interacted?.()}
+              {...props}
+              bind:value={$loginFormData.password}
+              autocomplete="on"
+              type="password"
+            />
+          {/snippet}
         </Form.Control>
       </Form.Field>
     </div>
@@ -130,13 +150,16 @@
       {/if}
     </Form.Button>
 
-    <div class="flex justify-center items-center pt-4">
-      <Separator class="w-[43%] mr-4" orientation="horizontal" />
-      <p class="text-xs text-muted-foreground">or</p>
-      <Separator class="w-[43%] ml-4" orientation="horizontal" />
-    </div>
+    {@render divider()}
 
-    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
+    <Button
+      class="w-full mt-4"
+      variant="secondary"
+      onclick={async () => {
+        synchronizeFormData(sharedFormData);
+        await swapLoginType();
+      }}
+    >
       {#if passwordFormSwitching}
         Password Login
       {:else}
@@ -148,18 +171,20 @@
 {:else if transitionComplete}
   <form class="flex flex-col" method="POST" use:passkeyEnhance action="?/login-passkey">
     <Form.Field form={passkeyForm} name="usernameOrEmail">
-      <Form.Control let:attrs>
-        <Label>Email/Username</Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$passkeyFormData.usernameOrEmail}
-        />
+      <Form.Control>
+        {#snippet children({ props })}
+          <Label>Email/Username</Label>
+          <Input
+            oninput={() => interacted?.()}
+            {...props}
+            bind:value={$passkeyFormData.usernameOrEmail}
+          />
+        {/snippet}
       </Form.Control>
     </Form.Field>
 
-    <Form.Button disabled={passkeyDelayed} class="w-full mt-6">
-      {#if passkeyDelayed}
+    <Form.Button disabled={$passkeyDelayedForm} class="w-full mt-6">
+      {#if $passkeyDelayedForm}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Logging In
       {:else}
@@ -168,12 +193,17 @@
       {/if}
     </Form.Button>
 
-    <div class="flex justify-center items-center pt-4">
-      <Separator class="w-[43%] mr-4" orientation="horizontal" />
-      <p class="text-xs text-muted-foreground">or</p>
-      <Separator class="w-[43%] ml-4" orientation="horizontal" />
-    </div>
+    {@render divider()}
 
-    <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>Password Login</Button>
+    <Button
+      class="w-full mt-4"
+      variant="secondary"
+      onclick={async () => {
+        synchronizeFormData(sharedFormData);
+        swapLoginType();
+      }}
+    >
+      Password Login
+    </Button>
   </form>
 {/if}

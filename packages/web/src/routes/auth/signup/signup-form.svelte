@@ -72,6 +72,7 @@
         data.set('clientDataJSON', clientDataJSON);
         data.set('attestationObject', attestationObject);
       } catch (error) {
+        $passkeyDelayedForm = false;
         console.error(error);
         // TODO: delete the passkey (wait for https://github.com/w3c/webauthn/pull/2093)
         form.cancel();
@@ -88,6 +89,12 @@
 
   /** Handle synchronizing form data */
   let type: 'password' | 'passkey' = $state('password');
+  const sharedFormData = $derived({
+    username: type === 'password' ? $signupFormData.username : $passkeyFormData.username,
+    email: type === 'password' ? $signupFormData.email : $passkeyFormData.email,
+    usernameErrors: type === 'password' ? $signupErrors.username : $passkeyErrors.username,
+    emailErrors: type === 'password' ? $signupErrors.email : $passkeyErrors.email
+  });
 
   const synchronizeFormData = (formData: {
     username: string;
@@ -113,14 +120,6 @@
       delete $passkeyErrors.email;
     }
   };
-  $inspect($signupFormData, $signupErrors, $passkeyFormData, $passkeyErrors);
-
-  const sharedFormData = $derived({
-    username: type === 'password' ? $signupFormData.username : $passkeyFormData.username,
-    email: type === 'password' ? $signupFormData.email : $passkeyFormData.email,
-    usernameErrors: type === 'password' ? $signupErrors.username : $passkeyErrors.username,
-    emailErrors: type === 'password' ? $signupErrors.email : $passkeyErrors.email
-  });
 
   /** Handle animations */
   let transitionComplete = $state(false);
