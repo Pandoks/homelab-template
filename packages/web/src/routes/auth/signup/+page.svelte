@@ -27,7 +27,7 @@
 
       <SignupForm
         data={{ signupForm: data.signupForm, passkeyForm: data.signupPasskeyForm }}
-        on:interacted={() => (formInteracted = true)}
+        interacted={() => (formInteracted = true)}
       />
 
       <div class="text-center text-sm">

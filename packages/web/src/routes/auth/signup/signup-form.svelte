@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import { superForm, type Infer, type SuperForm, type SuperValidated } from 'sveltekit-superforms';
   import {
     signupPasskeySchema,
     signupSchema,
@@ -7,28 +7,31 @@
     type SignupSchema
   } from './schema';
   import { zodClient } from 'sveltekit-superforms/adapters';
-  import { Input, ToggleInput } from '$lib/components/ui/input';
+  import { Input, PasswordInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { slide } from 'svelte/transition';
   import { Button } from '$lib/components/ui/button';
-  import { createEventDispatcher, tick } from 'svelte';
+  import { tick } from 'svelte';
   import { get } from 'svelte/store';
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
   import { registerPasskey } from '@startup-template/core/auth/passkey';
   import { PUBLIC_APP_NAME } from '$env/static/public';
+  import { type SuperFormData } from 'sveltekit-superforms/client';
+  import { render } from 'svelte/server';
 
   // TODO: add show and hide password
-
   let {
-    data
+    data,
+    interacted
   }: {
     data: {
       signupForm: SuperValidated<Infer<SignupSchema>>;
       passkeyForm: SuperValidated<Infer<SignupPasskeySchema>>;
     };
+    interacted?: () => void;
   } = $props();
   let type: 'password' | 'passkey' = $state('password');
 
@@ -126,35 +129,44 @@
     type = type === 'password' ? 'passkey' : 'password';
     passwordFormSwitching = false;
   };
-
-  const dispatch = createEventDispatcher();
 </script>
+
+{#snippet formField({
+  label,
+  form,
+  $formData
+}: {
+  label: string;
+  form: SuperForm<any, any>;
+  $formData: Record<string, unknown>;
+})}
+  <Form.Field {form} name={label.toLowerCase()}>
+    <Form.Control>
+      {#snippet children({ props })}
+        <Form.Label>{label}</Form.Label>
+        <Input
+          oninput={() => interacted?.()}
+          bind:value={$formData[label.toLowerCase()]}
+          {...props}
+        />
+      {/snippet}
+    </Form.Control>
+    <Form.FieldErrors />
+  </Form.Field>
+{/snippet}
+
+{#snippet divider()}
+  <div class="flex justify-center items-center pt-4">
+    <Separator class="w-[43%] mr-4" orientation="horizontal" />
+    <p class="text-xs text-muted-foreground">or</p>
+    <Separator class="w-[43%] ml-4" orientation="horizontal" />
+  </div>
+{/snippet}
 
 {#if type === 'password'}
   <form class="flex flex-col" method="POST" use:signupEnhance action="?/signup">
-    <Form.Field form={signupForm} name="username">
-      <Form.Control let:attrs>
-        <Form.Label>Username</Form.Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$signupFormData.username}
-        />
-      </Form.Control>
-      <Form.FieldErrors />
-    </Form.Field>
-
-    <Form.Field form={signupForm} name="email" class="mt-1">
-      <Form.Control let:attrs>
-        <Form.Label>Email</Form.Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$signupFormData.email}
-        />
-      </Form.Control>
-      <Form.FieldErrors />
-    </Form.Field>
+    {@render formField({ label: 'Username', form: signupForm, $formData: $signupFormData })}
+    {@render formField({ label: 'Email', form: signupForm, $formData: $signupFormData })}
 
     <div
       transition:slide|local={{ duration: 250 }}
@@ -165,17 +177,19 @@
       class="mt-2"
     >
       <Form.Field form={signupForm} name="password">
-        <Form.Control let:attrs>
-          <div class="flex items-center">
-            <Form.Label for="password">Password</Form.Label>
-          </div>
-          <ToggleInput
-            on:input={() => dispatch('interacted')}
-            {...attrs}
-            bind:value={$signupFormData.password}
-            autocomplete="on"
-            type="password"
-          />
+        <Form.Control>
+          {#snippet children({ props })}
+            <div class="flex items-center">
+              <Form.Label for="password">Password</Form.Label>
+            </div>
+            <PasswordInput
+              oninput={() => interacted?.()}
+              bind:value={$signupFormData.password}
+              autocomplete="on"
+              type="password"
+              {...props}
+            />
+          {/snippet}
         </Form.Control>
         <Form.FieldErrors />
       </Form.Field>
@@ -193,11 +207,7 @@
       {/if}
     </Form.Button>
 
-    <div class="flex justify-center items-center pt-4">
-      <Separator class="w-[43%] mr-4" orientation="horizontal" />
-      <p class="text-xs text-muted-foreground">or</p>
-      <Separator class="w-[43%] ml-4" orientation="horizontal" />
-    </div>
+    {@render divider()}
 
     <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
       {#if passwordFormSwitching}
@@ -210,29 +220,8 @@
   </form>
 {:else if transitionComplete}
   <form class="flex flex-col" method="POST" use:passkeyEnhance action="?/signup-passkey">
-    <Form.Field form={passkeyForm} name="username">
-      <Form.Control let:attrs>
-        <Form.Label>Username</Form.Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$passkeyFormData.username}
-        />
-      </Form.Control>
-      <Form.FieldErrors />
-    </Form.Field>
-
-    <Form.Field form={passkeyForm} name="email" class="mt-1">
-      <Form.Control let:attrs>
-        <Form.Label>Email</Form.Label>
-        <Input
-          on:input={() => dispatch('interacted')}
-          {...attrs}
-          bind:value={$passkeyFormData.email}
-        />
-      </Form.Control>
-      <Form.FieldErrors />
-    </Form.Field>
+    {@render formField({ label: 'Username', form: passkeyForm, $formData: $passkeyFormData })}
+    {@render formField({ label: 'Email', form: passkeyForm, $formData: $passkeyFormData })}
 
     <Form.Button disabled={passkeyDelayed} class="w-full mt-4">
       {#if passkeyDelayed}
@@ -244,11 +233,7 @@
       {/if}
     </Form.Button>
 
-    <div class="flex justify-center items-center pt-4">
-      <Separator class="w-[43%] mr-4" orientation="horizontal" />
-      <p class="text-xs text-muted-foreground">or</p>
-      <Separator class="w-[43%] ml-4" orientation="horizontal" />
-    </div>
+    {@render divider()}
 
     <Button class="w-full mt-4" variant="secondary" onclick={swapLoginType}>
       Password Sign Up
