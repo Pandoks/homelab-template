@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { superForm, type Infer, type SuperForm, type SuperValidated } from 'sveltekit-superforms';
+  import SuperDebug, {
+    superForm,
+    type Infer,
+    type SuperForm,
+    type SuperValidated
+  } from 'sveltekit-superforms';
   import {
     signupPasskeySchema,
     signupSchema,
@@ -9,7 +14,6 @@
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { Input, PasswordInput } from '$lib/components/ui/input';
   import * as Form from '$lib/components/ui/form';
-  import { Label } from '$lib/components/ui/label';
   import { Fingerprint, LoaderCircle } from 'lucide-svelte';
   import { Separator } from '$lib/components/ui/separator';
   import { slide } from 'svelte/transition';
@@ -48,6 +52,7 @@
     clearOnSubmit: 'message',
     multipleSubmits: 'prevent',
     onSubmit: async (form) => {
+      // before submitting the form (only username, email), setup the passkey
       const data = form.formData;
       const username = data.get('username') as string;
       const email = data.get('email');
@@ -97,20 +102,19 @@
   }) => {
     $signupFormData.username = $passkeyFormData.username = formData.username;
     $signupFormData.email = $passkeyFormData.email = formData.email;
-    $signupErrors.username = formData.username ? formData.usernameErrors : undefined;
-    $signupErrors.email = formData.email ? formData.emailErrors : undefined;
-    $passkeyErrors.username = formData.username ? formData.usernameErrors : undefined;
-    $passkeyErrors.email = formData.email ? formData.emailErrors : undefined;
+
+    const usernameErrors = formData.usernameErrors;
+    const emailErrors = formData.emailErrors;
+    $signupErrors.username = $passkeyErrors.username = usernameErrors;
+    $signupErrors.email = $passkeyErrors.email = emailErrors;
   };
+  $inspect($signupFormData, $signupErrors, $passkeyFormData, $passkeyErrors);
 
   const sharedFormData = $derived({
     username: type === 'password' ? $signupFormData.username : $passkeyFormData.username,
     email: type === 'password' ? $signupFormData.email : $passkeyFormData.email,
     usernameErrors: type === 'password' ? $signupErrors.username : $passkeyErrors.username,
     emailErrors: type === 'password' ? $signupErrors.email : $passkeyErrors.email
-  });
-  $effect(() => {
-    console.log($signupErrors.username);
   });
 
   /** Handle animations */
@@ -129,34 +133,6 @@
   };
 </script>
 
-<!-- your lsp will hate this snippet but it works -->
-{#snippet sharedFormField({
-  label,
-  form,
-  $formData
-}: {
-  label: 'Username' | 'Email';
-  form: SuperForm<any, any>;
-  $formData: Record<string, unknown>;
-})}
-  <Form.Field {form} name={label.toLowerCase()}>
-    <Form.Control>
-      {#snippet children({ props })}
-        <Form.Label>{label}</Form.Label>
-        <Input
-          oninput={(e) => {
-            $formData[label.toLowerCase()] = e.target.value;
-            interacted?.();
-          }}
-          value={sharedFormData[label.toLowerCase()]}
-          {...props}
-        />
-      {/snippet}
-    </Form.Control>
-    <Form.FieldErrors />
-  </Form.Field>
-{/snippet}
-
 {#snippet divider()}
   <div class="flex justify-center items-center pt-4">
     <Separator class="w-[43%] mr-4" orientation="horizontal" />
@@ -167,8 +143,25 @@
 
 {#if type === 'password'}
   <form class="flex flex-col" method="POST" use:signupEnhance action="?/signup">
-    {@render sharedFormField({ label: 'Username', form: signupForm, $formData: $signupFormData })}
-    {@render sharedFormField({ label: 'Email', form: signupForm, $formData: $signupFormData })}
+    <Form.Field form={signupForm} name="username">
+      <Form.Control>
+        {#snippet children({ props })}
+          <Form.Label>Username</Form.Label>
+          <Input bind:value={$signupFormData.username} {...props} />
+        {/snippet}
+      </Form.Control>
+      <Form.FieldErrors class="text-xs" />
+    </Form.Field>
+
+    <Form.Field form={signupForm} name="email">
+      <Form.Control>
+        {#snippet children({ props })}
+          <Form.Label>Email</Form.Label>
+          <Input bind:value={$signupFormData.email} {...props} />
+        {/snippet}
+      </Form.Control>
+      <Form.FieldErrors class="text-xs" />
+    </Form.Field>
 
     <div
       transition:slide|local={{ duration: 250 }}
@@ -193,7 +186,7 @@
             />
           {/snippet}
         </Form.Control>
-        <Form.FieldErrors />
+        <Form.FieldErrors class="text-xs" />
       </Form.Field>
     </div>
 
@@ -229,8 +222,25 @@
   </form>
 {:else if transitionComplete}
   <form class="flex flex-col" method="POST" use:passkeyEnhance action="?/signup-passkey">
-    {@render sharedFormField({ label: 'Username', form: passkeyForm, $formData: $passkeyFormData })}
-    {@render sharedFormField({ label: 'Email', form: passkeyForm, $formData: $passkeyFormData })}
+    <Form.Field form={passkeyForm} name="username">
+      <Form.Control>
+        {#snippet children({ props })}
+          <Form.Label>Username</Form.Label>
+          <Input bind:value={$passkeyFormData.username} {...props} />
+        {/snippet}
+      </Form.Control>
+      <Form.FieldErrors class="text-xs" />
+    </Form.Field>
+
+    <Form.Field form={passkeyForm} name="email">
+      <Form.Control>
+        {#snippet children({ props })}
+          <Form.Label>Email</Form.Label>
+          <Input bind:value={$passkeyFormData.email} {...props} />
+        {/snippet}
+      </Form.Control>
+      <Form.FieldErrors class="text-xs" />
+    </Form.Field>
 
     <Form.Button disabled={$passkeyDelayedForm} class="w-full mt-4">
       {#if $passkeyDelayedForm}
