@@ -1,10 +1,5 @@
 <script lang="ts">
-  import SuperDebug, {
-    superForm,
-    type Infer,
-    type SuperForm,
-    type SuperValidated
-  } from 'sveltekit-superforms';
+  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import {
     signupPasskeySchema,
     signupSchema,
@@ -105,8 +100,18 @@
 
     const usernameErrors = formData.usernameErrors;
     const emailErrors = formData.emailErrors;
-    $signupErrors.username = $passkeyErrors.username = usernameErrors;
-    $signupErrors.email = $passkeyErrors.email = emailErrors;
+    if (usernameErrors) {
+      $signupErrors.username = $passkeyErrors.username = usernameErrors;
+    } else {
+      delete $signupErrors.username;
+      delete $passkeyErrors.username;
+    }
+    if (emailErrors) {
+      $signupErrors.email = $passkeyErrors.email = emailErrors;
+    } else {
+      delete $signupErrors.email;
+      delete $passkeyErrors.email;
+    }
   };
   $inspect($signupFormData, $signupErrors, $passkeyFormData, $passkeyErrors);
 
