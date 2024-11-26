@@ -1,5 +1,5 @@
 import { type TransitionConfig } from 'svelte/transition';
-import Root from './condition-button.svelte';
+import Root from './boolean-button.svelte';
 import type { Snippet } from 'svelte';
 
 type Transition = (node: Element, params?: any) => TransitionConfig;
@@ -36,9 +36,9 @@ export type BooleanButtonProps = {
     outTransition?: Transition;
     outParams?: any;
   };
-  loadingChild?: Snippet;
-  successChild?: Snippet;
-  failChild?: Snippet;
+  loadingSnippet?: Snippet;
+  successSnippet?: Snippet;
+  failSnippet?: Snippet;
   children?: Snippet;
   onintrostart?: () => void;
   onintroend?: () => void;

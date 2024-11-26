@@ -4,49 +4,34 @@
   import { Input } from '$lib/components/ui/input';
   import { cn } from '$lib/utils';
   import { Eye } from 'lucide-svelte';
+  import type { CopyProps } from '.';
+  import type { Snippet } from 'svelte';
 
-  type $$Props = {
-    class?: string;
-    copy?: string | null;
-    duration?: number;
-    size?:
-      | 'xs'
-      | 'sm'
-      | 'base'
-      | 'lg'
-      | 'xl'
-      | '2xl'
-      | '3xl'
-      | '4xl'
-      | '5xl'
-      | '6xl'
-      | '7xl'
-      | '8xl'
-      | '9xl';
-    align?: 'left' | 'center' | 'right';
-  };
+  let {
+    class: className,
+    copy = '',
+    duration = 1200,
+    size = 'xs',
+    align = 'left',
+    ...restProps
+  }: CopyProps = $props();
 
-  let className: $$Props['class'] = undefined;
-  export { className as class };
-  export let copy: $$Props['copy'] = '';
-  export let duration = 1200;
-  export let size = 'xs';
-  export let align = 'left';
+  let isHidden = $state(true);
+  let copied = $state(false);
 
-  let isHidden: boolean = true;
-
-  let copied = false;
-  $: buttonStyle = copied
-    ? 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-14'
-    : 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-6';
-
+  const buttonStyle = $derived(
+    copied
+      ? 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-14'
+      : 'absolute top-1/2 -translate-y-1/2 right-[4px] h-6 w-6'
+  );
   const inputStyles = {
     base: 'h-8 pr-8',
     variants: {
       hover: 'bg-slate-100'
     }
   };
-  let inputStyle = inputStyles.base;
+
+  let inputStyle = $state(inputStyles.base);
 
   let clickTimeout: NodeJS.Timeout;
   const handleCopy = async () => {
@@ -64,23 +49,23 @@
   <Input
     disabled
     class={cn(`text-${size} text-${align}`, inputStyle)}
-    {...$$restProps}
+    {...restProps}
     value={copy}
     type={isHidden ? 'password' : 'text'}
   />
   <!-- turns disabled Input component clickable -->
   <button
     class="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-    on:click={handleCopy}
-    on:mouseenter={() => (inputStyle = cn(inputStyles.base, inputStyles.variants.hover))}
-    on:mouseleave={() => (inputStyle = inputStyles.base)}
+    onclick={handleCopy}
+    onmouseenter={() => (inputStyle = cn(inputStyles.base, inputStyles.variants.hover))}
+    onmouseleave={() => (inputStyle = inputStyles.base)}
     aria-label="Copy password"
   ></button>
   <Button
     class={buttonStyle}
     variant="outline"
     size="icon"
-    on:click={() => {
+    onclick={() => {
       isHidden = copied ? isHidden : !isHidden;
     }}
   >

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ActionData, PageData } from './$types';
   import * as AlertDialog from '$lib/components/ui/alert-dialog';
   import { Button } from '$lib/components/ui/button';
   import { enhance } from '$app/forms';
@@ -8,19 +7,21 @@
   import { CircleAlert, LoaderCircle, TriangleAlert } from 'lucide-svelte';
   import { errorShake } from '$lib/components/animation/function';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  let open = false;
-  let delayed = false;
+  let open = $state(false);
+  let delayed = $state(false);
   let formTimeout: NodeJS.Timeout;
-  $: if (form) {
-    clearTimeout(formTimeout);
-    delayed = false;
-    open = false;
-  }
 
-  let mounted = false;
+  $effect(() => {
+    if (form) {
+      clearTimeout(formTimeout);
+      delayed = false;
+      open = false;
+    }
+  });
+
+  let mounted = $state(false);
   onMount(() => {
     mounted = true;
   });
@@ -36,17 +37,7 @@
 
       <div class="flex flex-col gap-1">
         {#if data.twoFactorRecoveryCode || form?.twoFactorRecoveryCode}
-          <div class="flex gap-1 text-yellow-600">
-            <TriangleAlert size={16} />
-            <p class="text-xs">Do not navigate/refresh until copied</p>
-          </div>
-          <CopySecret
-            class="w-[310px]"
-            size="xs"
-            copy={data.twoFactorRecoveryCode
-              ? data.twoFactorRecoveryCode
-              : form?.twoFactorRecoveryCode}
-          />
+          {@render secret()}
         {:else}
           <div class="flex flex-col items-center gap-3 text-red-600">
             {#if mounted}
@@ -62,7 +53,7 @@
           <form
             class="w-full"
             method="POST"
-            on:submit={() =>
+            onsubmit={() =>
               (formTimeout = setTimeout(() => {
                 delayed = true;
               }, 500))}
@@ -84,67 +75,87 @@
       </div>
 
       {#if data.twoFactorRecoveryCode || form?.twoFactorRecoveryCode}
-        <AlertDialog.Root closeOnOutsideClick={true} bind:open>
-          <AlertDialog.Trigger asChild>
-            <Button class="w-full mt-2" onclick={() => (open = true)}>
-              Activate 2 Factor Authentication
-            </Button>
-          </AlertDialog.Trigger>
-          <AlertDialog.Content>
-            <AlertDialog.Header>
-              <AlertDialog.Title>Did you store the recovery code?</AlertDialog.Title>
-              <AlertDialog.Description>
-                This is the only time you are going to have access to the recovery code. You will
-                not be able to view it after you leave this page.
-              </AlertDialog.Description>
-            </AlertDialog.Header>
-            <AlertDialog.Footer>
-              <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-              <AlertDialog.Action asChild>
-                <form
-                  method="POST"
-                  on:submit={() =>
-                    (formTimeout = setTimeout(() => {
-                      delayed = true;
-                    }, 500))}
-                  use:enhance
-                  action="?/activate-2fa"
-                >
-                  {#if delayed}
-                    <Button disabled class="w-full">
-                      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                      Activating
-                    </Button>
-                  {:else}
-                    <Button type="submit" class="w-full">Activate</Button>
-                  {/if}
-                </form>
-              </AlertDialog.Action>
-            </AlertDialog.Footer>
-          </AlertDialog.Content>
-        </AlertDialog.Root>
+        {@render alert()}
       {:else}
-        <form
-          class="w-full"
-          method="POST"
-          on:submit={() =>
-            (formTimeout = setTimeout(() => {
-              delayed = true;
-            }, 500))}
-          use:enhance
-          action="?/activate-2fa"
-        >
-          {#if delayed}
-            <Button disabled class="w-full mt-2">
-              <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-              Activating
-            </Button>
-          {:else}
-            <Button class="w-full mt-2" type="submit">Activate 2 Factor Authentication</Button>
-          {/if}
-        </form>
-        <div class="text-center text-sm -mt-10">Continue if you already have the recovery code</div>
+        {@render activate()}
       {/if}
     </div>
   </div>
 </div>
+
+{#snippet secret()}
+  <div class="flex gap-1 text-yellow-600">
+    <TriangleAlert size={16} />
+    <p class="text-xs">Do not navigate/refresh until copied</p>
+  </div>
+  <CopySecret
+    class="w-[310px]"
+    size="xs"
+    copy={data.twoFactorRecoveryCode ? data.twoFactorRecoveryCode : form?.twoFactorRecoveryCode}
+  />
+{/snippet}
+
+{#snippet alert()}
+  <AlertDialog.Root closeOnOutsideClick={true} bind:open>
+    <AlertDialog.Trigger>
+      <Button class="w-full mt-2" onclick={() => (open = true)}>
+        Activate 2 Factor Authentication
+      </Button>
+    </AlertDialog.Trigger>
+    <AlertDialog.Content>
+      <AlertDialog.Header>
+        <AlertDialog.Title>Did you store the recovery code?</AlertDialog.Title>
+        <AlertDialog.Description>
+          This is the only time you are going to have access to the recovery code. You will not be
+          able to view it after you leave this page.
+        </AlertDialog.Description>
+      </AlertDialog.Header>
+      <AlertDialog.Footer>
+        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+        <AlertDialog.Action asChild>
+          <form
+            method="POST"
+            onsubmit={() =>
+              (formTimeout = setTimeout(() => {
+                delayed = true;
+              }, 500))}
+            use:enhance
+            action="?/activate-2fa"
+          >
+            {#if delayed}
+              <Button disabled class="w-full">
+                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                Activating
+              </Button>
+            {:else}
+              <Button type="submit" class="w-full">Activate</Button>
+            {/if}
+          </form>
+        </AlertDialog.Action>
+      </AlertDialog.Footer>
+    </AlertDialog.Content>
+  </AlertDialog.Root>
+{/snippet}
+
+{#snippet activate()}
+  <form
+    class="w-full"
+    method="POST"
+    onsubmit={() =>
+      (formTimeout = setTimeout(() => {
+        delayed = true;
+      }, 500))}
+    use:enhance
+    action="?/activate-2fa"
+  >
+    {#if delayed}
+      <Button disabled class="w-full mt-2">
+        <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+        Activating
+      </Button>
+    {:else}
+      <Button class="w-full mt-2" type="submit">Activate 2 Factor Authentication</Button>
+    {/if}
+  </form>
+  <div class="text-center text-sm -mt-10">Continue if you already have the recovery code</div>
+{/snippet}

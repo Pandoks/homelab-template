@@ -2,13 +2,11 @@
   import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
   import { CopySecret } from '$lib/components/ui/copy';
-  import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
   import { goto } from '$app/navigation';
   import { renderSVG } from 'uqr';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 </script>
 
 <div class="h-screen">

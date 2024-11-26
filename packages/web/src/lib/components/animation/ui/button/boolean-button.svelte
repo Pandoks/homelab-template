@@ -32,12 +32,12 @@
     onintroend,
     onoutrostart,
     onoutroend,
-    loadingChild,
-    successChild,
-    failChild,
+    loadingSnippet,
+    successSnippet,
+    failSnippet,
     children,
     ...restProps
-  }: BooleanButtonProps = $props();
+  }: BooleanButtonProps & { [key: string]: any } = $props();
 
   let timeout: NodeJS.Timeout;
 
@@ -118,7 +118,7 @@
       {onoutrostart}
       {onoutroend}
     >
-      {@render loadingChild?.()}
+      {@render loadingSnippet?.()}
     </div>
   {:else if verified}
     <div
@@ -139,7 +139,7 @@
         onoutroend?.();
       }}
     >
-      {@render successChild?.()}
+      {@render successSnippet?.()}
     </div>
   {:else if errored}
     <div
@@ -160,7 +160,7 @@
         onoutroend?.();
       }}
     >
-      {@render failChild?.()}
+      {@render failSnippet?.()}
     </div>
   {:else if normal}
     <div

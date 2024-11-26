@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * TODO: Use input OTP when available on Shadcn-Svelte
+   */
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import { twoFactorSetupSchema, type TwoFactorSetupSchema } from './schema';
   import { Input } from '$lib/components/ui/input';
@@ -6,16 +9,16 @@
   import { CircleX, LoaderCircle } from 'lucide-svelte';
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { CircleCheck } from '$lib/components/animation/icon';
-  import { Button } from '$lib/components/animation/ui/button';
+  import { BooleanButton } from '$lib/components/animation/ui/button';
   import type { ActionData } from './$types';
 
-  export let data: SuperValidated<Infer<TwoFactorSetupSchema>>;
-  export let form: ActionData;
+  let { data, form }: { data: SuperValidated<Infer<TwoFactorSetupSchema>>; form: ActionData } =
+    $props();
 
-  let animatedButton: Button;
+  let animatedButton: BooleanButton;
   let successElement: CircleCheck;
-  $: verified = form ? form.success : false;
-  $: fail = form ? !form.success : false;
+  const verified = $derived(form ? form.success : false);
+  const fail = $derived(form ? form.success : false);
 
   const superFormFields = superForm(data, {
     validators: zodClient(twoFactorSetupSchema),
@@ -36,39 +39,45 @@
 
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
   <Form.Field form={superFormFields} name="otp">
-    <Form.Control let:attrs>
-      {#if verified}
-        <Form.Label class="text-green-600">Verification Code</Form.Label>
-      {:else}
-        <Form.Label>Verification Code</Form.Label>
-      {/if}
-      <div class="flex w-full max-w-sm items-center space-x-3">
-        <Input
-          {...attrs}
-          class="text-center"
-          placeholder="XXXXXX"
-          maxlength={6}
-          bind:value={$formData.otp}
-        />
+    <Form.Control>
+      {#snippet children({ props })}
+        {#if verified}
+          <Form.Label class="text-green-600">Verification Code</Form.Label>
+        {:else}
+          <Form.Label>Verification Code</Form.Label>
+        {/if}
+        <div class="flex w-full max-w-sm items-center space-x-3">
+          <Input
+            {...props}
+            class="text-center"
+            placeholder="XXXXXX"
+            maxlength={6}
+            bind:value={$formData.otp}
+          />
 
-        <Button
-          type="submit"
-          variant="secondary"
-          class="w-24"
-          loading={$delayed}
-          success={verified}
-          {fail}
-          bind:this={animatedButton}
-          failDuration={1000}
-        >
-          <svelte:fragment slot="loading">
-            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-          </svelte:fragment>
-          <CircleX slot="fail" class="stroke-red-600" />
-          <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} />
-          <p>Verify</p>
-        </Button>
-      </div>
+          <BooleanButton
+            type="submit"
+            variant="secondary"
+            class="w-24"
+            loading={$delayed}
+            success={verified}
+            {fail}
+            bind:this={animatedButton}
+            failDuration={1000}
+          >
+            {#snippet loadingSnippet()}
+              <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+            {/snippet}
+            {#snippet failSnippet()}
+              <CircleX class="stroke-red-600" />
+            {/snippet}
+            {#snippet successSnippet()}
+              <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} />
+            {/snippet}
+            <p>Verify</p>
+          </BooleanButton>
+        </div>
+      {/snippet}
     </Form.Control>
   </Form.Field>
 </form>

@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * TODO: Use input OTP when available on Shadcn-Svelte
+   */
   import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
   import { type VerificationSchema } from './schema';
   import { Input } from '$lib/components/ui/input';
@@ -16,9 +19,6 @@
   });
 
   const { form: formData, enhance, delayed } = form;
-  $effect(() => {
-    $formData.code = $formData.code.replaceAll(' ', '');
-  });
 </script>
 
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-email-code">
@@ -27,7 +27,10 @@
       {#snippet children({ props })}
         <Form.Label>Verification Code</Form.Label>
         <Input
-          oninput={() => interacted?.()}
+          oninput={(e) => {
+            $formData.code = e.target.value.replace(/\s/g, '');
+            interacted?.();
+          }}
           {...props}
           class="text-center"
           bind:value={$formData.code}

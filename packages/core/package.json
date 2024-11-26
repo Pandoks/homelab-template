@@ -4,9 +4,9 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "setup": "docker compose -p setup up -d && sleep 1 && drizzle-kit push --config=./src/database/main/drizzle.config.ts --force",
-    "test:unit": "pnpm run setup && sst shell vitest",
-    "generate": "drizzle-kit generate --config ./src/database/main/drizzle.config.ts"
+    "db:reset": "rm -rf ./src/database/main/dev/meta ./src/database/main/dev/_init.sql",
+    "db:gen": "pnpm run db:reset && drizzle-kit generate --config ./src/database/main/drizzle.config.ts --name init",
+    "test:unit": "pnpm run setup && sst shell vitest"
   },
   "exports": {
     "./*": "./src/*.ts"

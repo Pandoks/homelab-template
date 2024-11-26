@@ -1,7 +1,6 @@
 import { type InferSelectModel, relations } from "drizzle-orm";
 import { boolean, pgTable, text } from "drizzle-orm/pg-core";
 import {
-  emailVerifications,
   passkeys,
   passwordResets,
   sessions,
@@ -12,17 +11,18 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(), // will be converted to lower case
   passwordHash: text("password_hash"),
+  role: text("role").notNull().default("default"),
 });
 /** TODO: when checks get released in Drizzle ORM, add check for password.
  * Password can only be null if the user has at least a single passkey
  */
 export const userRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
-  emailVerificationCode: one(emailVerifications),
   passkeys: many(passkeys),
   passwordReset: one(passwordResets),
   email: one(emails),
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials),
+  role: one(roles),
 }));
 export type User = InferSelectModel<typeof users> & {
   email: string;
@@ -43,3 +43,7 @@ export const emailRelations = relations(emails, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const roles = pgTable("roles", {
+  role: text("role").primaryKey(),
+});

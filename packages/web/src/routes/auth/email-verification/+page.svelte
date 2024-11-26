@@ -12,7 +12,9 @@
   let resendLimited = $state(false);
   let resendTimeout: NodeJS.Timeout;
 
-  $effect(() => handleFormUpdate(form));
+  $effect(() => {
+    handleFormUpdate(form);
+  });
 
   const handleFormUpdate = (form: ActionData) => {
     if (!form) {

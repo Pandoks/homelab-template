@@ -1,4 +1,9 @@
+/**
+ * WARN: DO NOT add this to any scripts.
+ * You should manually specify this config file so you don't accidentally push to production
+ */
 import { defineConfig } from "drizzle-kit";
+import { Resource } from "sst";
 
 export default defineConfig({
   schema: "./src/database/main/schema/*.sql.ts",
