@@ -22,7 +22,6 @@ export const userRelations = relations(users, ({ one, many }) => ({
   passwordReset: one(passwordResets),
   email: one(emails),
   twoFactorAuthenticationCredential: one(twoFactorAuthenticationCredentials),
-  role: one(roles),
 }));
 export type User = InferSelectModel<typeof users> & {
   email: string;

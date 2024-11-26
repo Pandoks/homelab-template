@@ -1,4 +1,4 @@
-# Used to setup applications needed to run application in dev environment
+# Used to setup the core dependencies that most packages will need
 networks:
   homelab-dev-network:
     driver: bridge

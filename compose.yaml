@@ -1,6 +1,7 @@
 # WARN: should not be used in production since credentials are in plain text.
+# NOTE: Needs to be used in relation to core/compose.yaml
 # Should ONLY be used for dev/test environments
-# Represents infrastructure as a monolith
+# Represents entire infrastructure as a monolith
 networks:
   homelab-network:
     driver: bridge
@@ -34,24 +35,5 @@ services:
       - base
       - cache
       - userdb
-    networks:
-      - homelab-network
-
-  cache:
-    image: redis:7-alpine
-    command: redis-server --requirepass password
-    ports:
-      - "6379:6379"
-    networks:
-      - homelab-network
-
-  userdb:
-    image: postgres:15-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
     networks:
       - homelab-network
