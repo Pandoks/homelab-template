@@ -69,30 +69,6 @@
           />
 
           {@render booleanButton()}
-
-          <!-- <BooleanButton -->
-          <!--   type="submit" -->
-          <!--   variant="secondary" -->
-          <!--   class="w-24" -->
-          <!--   loading={$delayed} -->
-          <!--   success={verified} -->
-          <!--   {fail} -->
-          <!--   bind:this={animatedButton} -->
-          <!--   failDuration={1000} -->
-          <!-- > -->
-          <!--   {#snippet loadingSnippet()} -->
-          <!--     <LoaderCircle class="mr-2 h-4 w-4 animate-spin" /> -->
-          <!--   {/snippet} -->
-          <!--   {#snippet failSnippet()} -->
-          <!--     <CircleX class="stroke-red-600" /> -->
-          <!--   {/snippet} -->
-          <!--   {#snippet successSnippet()} -->
-          <!--     <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} /> -->
-          <!--   {/snippet} -->
-          <!--   {#snippet children()} -->
-          <!--     <p>Verify</p> -->
-          <!--   {/snippet} -->
-          <!-- </BooleanButton> -->
         </div>
       {/snippet}
     </Form.Control>

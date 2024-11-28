@@ -1,3 +1,3 @@
-import shake from './error-shake';
+import errorShake from './error-shake';
 
-export { shake as errorShake };
+export { errorShake };
