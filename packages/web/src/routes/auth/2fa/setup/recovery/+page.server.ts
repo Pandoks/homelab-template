@@ -9,8 +9,6 @@ import { createSession, generateSessionToken } from '@startup-template/core/auth
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
 
-export const ssr = false;
-
 export const actions: Actions = {
   'activate-2fa': async (event) => {
     handleAlreadyLoggedIn(event);
