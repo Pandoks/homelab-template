@@ -69,34 +69,8 @@ test('should not allow invalid recovery codes', async ({ twoFacPass }) => {
   await page.getByLabel('Recovery Code').fill('asdfwrongoogabooga'); // buy a lottery if this is a valid code
   await page.getByRole('button', { name: 'Recover' }).click();
 
-  const homeWait = page.waitForURL('/');
-  await Promise.all([
-    page.getByLabel('2FA will be disabled').getByRole('button', { name: 'Recover' }).click(),
-    homeWait
-  ]);
-
-  const twoFactorInfo = await mainDb
-    .select()
-    .from(users)
-    .innerJoin(
-      twoFactorAuthenticationCredentials,
-      eq(twoFactorAuthenticationCredentials.userId, users.id)
-    )
-    .where(eq(users.username, twoFacPass.username.toLowerCase()));
-  expect(twoFactorInfo.length).toBe(0);
-
-  // login without 2fa
-  await logout(page);
-  await page.goto('/auth/login');
-  await page.locator('input[name="usernameOrEmail"]').click();
-  await page.locator('input[name="usernameOrEmail"]').fill(twoFacPass.username);
-  await page.locator('input[name="password"]').click();
-  await page.locator('input[name="password"]').fill(twoFacPass.password!);
-  const loginHomeWait = page.waitForURL('/');
-  await Promise.all([
-    page.getByRole('button', { name: 'Login', exact: true }).click(),
-    loginHomeWait
-  ]);
+  await page.getByLabel('2FA will be disabled').getByRole('button', { name: 'Recover' }).click();
+  await expect(page.getByText('Invalid code')).toBeVisible();
 });
 
 test.describe('redirections based off of user conditions', () => {
