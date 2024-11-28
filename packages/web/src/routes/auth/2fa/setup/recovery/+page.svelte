@@ -54,7 +54,7 @@
             </p>
           </div>
           <form
-            class="w-full pt-5 pb-12"
+            class="w-full pt-5 pb-10"
             method="POST"
             onsubmit={() =>
               (formTimeout = setTimeout(() => {
@@ -110,9 +110,7 @@
 
 {#snippet alert(description: string)}
   <Dialog.Root bind:open>
-    <Dialog.Trigger class="w-full">
-      <Button class="w-full">Activate 2 Factor Authentication</Button>
-    </Dialog.Trigger>
+    <Button class="w-full" onclick={() => (open = true)}>Activate 2 Factor Authentication</Button>
     <Dialog.Content interactOutsideBehavior="close">
       <Dialog.Header>
         <Dialog.Title>Did you store the recovery code?</Dialog.Title>

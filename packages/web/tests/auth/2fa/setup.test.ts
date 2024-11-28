@@ -10,7 +10,7 @@ import { generateTOTP } from '@oslojs/otp';
 
 const setupPageTOTP = async (page: Page) => {
   await page.goto('/auth/2fa/setup');
-  await page.locator('button[data-button-root]:has(svg.lucide-eye)').click();
+  await page.getByRole('button').nth(1).click();
   await page.locator('input[type="text"][disabled]').waitFor({ state: 'visible' });
   const plainTwoFactor = await page.locator('input[type="text"][disabled]').inputValue();
   expect(plainTwoFactor).toBeTruthy();

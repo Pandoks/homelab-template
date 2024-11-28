@@ -35,9 +35,7 @@
   </Form.Field>
 
   <Dialog.Root bind:open>
-    <Dialog.Trigger>
-      <Button class="w-full mt-2" onclick={() => (open = true)}>Recover</Button>
-    </Dialog.Trigger>
+    <Button class="w-full mt-2" onclick={() => (open = true)}>Recover</Button>
     <Dialog.Content>
       <Dialog.Header>
         <Dialog.Title>2FA will be disabled</Dialog.Title>
