@@ -21,15 +21,22 @@
     validators: zodClient(twoFactorSetupSchema),
     multipleSubmits: 'abort',
     resetForm: false,
-    invalidateAll: false
+    invalidateAll: false,
+    onResult: ({ result: { type } }) => {
+      clearTimeout(clickTimeout);
+      clickTimeout = setTimeout(() => {
+        show = false;
+      }, 1500);
+
+      condition = type === 'success' ? 'success' : 'fail';
+      show = true;
+    }
   });
 
   const { form: formData, enhance, delayed } = superFormFields;
 
-  let normal = $state(true);
-  let condition = $state(false);
-  let success = $derived(form && form.success && condition);
-  let fail = $derived(form && !form.success && condition);
+  let show = $state(false);
+  let condition = $state<'none' | 'success' | 'fail'>('none');
   let clickTimeout: NodeJS.Timeout;
 </script>
 
@@ -59,43 +66,26 @@
 </form>
 
 {#snippet booleanButton()}
-  <Button
-    disabled={$delayed}
-    class="w-24 overflow-hidden"
-    variant="secondary"
-    type="submit"
-    onclick={() => {
-      clearTimeout(clickTimeout);
-      clickTimeout = setTimeout(() => {
-        condition = false;
-      }, 1500);
-      condition = true;
-      normal = false;
-    }}
-  >
+  <Button disabled={$delayed} class="w-24 overflow-hidden" variant="secondary" type="submit">
     {#if $delayed}
       <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-    {:else if fail}
-      <div
-        in:errorShake
-        out:fly={{ duration: 300, y: 30 }}
-        onoutroend={() => {
-          normal = true;
-        }}
-      >
-        <CircleX class="stroke-red-600" />
-      </div>
-    {:else if success}
-      <div
-        out:fly={{ duration: 300, y: 30 }}
-        onoutroend={() => {
-          normal = true;
-        }}
-      >
-        <CircleCheck class="stroke-green-600" />
-      </div>
-    {:else if normal}
+    {:else if condition === 'none'}
       Verify
+    {:else if show}
+      <div
+        out:fly={{ duration: 300, y: 30 }}
+        onoutroend={() => {
+          condition = 'none';
+        }}
+      >
+        {#if condition === 'success'}
+          <CircleCheck class="stroke-green-600" />
+        {:else if condition === 'fail'}
+          <div in:errorShake|global>
+            <CircleX class="stroke-red-600" />
+          </div>
+        {/if}
+      </div>
     {/if}
   </Button>
 {/snippet}
