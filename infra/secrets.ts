@@ -1,5 +1,5 @@
 export const secrets = {
-  DigitalOceanToken: new sst.Secret("DigitalOceanToken"),
+  HetznerToken: new sst.Secret("HetznerToken"),
   CloudflareApiToken: new sst.Secret("CloudflareApiToken"),
 
   PublicSSHKey: new sst.Secret("PublicSSHKey"),

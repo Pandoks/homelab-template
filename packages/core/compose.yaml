@@ -1,6 +1,6 @@
 # Used to setup the core dependencies that most packages will need
 networks:
-  homelab-dev-network:
+  homelab-network:
     driver: bridge
 
 services:
@@ -10,7 +10,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - homelab-dev-network
+      - homelab-network
 
   userdb:
     image: postgres:15-alpine
@@ -24,4 +24,4 @@ services:
       - ./src/database/main/dev/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./src/database/main/dev/roles.sql:/docker-entrypoint-initdb.d/roles.sql
     networks:
-      - homelab-dev-network
+      - homelab-network

@@ -10,6 +10,11 @@ bootcmd:
   - iptables -A INPUT -i lo -j ACCEPT
   - iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
   - iptables -A INPUT -p tcp --dport ${sshPort} -j ACCEPT
+  - ip6tables -P INPUT DROP
+  - ip6tables -P OUTPUT ACCEPT
+  - ip6tables -A INPUT -i lo -j ACCEPT
+  - ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  - ip6tables -A INPUT -p tcp --dport ${sshPort} -j ACCEPT
   - /etc/cron.daily/update-cloudflare-ips
 
 users:
