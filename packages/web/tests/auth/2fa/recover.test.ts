@@ -52,6 +52,53 @@ test('should disable 2fa with recovery code', async ({ twoFacPass }) => {
   ]);
 });
 
+test('should not allow invalid recovery codes', async ({ twoFacPass }) => {
+  const page = twoFacPass.page;
+  await logout(page);
+
+  await page.goto('/auth/login');
+  await page.locator('input[name="usernameOrEmail"]').click();
+  await page.locator('input[name="usernameOrEmail"]').fill(twoFacPass.username);
+  await page.locator('input[name="password"]').click();
+  await page.locator('input[name="password"]').fill(twoFacPass.password!);
+  const otpWait = page.waitForURL('/auth/2fa/otp');
+  await Promise.all([page.getByRole('button', { name: 'Login', exact: true }).click(), otpWait]);
+  const recoverWait = page.waitForURL('/auth/2fa/recover');
+  await Promise.all([page.getByRole('link', { name: 'Recovery Code' }).click(), recoverWait]);
+  await page.getByLabel('Recovery Code').click();
+  await page.getByLabel('Recovery Code').fill('asdfwrongoogabooga'); // buy a lottery if this is a valid code
+  await page.getByRole('button', { name: 'Recover' }).click();
+
+  const homeWait = page.waitForURL('/');
+  await Promise.all([
+    page.getByLabel('2FA will be disabled').getByRole('button', { name: 'Recover' }).click(),
+    homeWait
+  ]);
+
+  const twoFactorInfo = await mainDb
+    .select()
+    .from(users)
+    .innerJoin(
+      twoFactorAuthenticationCredentials,
+      eq(twoFactorAuthenticationCredentials.userId, users.id)
+    )
+    .where(eq(users.username, twoFacPass.username.toLowerCase()));
+  expect(twoFactorInfo.length).toBe(0);
+
+  // login without 2fa
+  await logout(page);
+  await page.goto('/auth/login');
+  await page.locator('input[name="usernameOrEmail"]').click();
+  await page.locator('input[name="usernameOrEmail"]').fill(twoFacPass.username);
+  await page.locator('input[name="password"]').click();
+  await page.locator('input[name="password"]').fill(twoFacPass.password!);
+  const loginHomeWait = page.waitForURL('/');
+  await Promise.all([
+    page.getByRole('button', { name: 'Login', exact: true }).click(),
+    loginHomeWait
+  ]);
+});
+
 test.describe('redirections based off of user conditions', () => {
   test('should not allow non logged in', async ({ page }) => {
     const loginRedirect = page.waitForURL('/auth/login');

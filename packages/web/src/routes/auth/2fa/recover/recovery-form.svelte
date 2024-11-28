@@ -27,8 +27,10 @@
 <form id="recovery-form" class="grid gap-2" method="POST" use:enhance action="?/recover-2fa">
   <Form.Field form={superFormFields} name="recoveryCode">
     <Form.Control>
-      <Form.Label>Recovery Code</Form.Label>
-      <Input oninput={interacted} bind:value={$formData.recoveryCode} />
+      {#snippet children({ props })}
+        <Form.Label>Recovery Code</Form.Label>
+        <Input oninput={interacted} {...props} bind:value={$formData.recoveryCode} />
+      {/snippet}
     </Form.Control>
   </Form.Field>
 
@@ -44,8 +46,8 @@
           You can reactivate 2FA in your profile settings.
         </Dialog.Description>
       </Dialog.Header>
-      <Dialog.Footer>
-        <Dialog.Close>Cancel</Dialog.Close>
+      <Dialog.Footer class="gap-y-2 gap-x-2">
+        <Dialog.Close><Button variant="secondary" class="w-full">Cancel</Button></Dialog.Close>
         {#if $delayed}
           <Form.Button disabled>
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />

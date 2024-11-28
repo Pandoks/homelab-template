@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { count, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
@@ -61,7 +61,7 @@ export const actions: Actions = {
     }
 
     const twoFactorRecoveryCodeHash = encodeHexLowerCase(
-      sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode))
+      sha256(new TextEncoder().encode(recoveryForm.data.recoveryCode.toLowerCase()))
     );
 
     const [twoFactorRecovery] = await mainDatabase
@@ -70,10 +70,13 @@ export const actions: Actions = {
       })
       .from(twoFactorAuthenticationCredentials)
       .where(
-        eq(twoFactorAuthenticationCredentials.twoFactorRecoveryHash, twoFactorRecoveryCodeHash)
+        and(
+          eq(twoFactorAuthenticationCredentials.userId, user.id),
+          eq(twoFactorAuthenticationCredentials.twoFactorRecoveryHash, twoFactorRecoveryCodeHash)
+        )
       )
       .limit(1);
-    if (!twoFactorRecovery) {
+    if (!twoFactorRecovery.count) {
       await throttler?.increment(throttleKey);
       recoveryForm.errors.recoveryCode = ['Invalid'];
       return fail(400, {
@@ -85,7 +88,12 @@ export const actions: Actions = {
 
     const twoFactorDeletion = mainDatabase
       .delete(twoFactorAuthenticationCredentials)
-      .where(eq(twoFactorAuthenticationCredentials.userId, user.id));
+      .where(
+        and(
+          eq(twoFactorAuthenticationCredentials.userId, user.id),
+          eq(twoFactorAuthenticationCredentials.twoFactorRecoveryHash, twoFactorRecoveryCodeHash)
+        )
+      );
 
     await invalidateUserSessions({ userId: user.id, database: mainDatabase });
     const throttleReset = throttler?.reset(throttleKey);
