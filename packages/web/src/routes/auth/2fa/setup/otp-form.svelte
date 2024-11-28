@@ -34,17 +34,20 @@
   const { form: formData, enhance, delayed } = superFormFields;
 
   $inspect(form && !form.success);
+  let success = $derived(form && form.success);
+  let fail = $derived(form && !form.success);
+  $inspect('test', fail);
 </script>
 
 {#snippet booleanButton()}
   <Button disabled={$delayed} class="w-24 overflow-hidden" variant="secondary" type="submit">
     {#if $delayed}
       <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-    {:else if form && !form.success}
+    {:else if fail}
       <div in:errorShake out:fly={{ duration: 300, y: 30 }}>
         <CircleX class="stroke-red-600" />
       </div>
-    {:else if form && form.success}
+    {:else if success}
       <div out:fly={{ duration: 300, y: 30 }}>
         <CircleCheck class="stroke-green-600" />
       </div>

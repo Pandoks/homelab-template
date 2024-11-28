@@ -8,9 +8,9 @@ type ShakeParams = {
 };
 
 const shake = (node: HTMLElement, params?: ShakeParams): TransitionConfig => {
-  const duration = params?.duration || 300;
-  const frequency = params?.frequency || 10;
-  const intensity = params?.intensity || 2;
+  const duration = params?.duration || 400;
+  const frequency = params?.frequency || 5;
+  const intensity = params?.intensity || 7;
   return {
     duration,
     css: (t: number) => {
