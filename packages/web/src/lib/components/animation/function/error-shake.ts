@@ -7,16 +7,16 @@ type ShakeParams = {
   frequency?: number;
 };
 
-const shake = (
-  node: Element,
-  params: ShakeParams = { duration: 300, intensity: 10, frequency: 2 }
-): TransitionConfig => {
+const shake = (node: HTMLElement, params?: ShakeParams): TransitionConfig => {
+  const duration = params?.duration || 300;
+  const frequency = params?.frequency || 10;
+  const intensity = params?.intensity || 2;
   return {
-    duration: params.duration,
+    duration,
     css: (t: number) => {
       const decay = Math.exp(-t * 3); // Exponential decay
-      const oscillation = Math.sin(t * params.frequency! * Math.PI * 2);
-      const offset = decay * oscillation * params.intensity!;
+      const oscillation = Math.sin(t * frequency * Math.PI * 2);
+      const offset = decay * oscillation * intensity;
 
       return `
         transform: translateX(${offset}px);

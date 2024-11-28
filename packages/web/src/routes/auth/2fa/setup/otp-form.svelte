@@ -9,10 +9,10 @@
   import { CircleX, LoaderCircle } from 'lucide-svelte';
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { CircleCheck } from '$lib/components/animation/icon';
-  import { BooleanButton } from '$lib/components/animation/ui/button';
   import type { ActionData } from './$types';
   import { Button } from '$lib/components/ui/button';
   import { errorShake } from '$lib/components/animation/function';
+  import { fly } from 'svelte/transition';
 
   let { data, form }: { data: SuperValidated<Infer<TwoFactorSetupSchema>>; form: ActionData } =
     $props();
@@ -32,6 +32,8 @@
   });
 
   const { form: formData, enhance, delayed } = superFormFields;
+
+  $inspect(form && !form.success);
 </script>
 
 {#snippet booleanButton()}
@@ -43,13 +45,18 @@
         <CircleX class="stroke-red-600" />
       </div>
     {:else if form && form.success}
-      <CircleCheck class="stroke-green-600" />
+      <div out:fly={{ duration: 300, y: 30 }}>
+        <CircleCheck class="stroke-green-600" />
+      </div>
     {:else}
       Verify
     {/if}
   </Button>
 {/snippet}
 
+{#if form && !form.success}
+  <div in:errorShake>test</div>
+{/if}
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
   <Form.Field form={superFormFields} name="otp">
     <Form.Control>
