@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { ActionData, PageData } from './$types';
   import OtpForm from './otp-form.svelte';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  $: if (form) {
-    formInteracted = false;
-  }
-
-  let formInteracted = false;
+  let formInteracted = $state(false);
+  $effect(() => {
+    if (form) {
+      formInteracted = false;
+    }
+  });
 </script>
 
 <div class="h-screen">
@@ -29,7 +28,7 @@
         {/if}
       </div>
 
-      <OtpForm on:interacted={() => (formInteracted = true)} data={data.otpForm} />
+      <OtpForm interacted={() => (formInteracted = true)} data={data.otpForm} />
 
       <div class="text-center text-sm">
         Don&apos;t have your authenticator?
