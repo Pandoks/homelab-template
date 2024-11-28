@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { ActionData, PageData } from './$types';
   import RecoveryForm from './recovery-form.svelte';
 
-  export let data: PageData;
-  export let form: ActionData;
+  let { data, form } = $props();
 
-  $: if (form) {
-    formInteracted = false;
-  }
-
-  let formInteracted = false;
+  let formInteracted = $state(false);
+  $effect(() => {
+    if (form) {
+      formInteracted = false;
+    }
+  });
 </script>
 
 <div class="h-screen">
@@ -27,7 +26,7 @@
         {/if}
       </div>
 
-      <RecoveryForm on:interacted={() => (formInteracted = true)} data={data.recoveryForm} />
+      <RecoveryForm interacted={() => (formInteracted = true)} data={data.recoveryForm} />
     </div>
   </div>
 </div>
