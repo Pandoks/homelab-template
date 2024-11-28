@@ -33,6 +33,31 @@
   let clickTimeout: NodeJS.Timeout;
 </script>
 
+<form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
+  <Form.Field form={superFormFields} name="otp">
+    <Form.Control>
+      {#snippet children({ props })}
+        {#if form?.success}
+          <Form.Label class="text-green-600">Verification Code</Form.Label>
+        {:else}
+          <Form.Label>Verification Code</Form.Label>
+        {/if}
+        <div class="flex w-full max-w-sm items-center space-x-3">
+          <Input
+            {...props}
+            class="text-center"
+            placeholder="XXXXXX"
+            maxlength={6}
+            bind:value={$formData.otp}
+          />
+
+          {@render booleanButton()}
+        </div>
+      {/snippet}
+    </Form.Control>
+  </Form.Field>
+</form>
+
 {#snippet booleanButton()}
   <Button
     disabled={$delayed}
@@ -74,28 +99,3 @@
     {/if}
   </Button>
 {/snippet}
-
-<form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
-  <Form.Field form={superFormFields} name="otp">
-    <Form.Control>
-      {#snippet children({ props })}
-        {#if form?.success}
-          <Form.Label class="text-green-600">Verification Code</Form.Label>
-        {:else}
-          <Form.Label>Verification Code</Form.Label>
-        {/if}
-        <div class="flex w-full max-w-sm items-center space-x-3">
-          <Input
-            {...props}
-            class="text-center"
-            placeholder="XXXXXX"
-            maxlength={6}
-            bind:value={$formData.otp}
-          />
-
-          {@render booleanButton()}
-        </div>
-      {/snippet}
-    </Form.Control>
-  </Form.Field>
-</form>
