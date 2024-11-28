@@ -6,12 +6,10 @@ export type CircleProps = {
   size?: number;
   color?: string;
   strokeWidth?: number;
+  introstart?: () => void;
+  outrostart?: () => void;
   introend?: () => void;
   outroend?: () => void;
-  circleintrostart?: () => void;
-  circleintroend?: () => void;
-  circleoutrostart?: () => void;
-  circleoutroend?: () => void;
 };
 
 export { CircleCheck, CircleX };

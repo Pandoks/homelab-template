@@ -26,6 +26,7 @@ export const actions: Actions = {
     }
 
     const otpForm = await superValidate(event, zod(twoFactorSetupSchema));
+    console.log(otpForm);
     if (!otpForm.valid) {
       return fail(400, {
         success: false,
@@ -39,6 +40,7 @@ export const actions: Actions = {
       .from(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
       .limit(1);
+    console.log(twoFactorKey);
     if (!twoFactorKey) {
       return fail(400, {
         success: false,
@@ -48,14 +50,16 @@ export const actions: Actions = {
     }
 
     const isValidOtp = verifyTOTP(decodeHex(twoFactorKey), 30, 6, otpForm.data.otp);
+    console.log(isValidOtp);
     if (!isValidOtp) {
+      console.log('fail');
       return fail(400, {
         success: false,
         message: 'Invalid otp code',
         otpForm
       });
     }
-
+    console.log('success');
     return {
       success: true,
       message: 'Success',

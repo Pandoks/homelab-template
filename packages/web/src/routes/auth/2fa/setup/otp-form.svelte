@@ -11,14 +11,11 @@
   import { CircleCheck } from '$lib/components/animation/icon';
   import { BooleanButton } from '$lib/components/animation/ui/button';
   import type { ActionData } from './$types';
+  import { Button } from '$lib/components/ui/button';
+  import { errorShake } from '$lib/components/animation/function';
 
   let { data, form }: { data: SuperValidated<Infer<TwoFactorSetupSchema>>; form: ActionData } =
     $props();
-
-  let animatedButton: BooleanButton;
-  let successElement: CircleCheck;
-  const verified = $derived(form ? form.success : false);
-  const fail = $derived(form ? form.success : false);
 
   const superFormFields = superForm(data, {
     validators: zodClient(twoFactorSetupSchema),
@@ -26,22 +23,38 @@
     resetForm: false,
     invalidateAll: false,
     onResult: async (event) => {
-      await animatedButton.reset();
-      if (event.result.type === 'success') {
-        // needed because animation needs to restart when spamming
-        await successElement?.restart();
-      }
+      // await animatedButton.reset();
+      // if (event.result.type === 'success') {
+      //   // needed because animation needs to restart when spamming
+      //   await successElement?.restart();
+      // }
     }
   });
 
   const { form: formData, enhance, delayed } = superFormFields;
 </script>
 
+{#snippet booleanButton()}
+  <Button disabled={$delayed} class="w-24 overflow-hidden" variant="secondary" type="submit">
+    {#if $delayed}
+      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+    {:else if form && !form.success}
+      <div in:errorShake out:fly={{ duration: 300, y: 30 }}>
+        <CircleX class="stroke-red-600" />
+      </div>
+    {:else if form && form.success}
+      <CircleCheck class="stroke-green-600" />
+    {:else}
+      Verify
+    {/if}
+  </Button>
+{/snippet}
+
 <form class="grid gap-2" method="POST" use:enhance action="?/verify-otp">
   <Form.Field form={superFormFields} name="otp">
     <Form.Control>
       {#snippet children({ props })}
-        {#if verified}
+        {#if form?.success}
           <Form.Label class="text-green-600">Verification Code</Form.Label>
         {:else}
           <Form.Label>Verification Code</Form.Label>
@@ -55,27 +68,31 @@
             bind:value={$formData.otp}
           />
 
-          <BooleanButton
-            type="submit"
-            variant="secondary"
-            class="w-24"
-            loading={$delayed}
-            success={verified}
-            {fail}
-            bind:this={animatedButton}
-            failDuration={1000}
-          >
-            {#snippet loadingSnippet()}
-              <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-            {/snippet}
-            {#snippet failSnippet()}
-              <CircleX class="stroke-red-600" />
-            {/snippet}
-            {#snippet successSnippet()}
-              <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} />
-            {/snippet}
-            <p>Verify</p>
-          </BooleanButton>
+          {@render booleanButton()}
+
+          <!-- <BooleanButton -->
+          <!--   type="submit" -->
+          <!--   variant="secondary" -->
+          <!--   class="w-24" -->
+          <!--   loading={$delayed} -->
+          <!--   success={verified} -->
+          <!--   {fail} -->
+          <!--   bind:this={animatedButton} -->
+          <!--   failDuration={1000} -->
+          <!-- > -->
+          <!--   {#snippet loadingSnippet()} -->
+          <!--     <LoaderCircle class="mr-2 h-4 w-4 animate-spin" /> -->
+          <!--   {/snippet} -->
+          <!--   {#snippet failSnippet()} -->
+          <!--     <CircleX class="stroke-red-600" /> -->
+          <!--   {/snippet} -->
+          <!--   {#snippet successSnippet()} -->
+          <!--     <CircleCheck slot="success" class="stroke-green-600" bind:this={successElement} /> -->
+          <!--   {/snippet} -->
+          <!--   {#snippet children()} -->
+          <!--     <p>Verify</p> -->
+          <!--   {/snippet} -->
+          <!-- </BooleanButton> -->
         </div>
       {/snippet}
     </Form.Control>

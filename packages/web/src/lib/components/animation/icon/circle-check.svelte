@@ -9,10 +9,6 @@
       check?: DrawParams;
       circle?: DrawParams;
     };
-    checkintrostart?: () => void;
-    checkintroend?: () => void;
-    checkoutrostart?: () => void;
-    checkoutroend?: () => void;
   };
 
   let {
@@ -26,14 +22,6 @@
     strokeWidth = 2,
     introend,
     outroend,
-    circleintrostart,
-    circleintroend,
-    circleoutrostart,
-    circleoutroend,
-    checkintrostart,
-    checkintroend,
-    checkoutrostart,
-    checkoutroend,
     ...restProps
   }: CircleCheckProps = $props();
 
@@ -77,29 +65,21 @@
     {...restProps}
   >
     <path
-      onintrostart={() => circleintrostart?.()}
       onintroend={() => {
         circleIntroEnd = true;
-        circleintroend?.();
       }}
-      onoutrostart={() => circleoutrostart?.()}
       onoutroend={() => {
         circleOutroEnd = true;
-        circleoutroend?.();
       }}
       d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2"
       in:draw|global={drawParams?.circle}
     />
     <path
-      onintrostart={() => checkintrostart?.()}
       onintroend={() => {
         checkIntroEnd = true;
-        checkintroend?.();
       }}
-      onoutrostart={() => checkoutrostart?.()}
       onoutroend={() => {
         checkOutroEnd = true;
-        checkoutroend?.();
       }}
       d="m9 12 2 2 4-4"
       in:draw|global={drawParams?.check}

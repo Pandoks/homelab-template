@@ -10,14 +10,6 @@
       right: DrawParams;
       circle: DrawParams;
     };
-    leftintrostart?: () => void;
-    leftintroend?: () => void;
-    leftoutrostart?: () => void;
-    leftoutroend?: () => void;
-    rightintrostart?: () => void;
-    rightintroend?: () => void;
-    rightoutrostart?: () => void;
-    rightoutroend?: () => void;
   };
 
   let {
@@ -30,20 +22,10 @@
     size = 24,
     color = 'currentColor',
     strokeWidth = 2,
+    introstart,
+    outrostart,
     introend,
     outroend,
-    circleintrostart,
-    circleintroend,
-    circleoutrostart,
-    circleoutroend,
-    leftintrostart,
-    leftintroend,
-    leftoutrostart,
-    leftoutroend,
-    rightintrostart,
-    rightintroend,
-    rightoutrostart,
-    rightoutroend,
     ...restProps
   }: CircleXProps = $props();
 
@@ -89,43 +71,31 @@
     {...restProps}
   >
     <path
-      onintrostart={() => circleintrostart?.()}
       onintroend={() => {
         circleIntroEnd = true;
-        circleintroend?.();
       }}
-      onoutrostart={() => circleoutrostart?.()}
       onoutroend={() => {
         circleOutroEnd = true;
-        circleoutroend?.();
       }}
       d="M12 2 A 10 10 0 0 1 12 22 A 10 10 0 0 1 12 2"
       in:draw|global={drawParams?.circle}
     />
     <path
-      onintrostart={() => leftintrostart?.()}
       onintroend={() => {
         leftIntroEnd = true;
-        leftintroend?.();
       }}
-      onoutrostart={() => leftoutrostart?.()}
       onoutroend={() => {
         leftOutroEnd = true;
-        leftoutroend?.();
       }}
       d="m15 9-6 6"
       in:draw|global={drawParams?.left}
     />
     <path
-      onintrostart={() => rightintrostart?.()}
       onintroend={() => {
         rightIntroEnd = true;
-        rightintroend?.();
       }}
-      onoutrostart={() => rightoutrostart?.()}
       onoutroend={() => {
         rightOutroEnd = true;
-        rightoutroend?.();
       }}
       d="m9 9 6 6"
       in:draw|global={drawParams?.right}
