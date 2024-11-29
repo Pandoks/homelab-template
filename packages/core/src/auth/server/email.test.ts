@@ -20,6 +20,7 @@ describe("generateEmailVerification", () => {
         database: process.env.USER_DB_DATABASE,
       }),
     );
+    console.log(db);
   });
 
   beforeEach(async () => {
