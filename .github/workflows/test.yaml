@@ -30,10 +30,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run unit tests
+      - name: Run core unit tests
         run: |
           cd packages/core
           pnpm run test:unit
+
+      - name: Run core unit tests
+        run: |
+          cd packages/web
+          ls
 
   # integration:
   #   runs-on: ubuntu-latest
