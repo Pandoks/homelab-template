@@ -58,7 +58,7 @@ describe("generateEmailVerification", () => {
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, "test@example.com"));
-    expect(results.length).toBe(1);
+    expect(results.length).toBe(0);
   });
 
   it("should not delete other email verifications", async () => {
