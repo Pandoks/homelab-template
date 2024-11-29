@@ -4,6 +4,8 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
+    "setup": "pnpm run reset && docker compose -p setup up -d",
+    "reset": "docker compose -p setup down",
     "db:reset": "rm -rf ./src/database/main/dev/meta ./src/database/main/dev/_init.sql",
     "db:gen": "pnpm run db:reset && drizzle-kit generate --config ./src/database/main/drizzle.config.ts --name init",
     "db:studio": "drizzle-kit studio --config ./src/database/main/drizzle.config.ts",
