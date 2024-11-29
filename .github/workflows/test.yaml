@@ -14,17 +14,17 @@ jobs:
   unit:
     runs-on: ubuntu-latest
     environment: Test
-    env:
-      USER_DB_USERNAME: ${{ vars.USER_DB_USERNAME }}
-      USER_DB_PASSWORD: ${{ vars.USER_DB_PASSWORD }}
-      USER_DB_HOST: ${{ vars.USER_DB_HOST }}
-      USER_DB_PORT: ${{ vars.USER_DB_PORT }}
-      USER_DB_DATABASE: ${{ vars.USER_DB_DATABASE }}
-      MAIN_REDIS_PASSWORD: ${{ vars.MAIN_REDIS_PASSWORD }}
-      MAIN_REDIS_HOST: ${{ vars.MAIN_REDIS_HOST }}
-      MAIN_REDIS_PORT: ${{ vars.MAIN_REDIS_PORT }}
-      PUBLIC_DOMAIN: ${{ vars.PUBLIC_DOMAIN }}
-      PUBLIC_APP_NAME: ${{ vars.PUBLIC_APP_NAME }}
+    # env:
+    #   USER_DB_USERNAME: ${{ vars.USER_DB_USERNAME }}
+    #   USER_DB_PASSWORD: ${{ vars.USER_DB_PASSWORD }}
+    #   USER_DB_HOST: ${{ vars.USER_DB_HOST }}
+    #   USER_DB_PORT: ${{ vars.USER_DB_PORT }}
+    #   USER_DB_DATABASE: ${{ vars.USER_DB_DATABASE }}
+    #   MAIN_REDIS_PASSWORD: ${{ vars.MAIN_REDIS_PASSWORD }}
+    #   MAIN_REDIS_HOST: ${{ vars.MAIN_REDIS_HOST }}
+    #   MAIN_REDIS_PORT: ${{ vars.MAIN_REDIS_PORT }}
+    #   PUBLIC_DOMAIN: ${{ vars.PUBLIC_DOMAIN }}
+    #   PUBLIC_APP_NAME: ${{ vars.PUBLIC_APP_NAME }}
 
     steps:
       - name: Checkout code
@@ -41,9 +41,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: list env
-        run: env
 
       - name: Run unit tests
         run: pnpm run -r test:unit
