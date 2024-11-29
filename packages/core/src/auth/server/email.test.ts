@@ -11,8 +11,6 @@ describe("generateEmailVerification", () => {
   let db: PostgresJsDatabase;
 
   beforeAll(async () => {
-    console.log("envs:");
-    console.log(process.env.USER_DB_USERNAME);
     db = drizzle(
       postgres({
         username: process.env.USER_DB_USERNAME,
