@@ -12,7 +12,7 @@ on:
 
 jobs:
   Setup:
-    uses: .github/workflows/setup.yaml
+    uses: ./.github/workflows/setup.yaml
 
   Unit:
     runs-on: ubuntu-latest
