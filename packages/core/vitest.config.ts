@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    reporters: process.env.GITHUB_ACTIONS ? ["github-actions"] : "default",
+    reporters: process.env.GITHUB_ACTIONS ? "github-actions" : "default",
     include: ["./**/*.test.{js,ts}"],
     fileParallelism: false,
     env: {
