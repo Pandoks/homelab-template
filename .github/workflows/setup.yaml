@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  Install Dependencies:
+  Install-Dependencies:
     runs-on: ubuntu-latest
 
     steps:
