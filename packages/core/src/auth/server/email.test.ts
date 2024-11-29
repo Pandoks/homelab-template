@@ -20,7 +20,6 @@ describe("generateEmailVerification", () => {
         database: process.env.USER_DB_DATABASE,
       }),
     );
-    console.log(db);
   });
 
   beforeEach(async () => {
@@ -37,6 +36,7 @@ describe("generateEmailVerification", () => {
         isVerified: false,
       });
     });
+    console.log(await db.select().from(users));
   });
 
   afterEach(async () => {
