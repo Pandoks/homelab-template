@@ -25,7 +25,6 @@ jobs:
 
     steps:
       - run: |
-          pwd
           ls
       - name: Run unit tests
         run: |
