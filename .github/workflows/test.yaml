@@ -44,5 +44,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      - name: Setup SST
+        run: pnpx sst install
+
       - name: Run unit tests
         run: pnpm run -r test:unit
