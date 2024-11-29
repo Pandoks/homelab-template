@@ -10,7 +10,7 @@ on:
 
 jobs:
   Setup:
-    uses: .github/workflows/setup.yaml
+    uses: ./.github/workflows/setup.yaml
 
   Docker:
     runs-on: ubuntu-latest

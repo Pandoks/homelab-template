@@ -14,7 +14,7 @@ jobs:
   Setup:
     uses: ./.github/workflows/setup.yaml
 
-  Unit:
+  Unit Tests:
     runs-on: ubuntu-latest
     needs: Setup
     strategy:
@@ -24,6 +24,9 @@ jobs:
           - web
 
     steps:
+      - run: |
+          pwd
+          ls -R packages
       - name: Run unit tests
         run: |
           cd packages/${{ matrix.package }}
