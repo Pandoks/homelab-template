@@ -90,5 +90,8 @@ jobs:
       - name: Setup SST
         run: pnpx sst install
 
+      - name: Setup Playwright
+        run: pnpx playwright install
+
       - name: Run unit tests
         run: pnpm run -r test:int
