@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - run: |
-          ls -la
+          cd packages
       - name: Run unit tests
         run: |
           cd packages/${{ matrix.package }}
