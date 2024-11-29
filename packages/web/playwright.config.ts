@@ -22,7 +22,7 @@ const config: PlaywrightTestConfig = {
   testDir: 'tests',
   globalSetup: './tests/global-setup.ts',
   globalTeardown: './tests/global-teardown.ts',
-  reporter: process.env.CI ? 'blob' : 'list'
+  reporter: process.env.CI ? 'github' : 'list'
 };
 
 export default config;
