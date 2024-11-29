@@ -30,11 +30,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Error
-        run: echo "::error file=/Users/pandoks/Projects/startup-template/packages/core/src/auth/server/email.test.ts,title=src/auth/server/email.test.ts > generateEmailVerification > should delete existing email verifications,line=61,column=28::AssertionError: expected 1 to be +0 // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- 0%0A+ 1%0A%0A ❯ src/auth/server/email.test.ts:61:28%0A%0A"
-
       - name: Run unit tests
-        run: pnpm run -r test:unit
+        run: |
+          cd packages/core
+          pnpm run test:unit
 
   # integration:
   #   runs-on: ubuntu-latest
