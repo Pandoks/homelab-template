@@ -24,58 +24,8 @@ jobs:
           - web
 
     steps:
-      - run: |
-          cd packages
+      - uses: actions/checkout@v4
       - name: Run unit tests
         run: |
           cd packages/${{ matrix.package }}
           pnpm run test:unit
-
-  # integration:
-  #   runs-on: ubuntu-latest
-  #   environment: Test
-  #   env:
-  #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #     HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
-  #     USER_DB_USERNAME: ${{ vars.USER_DB_USERNAME }}
-  #     USER_DB_PASSWORD: ${{ vars.USER_DB_PASSWORD }}
-  #     USER_DB_HOST: ${{ vars.USER_DB_HOST }}
-  #     USER_DB_PORT: ${{ vars.USER_DB_PORT }}
-  #     USER_DB_DATABASE: ${{ vars.USER_DB_DATABASE }}
-  #     MAIN_REDIS_PASSWORD: ${{ vars.MAIN_REDIS_PASSWORD }}
-  #     MAIN_REDIS_HOST: ${{ vars.MAIN_REDIS_HOST }}
-  #     MAIN_REDIS_PORT: ${{ vars.MAIN_REDIS_PORT }}
-  #     PUBLIC_DOMAIN: ${{ vars.PUBLIC_DOMAIN }}
-  #     PUBLIC_APP_NAME: ${{ vars.PUBLIC_APP_NAME }}
-  #
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v4
-  #
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: "pnpm"
-  #
-  #     - name: Install dependencies
-  #       run: pnpm install
-  #
-  #     - name: Setup AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-2
-  #
-  #     - name: Setup SST
-  #       run: pnpx sst install
-  #
-  #     - name: Setup Playwright
-  #       run: pnpx playwright install
-  #
-  #     - name: Run unit tests
-  #       run: pnpm run -r test:int
