@@ -129,6 +129,9 @@ importers:
       bits-ui:
         specifier: 1.0.0-next.64
         version: 1.0.0-next.64(svelte@5.2.7)
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
       dotenv-cli:
         specifier: ^7.4.4
         version: 7.4.4
