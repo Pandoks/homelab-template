@@ -7,7 +7,7 @@ const config: PlaywrightTestConfig = {
        * Web server will warn that some chunks are larger than 500 kb after minification.
        * This is ok since you are building in a test environment. It will go away when building for producation.
        */
-      'pnpm run test:setup && NODE_ENV=test vite build --mode test && NODE_ENV=test PORT=4173 vite preview --mode test',
+      'pnpm run setup && NODE_ENV=test vite build --mode test && NODE_ENV=test PORT=4173 vite preview --mode test',
     port: 4173
   },
   projects: [

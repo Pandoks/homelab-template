@@ -57,6 +57,9 @@ jobs:
       - name: Use caches and install dependencies if needed
         uses: ./.github/actions/setup
 
+      - name: Install Playwright browsers
+        run: pnpx playwright install --with-deps
+
       - name: Run integration tests
         run: |
           cd packages/${{ matrix.package }}
