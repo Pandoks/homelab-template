@@ -1,22 +1,17 @@
 name: Setup Environment
 
-on:
-  workflow_call:
-
-jobs:
-  dependencies:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-      - uses: actions/cache@v4
-        with:
-          path: |
-            **/node_modules
-          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-      - run: pnpm install
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: "pnpm"
+    - uses: actions/cache@v4
+      with:
+        path: |
+          **/node_modules
+        key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+    - run: pnpm install
