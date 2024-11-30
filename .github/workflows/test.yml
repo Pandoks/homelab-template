@@ -22,8 +22,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
+
+      - name: Use caches and install dependencies if needed
+        uses: ./.github/actions/setup
+
       - name: Run unit tests
         run: |
           cd packages/${{ matrix.package }}
           pnpm run test:unit
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use caches and install dependencies if needed
+        uses: ./.github/actions/setup
+
+      - name: Run integration tests
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run test:int
