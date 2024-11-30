@@ -40,7 +40,6 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
       - run: pnpm install
-      - uses: ./.github/actions/setup
       - name: Run unit tests
         run: |
           cd packages/${{ matrix.package }}
