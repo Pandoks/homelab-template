@@ -1,4 +1,4 @@
-ARG BASE=startup-template-base:latest
+ARG BASE=homelab-template:latest
 FROM ${BASE} AS builder
 
 FROM node:20-alpine AS runner
