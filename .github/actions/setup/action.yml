@@ -4,7 +4,6 @@ description: Install dependencies for the monorepo and cache it
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
     - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v4
       with:
