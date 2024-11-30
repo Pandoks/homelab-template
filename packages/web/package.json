@@ -10,7 +10,7 @@
     "dev": "pnpm run setup && PORT=5173 vite dev",
     "build": "vite build",
     "test:unit": "pnpm run setup && vitest",
-    "test:int": "playwright test",
+    "test:int": "if [ -z \"$CI\" ]; then dotenv -e ../../.env -- playwright test; else playwright test; fi",
     "test:gen": "dotenv -e ../../.env -- playwright codegen",
     "test:ui": "dotenv -e ../../.env -- playwright test --ui",
     "lint": "svelte-check",
