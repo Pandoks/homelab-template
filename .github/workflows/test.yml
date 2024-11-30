@@ -27,20 +27,3 @@ jobs:
         run: |
           cd packages/${{ matrix.package }}
           pnpm run test:unit
-  no-cache:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package:
-          - core
-          - web
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-      - run: pnpm install
-      - name: Run unit tests
-        run: |
-          cd packages/${{ matrix.package }}
-          pnpm run test:unit

@@ -9,10 +9,10 @@ runs:
       with:
         node-version: 20
         cache: "pnpm"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          **/node_modules
-        key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+    # - uses: actions/cache@v4
+    #   with:
+    #     path: |
+    #       **/node_modules
+    #     key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}
     - run: pnpm install
       shell: bash
