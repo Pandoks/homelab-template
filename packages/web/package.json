@@ -14,7 +14,8 @@
     "test:gen": "dotenv -e ../../.env -- playwright codegen",
     "test:ui": "dotenv -e ../../.env -- playwright test --ui",
     "lint": "svelte-check",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "svelte-kit sync"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
