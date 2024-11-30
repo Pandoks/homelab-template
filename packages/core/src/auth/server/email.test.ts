@@ -100,6 +100,6 @@ describe("generateEmailVerification", () => {
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, "test2@example.com"));
-    expect(databaseResultUntouched.code).toBe("WRONG");
+    expect(databaseResultUntouched.code).toBe("WRONGA");
   });
 });
