@@ -33,18 +33,17 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
-    environment: Test
     env:
-      USER_DB_USERNAME: ${{ vars.USER_DB_USERNAME }}
-      USER_DB_PASSWORD: ${{ vars.USER_DB_PASSWORD }}
-      USER_DB_HOST: ${{ vars.USER_DB_HOST }}
-      USER_DB_PORT: ${{ vars.USER_DB_PORT }}
-      USER_DB_DATABASE: ${{ vars.USER_DB_DATABASE }}
-      MAIN_REDIS_PASSWORD: ${{ vars.MAIN_REDIS_PASSWORD }}
-      MAIN_REDIS_HOST: ${{ vars.MAIN_REDIS_HOST }}
-      MAIN_REDIS_PORT: ${{ vars.MAIN_REDIS_PORT }}
-      PUBLIC_DOMAIN: ${{ vars.PUBLIC_DOMAIN }}
-      PUBLIC_APP_NAME: ${{ vars.PUBLIC_APP_NAME }}
+      USER_DB_USERNAME: user
+      USER_DB_PASSWORD: password
+      USER_DB_HOST: localhost
+      USER_DB_PORT: 5432
+      USER_DB_DATABASE: userdb
+      MAIN_REDIS_PASSWORD: password
+      MAIN_REDIS_HOST: localhost
+      MAIN_REDIS_PORT: 6379
+      PUBLIC_DOMAIN: local
+      PUBLIC_APP_NAME: homelab-template
     strategy:
       fail-fast: false
       matrix:
