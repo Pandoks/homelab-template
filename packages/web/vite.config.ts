@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [sveltekit(), visualizer()],
   envDir: '../..',
   test: {
+    passWithNoTests: true,
+    reporters: process.env.GITHUB_ACTIONS ? ['github-actions'] : 'default',
     include: ['src/**/*.test.{js,ts}'],
     env: {
       USER_DB_USERNAME: 'user',
