@@ -11,10 +11,10 @@ on:
       - main
 
 jobs:
-  Setup:
+  setup:
     uses: ./.github/workflows/setup.yaml
 
-  Unit-Tests:
+  unit-tests:
     runs-on: ubuntu-latest
     needs: Setup
     strategy:
