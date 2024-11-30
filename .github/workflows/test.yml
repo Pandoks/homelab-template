@@ -43,7 +43,7 @@ jobs:
       MAIN_REDIS_PASSWORD: password
       MAIN_REDIS_HOST: localhost
       MAIN_REDIS_PORT: 6379
-      PUBLIC_DOMAIN: local
+      PUBLIC_DOMAIN: localhost
       PUBLIC_APP_NAME: homelab-template
     strategy:
       fail-fast: false

@@ -2,6 +2,9 @@
 # NOTE: Needs to be used in relation to core/compose.yaml
 # Should ONLY be used for dev/test environments
 # Represents entire infrastructure as a monolith
+networks:
+  homelab-network:
+    external: true
 services:
   base:
     build:
@@ -29,7 +32,5 @@ services:
       - PUBLIC_APP_NAME='Homelab Template'
     depends_on:
       - base
-      - cache
-      - userdb
     networks:
       - homelab-network
