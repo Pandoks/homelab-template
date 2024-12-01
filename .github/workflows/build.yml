@@ -38,6 +38,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - run: echo "BASE_IMAGE=ghcr.io/pandoks/base:${{ steps.meta.outputs.tags }}"
+
   builds:
     runs-on: ubuntu-latest
     needs: base
