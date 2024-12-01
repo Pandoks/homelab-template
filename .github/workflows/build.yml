@@ -80,4 +80,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            BASE=ghcr.io/pandoks/base:${{ BASE_VERSION }}
+            BASE=ghcr.io/pandoks/base:${{ needs.base.outputs.base-version }}
