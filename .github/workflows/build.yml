@@ -24,6 +24,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/Pandoks_/base:latest
+          tags: ghcr.io/Pandoks/base:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
