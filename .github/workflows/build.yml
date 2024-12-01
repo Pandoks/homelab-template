@@ -22,13 +22,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/base
+
       - name: Build base image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/pandoks/base:0.0.0.0
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -52,13 +57,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ matrix.image }}
+
       - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: ./packages/${{ matrix.image }}
           file: ./packages/${{ matrix.image }}/Dockerfile
           push: true
-          tags: ghcr.io/pandoks/${{ matrix.image}}:0.0.0.0
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
