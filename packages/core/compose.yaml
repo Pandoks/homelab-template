@@ -21,10 +21,12 @@ services:
     ports:
       - "5432:5432"
     environment:
-      # - POSTGRES_USER=user
-      - PGUSER=user
+      # used to setup database
+      - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      # - POSTGRES_DB=userdb
+      - POSTGRES_DB=userdb
+      # used to connect to the database
+      - PGUSER=user
       - PGDATABASE=userdb
     volumes:
       - ./src/database/main/dev/_init.sql:/docker-entrypoint-initdb.d/init.sql
