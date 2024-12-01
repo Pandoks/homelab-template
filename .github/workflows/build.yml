@@ -57,5 +57,5 @@ jobs:
           tags: ghcr.io/${{ github.actor }}/${{ matrix.image}}:0.0.0.0
           cache-from: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache
           cache-to: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache,mode=max
-          build-args:
-            - BASE: ghcr.io/${{ github.actor }}/base:latest
+          build-args: |
+            BASE: ghcr.io/${{ github.actor }}/base:latest
