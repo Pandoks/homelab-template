@@ -13,7 +13,7 @@ jobs:
       contents: read
       packages: write
     outputs:
-      base-image: ${{ steps.base-image-location.outputs.BASE_IMAGE }}
+      base-version: ${{ steps.base-image-location.outputs.BASE_VERSION }}
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - id: base-image-location
-        run: echo "BASE_IMAGE=${{ steps.meta.outputs.tags.split(',')[0] }}" >> $GITHUB_OUTPUT
+        run: echo "BASE_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
 
   builds:
     runs-on: ubuntu-latest
@@ -80,4 +80,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            BASE=${{ env.BASE_IMAGE }}
+            BASE=ghcr.io/pandoks/base:${{ BASE_VERSION }}
