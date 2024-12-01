@@ -7,11 +7,8 @@ on:
       - dev
 
 jobs:
-  build:
+  base:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +24,38 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: false
-          tags: ghcr.io/pandoks/base:0.0.0
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          push: true
+          cache-from: type=registry,ref=${{ github.actor }}/base:buildcache
+          cache-to: type=registry,ref=${{ github.actor }}/base:buildcache,mode=max
+
+  builds:
+    runs-on: ubuntu-latest
+    needs: base
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image:
+          - web
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./packages/${{ matrix.image }}
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.actor }}/${{ matrix.image}}:0.0.0.0
+          cache-from: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache
+          cache-to: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache,mode=max
+          build-args:
+            BASE: ghcr.io/${{ github.actor }}/base:latest
