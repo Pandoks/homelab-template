@@ -25,9 +25,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.actor }}/base:0.0.0.0
-          cache-from: type=registry,ref=${{ github.actor }}/base:buildcache
-          cache-to: type=registry,ref=${{ github.actor }}/base:buildcache,mode=max
+          tags: ghcr.io/pandoks/base:0.0.0.0
+          cache-from: type=registry,ref=pandoks/base:buildcache
+          cache-to: type=registry,ref=pandoks/base:buildcache,mode=max
 
   builds:
     runs-on: ubuntu-latest
@@ -55,8 +55,8 @@ jobs:
           context: ./packages/${{ matrix.image }}
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.actor }}/${{ matrix.image}}:0.0.0.0
-          cache-from: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache
-          cache-to: type=registry,ref=${{ github.actor }}/${{ matrix.image }}:buildcache,mode=max
+          tags: ghcr.io/pandoks/${{ matrix.image}}:0.0.0.0
+          cache-from: type=registry,ref=pandoks/${{ matrix.image }}:buildcache
+          cache-to: type=registry,ref=pandoks/${{ matrix.image }}:buildcache,mode=max
           build-args: |
-            BASE: ghcr.io/${{ github.actor }}/base:latest
+            BASE: ghcr.io/pandoks/base:latest
