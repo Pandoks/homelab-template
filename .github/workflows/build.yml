@@ -27,8 +27,8 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          flavor: prefix=${GITHUB_REPOSITORY#*/}
-          images: ghcr.io/pandoks/base
+          # repo.name includes user or org
+          images: ghcr.io/${{ repo.name }}-base
 
       - name: Build base image
         uses: docker/build-push-action@v6
@@ -67,8 +67,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          flavor: prefix=${GITHUB_REPOSITORY#*/}
-          images: ghcr.io/pandoks/${{ matrix.image }}
+          images: ghcr.io/${{repo.name}}-${{ matrix.image }}
 
       - name: Build image
         uses: docker/build-push-action@v6
