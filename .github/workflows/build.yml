@@ -41,7 +41,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - id: base-image-location
-        run: echo "BASE_IMAGE=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
+        run: echo "BASE_IMAGE=${{ steps.meta.outputs.tags.split(',')[0] }}" >> $GITHUB_OUTPUT
 
   builds:
     runs-on: ubuntu-latest
