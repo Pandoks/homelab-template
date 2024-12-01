@@ -29,8 +29,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/pandoks/base:0.0.0.0
-          cache-from: type=registry,ref=pandoks/base:buildcache
-          cache-to: type=registry,ref=pandoks/base:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/pandoks/base:buildcache
+          cache-to: type=registry,ref=ghcr.io/pandoks/base:buildcache,mode=max
 
   builds:
     runs-on: ubuntu-latest
