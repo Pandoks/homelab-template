@@ -25,7 +25,8 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/${ GITHUB_REPOSITORY }
+          images: ghcr.io/pandoks/base
+
       - name: Build base image
         uses: docker/build-push-action@v6
         with:
@@ -60,7 +61,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/${ GITHUB_REPOSITORY }
+          images: ghcr.io/pandoks/${{ matrix.image }}
 
       - name: Build image
         uses: docker/build-push-action@v6
