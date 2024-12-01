@@ -22,12 +22,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker Images
+      - name: Build base image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          push: true
-          tags: ghcr.io/pandoks/base:latest
+          push: false
+          tags: ghcr.io/pandoks/base:0.0.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
