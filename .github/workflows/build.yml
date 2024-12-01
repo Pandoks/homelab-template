@@ -25,6 +25,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          tags: ghcr.io/${{ github.actor }}/base:0.0.0.0
           cache-from: type=registry,ref=${{ github.actor }}/base:buildcache
           cache-to: type=registry,ref=${{ github.actor }}/base:buildcache,mode=max
 
