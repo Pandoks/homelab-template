@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   base:
@@ -26,6 +27,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
+          flavor: prefix=${GITHUB_REPOSITORY#*/}
           images: ghcr.io/pandoks/base
 
       - name: Build base image
@@ -65,6 +67,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
+          flavor: prefix=${GITHUB_REPOSITORY#*/}
           images: ghcr.io/pandoks/${{ matrix.image }}
 
       - name: Build image
