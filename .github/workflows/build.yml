@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      base-image: ${{ steps.base-image-location.outputs.BASE_IMAGE }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +40,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - run: echo "BASE_IMAGE=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
+      - id: base-image-location
+        run: echo "BASE_IMAGE=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
 
   builds:
     runs-on: ubuntu-latest
