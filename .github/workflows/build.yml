@@ -23,6 +23,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/metadata-action@v5
+        id: meta
         with:
           images: ghcr.io/base
 
@@ -58,6 +59,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/metadata-action@v5
+        id: meta
         with:
           images: ghcr.io/${{ matrix.image }}
 
