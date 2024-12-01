@@ -21,16 +21,18 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
+      # - POSTGRES_USER=user
+      - PGUSER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
+      # - POSTGRES_DB=userdb
+      - PGDATABASE=userdb
     volumes:
       - ./src/database/main/dev/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./src/database/main/dev/roles.sql:/docker-entrypoint-initdb.d/roles.sql
     networks:
       - homelab-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "userdb"]
+      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
       interval: 1s
       retries: 10
 

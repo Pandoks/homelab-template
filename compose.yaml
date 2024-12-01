@@ -4,16 +4,18 @@
 # Represents entire infrastructure as a monolith
 networks:
   homelab-network:
-    external:
-      name: setup_homelab-network
+    external: true
+    name: setup_homelab-network
 
 services:
   base:
+    image: homelab-base:latest
     build:
       context: .
       dockerfile: Dockerfile
 
   web:
+    image: homelab-web:latest
     build:
       context: ./packages/web
       dockerfile: Dockerfile
