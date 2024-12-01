@@ -28,7 +28,7 @@ jobs:
         id: meta
         with:
           # repo.name includes user or org
-          images: ghcr.io/${{ github.event.repository }}-base
+          images: ghcr.io/${{ github.event.repository.name }}-base
 
       - name: Build base image
         uses: docker/build-push-action@v6
@@ -67,7 +67,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/${{ github.event.repository }}-${{ matrix.image }}
+          images: ghcr.io/${{ github.event.repository.name }}-${{ matrix.image }}
 
       - name: Build image
         uses: docker/build-push-action@v6
