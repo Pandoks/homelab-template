@@ -10,11 +10,3 @@ export const generateRandomString = (length: number) => {
   }
   return randomString;
 };
-
-new sst.x.DevCommand("CoreTests", {
-  dev: {
-    command: $interpolate`pnpm run test`,
-    directory: "./packages/core/",
-    autostart: true,
-  },
-});

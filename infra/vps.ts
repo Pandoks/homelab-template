@@ -19,7 +19,7 @@ bootcmd:
 
 users:
   - name: pandoks
-    groups: sudo
+    groups: [docker, sudo]
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
@@ -224,4 +224,8 @@ runcmd:
     userData: vpsInit,
   });
   vps.ipv4Address.apply((ip) => console.log(`IP: ${ip}, Port: ${sshPort}`));
+
+  const vpsInfo = new sst.Linkable("Vps", {
+    properties: { ipv4: vps.ipv4Address },
+  });
 }

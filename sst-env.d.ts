@@ -16,7 +16,11 @@ declare module "sst" {
       "protocol": string
       "type": "sst.sst.Linkable"
     }
-    "DigitalOceanToken": {
+    "GhToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "HetznerToken": {
       "type": "sst.sst.Secret"
       "value": string
     }
@@ -51,6 +55,10 @@ declare module "sst" {
     "PublicSSHKey": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "Vps": {
+      "ipv4": string
+      "type": "sst.sst.Linkable"
     }
   }
 }

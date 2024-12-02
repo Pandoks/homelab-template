@@ -4,7 +4,7 @@ export const secrets = {
 
   PublicSSHKey: new sst.Secret("PublicSSHKey"),
 
-  GhcrPassword: new sst.Secret("GhcrPassword"),
+  GhToken: new sst.Secret("GhToken"),
 
   MainDatabase: {
     Username: new sst.Secret("MainDatabaseUsername"),
