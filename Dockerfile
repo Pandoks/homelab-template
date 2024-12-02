@@ -7,6 +7,7 @@ WORKDIR /app
 COPY pnpm-lock.yaml .
 RUN pnpm fetch
 COPY . .
+RUN pnpm install --frozen-lockfile
 RUN pnpm run -r build
 
 RUN pnpm deploy --filter=web --prod /prod/web
