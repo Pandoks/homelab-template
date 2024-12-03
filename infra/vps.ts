@@ -206,26 +206,32 @@ runcmd:
     ],
   });
 
-  const vps = new hcloud.Server("Server", {
-    name: `${baseName}-server`,
-    image: "docker-ce",
-    location: "hil",
-    serverType: "cpx11",
-    sshKeys: ["M1 Max Macbook Pro"],
-    // deleteProtection: true,
-    // rebuildProtection: true,
-    publicNets: [
-      {
-        ipv4Enabled: true,
-        ipv6Enabled: true,
-      },
-    ],
-    firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
-    userData: vpsInit,
-  });
+  var vps = new hcloud.Server(
+    "Server",
+    {
+      name: `${baseName}-server`,
+      image: "docker-ce",
+      location: "hil",
+      serverType: "cpx11",
+      sshKeys: ["M1 Max Macbook Pro"],
+      // deleteProtection: true,
+      // rebuildProtection: true,
+      publicNets: [
+        {
+          ipv4Enabled: true,
+          ipv6Enabled: true,
+        },
+      ],
+      firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
+      userData: vpsInit,
+    },
+    { ignoreChanges: ["userData"] }, // don't want to restart server if eg. ssh key changes (keeps prod up)
+  );
   vps.ipv4Address.apply((ip) => console.log(`IP: ${ip}, Port: ${sshPort}`));
 
   const vpsInfo = new sst.Linkable("Vps", {
     properties: { ipv4: vps.ipv4Address },
   });
 }
+
+export { vps };

@@ -10,12 +10,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "DNS": {
-      "domain": string
-      "origin": string
-      "protocol": string
-      "type": "sst.sst.Linkable"
-    }
     "GhToken": {
       "type": "sst.sst.Secret"
       "value": string
