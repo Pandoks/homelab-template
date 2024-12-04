@@ -50,7 +50,6 @@ const luciaAuth: Handle = async ({ event, resolve }) => {
  * Checks if requests are coming from the same origin as the server (basically cors)
  */
 const csrf: Handle = async ({ event, resolve }) => {
-  console.log(event);
   const requestType = event.request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
   const forbiddenRequestTypes = ['application/x-www-form-url-urlencoded', 'multipart/form-data'];
 
