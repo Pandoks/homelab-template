@@ -17,8 +17,8 @@ servers:
 proxy:
   ssl: true
   hosts:
-    - yiji.dev
-    - www.yiji.dev
+    - ziji.dev
+    - www.ziji.dev
   # kamal-proxy connects to your container over port 80, use `app_port` to specify a different port.
   app_port: 3000
 
@@ -71,11 +71,13 @@ ssh:
 
   # Use accessory services (secrets come from .kamal/secrets).
   #
-  # accessories:
+accessories:
   # Use VPNs when using different machines
   db:
     image: postgres:15-alpine
     port: 5432
+    roles:
+      - web
     env:
       secret:
         - POSTGRES_USER
@@ -92,6 +94,8 @@ ssh:
   redis:
     image: redis:7-alpine
     port: 6379
-    cmd: "redis-server --requirepass <%= File.read('/path/to/redis/password') %>"
+    roles:
+      - web
+    cmd: "redis-server --requirepass <%= File.read('.kamal/secrets')[/REDIS_PASSWORD='(.*?)'/, 1]%>"
     directories:
       - redis-data:/data
