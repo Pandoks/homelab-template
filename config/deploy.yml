@@ -1,41 +1,32 @@
 # Name of your application. Used to uniquely configure containers.
 service: homelab-template
 
-# Name of the container image.
 image: pandoks/homelab-template-web
 
-# Deploy to these servers.
 servers:
   web:
     - 5.78.129.11
 
-# TODO: add read-only flag to docker containers
 # NOTE: you need to add "service" label for images that you don't want to build
 # Enable SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
 # If using something like Cloudflare, it is recommended to set encryption mode
 # in Cloudflare's SSL/TLS setting to "Full" to enable end-to-end encryption.
+# Set ssl: false if you're using Cloudflare
 proxy:
-  ssl: true
+  ssl: false
   hosts:
     - ziji.dev
-    - www.ziji.dev
-  # kamal-proxy connects to your container over port 80, use `app_port` to specify a different port.
   app_port: 3000
 
-# Credentials for your image host.
 registry:
-  # Specify the registry server, if you're not using Docker Hub
   server: ghcr.io
   username: Pandoks
 
-  # Always use an access token rather than real password (pulled from .kamal/secrets).
   password:
     - KAMAL_REGISTRY_PASSWORD
-# Configure builder setup.
+
 builder:
   arch: amd64
-# Inject ENV variables into containers (secrets come from .kamal/secrets).
-#
 # env:
 #   clear:
 #     DB_HOST: 192.168.0.2
@@ -48,7 +39,6 @@ builder:
 # aliases:
 #   shell: app exec --interactive --reuse "bash"
 
-# Use a different ssh user than root
 ssh:
   user: pandoks
   port: 61189

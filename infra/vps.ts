@@ -227,7 +227,7 @@ runcmd:
     },
     { ignoreChanges: ["userData"] }, // don't want to restart server if eg. ssh key changes (keeps prod up)
   );
-  vps.ipv4Address.apply((ip) => console.log(`IP: ${ip}, Port: ${sshPort}`));
+  vps.ipv4Address.apply((ip) => console.log(`ssh pandoks@${ip} -p ${sshPort}`));
 
   const vpsInfo = new sst.Linkable("Vps", {
     properties: { ipv4: vps.ipv4Address },
