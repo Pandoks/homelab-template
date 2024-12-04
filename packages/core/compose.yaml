@@ -29,8 +29,8 @@ services:
       - PGUSER=user
       - PGDATABASE=userdb
     volumes:
-      - ./src/database/main/dev/_init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./src/database/main/dev/roles.sql:/docker-entrypoint-initdb.d/roles.sql
+      - ./src/database/main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/database/main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
     networks:
       - homelab-network
     healthcheck:
