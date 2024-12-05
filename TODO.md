@@ -1,1 +1,2 @@
 - [ ] See if you can setup tests to use .env file
+- [ ] Make env variables and sst secret consistent

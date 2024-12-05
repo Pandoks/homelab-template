@@ -27,11 +27,18 @@ registry:
 
 builder:
   arch: amd64
-# env:
-#   clear:
-#     DB_HOST: 192.168.0.2
-#   secret:
-#     - RAILS_MASTER_KEY
+
+env:
+  clear:
+    MAIN_REDIS_PORT: 6379
+    MAIN_REDIS_HOST: redis
+    USER_DB_HOST: db
+    USER_DB_PORT: 5432
+  secret:
+    - MAIN_REDIS_PASSWORD
+    - USER_DB_PASSWORD
+    - USER_DB_USERNAME
+    - USER_DB_DATABASE
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal logs -r job" will tail logs from the first server in the job section.
@@ -88,7 +95,7 @@ accessories:
       - web
     env:
       secret:
-        - MAIN_REDIS_PASSWORD
-    cmd: "/bin/sh -c 'redis-server --requirepass $MAIN_REDIS_PASSWORD'"
+        - REDIS_PASSWORD
+    cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
     directories:
       - redis-data:/data
