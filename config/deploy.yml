@@ -86,6 +86,6 @@ accessories:
     port: 6379
     roles:
       - web
-    cmd: "redis-server --requirepass <%= File.read('.kamal/secrets')[/REDIS_PASSWORD='(.*?)'/, 1]%>"
+    cmd: "redis-server --requirepass password"
     directories:
       - redis-data:/data

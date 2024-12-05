@@ -23,19 +23,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    env_file: ".env"
     environment:
-      - NODE_ENV=production
-      - USER_DB_USERNAME=user
-      - USER_DB_PASSWORD=password
       - USER_DB_HOST=userdb
-      - USER_DB_PORT=5432
-      - USER_DB_DATABASE=userdb
-      - MAIN_REDIS_PASSWORD=password
       - MAIN_REDIS_HOST=cache
-      - MAIN_REDIS_PORT=6379
-      - PUBLIC_PROTOCOL=http
-      - PUBLIC_DOMAIN=localhost
-      - PUBLIC_APP_NAME=homelab-template
     depends_on:
       - base
     networks:

@@ -15,7 +15,6 @@ export const secrets = {
   },
 
   MainRedis: {
-    Username: new sst.Secret("MainRedisUsername"),
     Password: new sst.Secret("MainRedisPassword"),
   },
 };

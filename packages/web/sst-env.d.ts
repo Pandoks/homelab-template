@@ -42,10 +42,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "MainRedisUsername": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "PublicSSHKey": {
       "type": "sst.sst.Secret"
       "value": string
