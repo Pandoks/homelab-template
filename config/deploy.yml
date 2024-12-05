@@ -31,8 +31,8 @@ builder:
 env:
   clear:
     MAIN_REDIS_PORT: 6379
-    MAIN_REDIS_HOST: redis
-    USER_DB_HOST: db
+    MAIN_REDIS_HOST: homelab-template-redis
+    USER_DB_HOST: homelab-template-db
     USER_DB_PORT: 5432
   secret:
     - MAIN_REDIS_PASSWORD
