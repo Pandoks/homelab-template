@@ -43,6 +43,7 @@ if (!$dev) {
     proxied: true,
   });
 
+  // NOTE: will always update on each deploy and it takes some time to realize new configs when changed
   new cloudflare.Ruleset("RedirectToRoot", {
     name: "Redirect subdomains to root",
     kind: "custom",
@@ -50,7 +51,12 @@ if (!$dev) {
     phase: "http_request_dynamic_redirect", // https://developers.cloudflare.com/ruleset-engine/reference/phases-list/
     rules: [
       {
-        expression: `(http.request.full_uri wildcard "https://*.${baseDomain}*")`,
+        expression:
+          `(http.request.full_uri wildcard "https://*.${baseDomain}*" and 
+not starts_with(http.request.full_uri, "https://api.${baseDomain}"))`.replace(
+            /\n/g,
+            "",
+          ),
         actionParameters: {
           fromValue: {
             preserveQueryString: true,

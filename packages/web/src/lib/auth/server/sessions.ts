@@ -1,4 +1,7 @@
+import { NODE_ENV } from '$env/static/private';
 import type { RequestEvent } from '@sveltejs/kit';
+
+const secure = NODE_ENV === 'production' ? true : false;
 
 export const setSessionTokenCookie = ({
   event,
@@ -13,7 +16,8 @@ export const setSessionTokenCookie = ({
     httpOnly: true,
     sameSite: 'lax',
     expires: expiresAt,
-    path: '/'
+    path: '/',
+    secure
   });
 };
 
@@ -22,6 +26,7 @@ export const deleteSessionTokenCookie = (event: RequestEvent): void => {
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 0,
-    path: '/'
+    path: '/',
+    secure
   });
 };

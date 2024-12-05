@@ -8,6 +8,8 @@ COPY pnpm-lock.yaml .
 RUN pnpm fetch
 COPY . .
 RUN pnpm install -r --frozen-lockfile --offline
+
+ARG NODE_ENV="production"
 RUN pnpm run -r build
 
 RUN pnpm deploy --filter=web --prod /prod/web
