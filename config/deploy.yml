@@ -88,7 +88,7 @@ accessories:
       - web
     env:
       secret:
-        - REDIS_PASSWORD
-    cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
+        - MAIN_REDIS_PASSWORD
+    cmd: "/bin/sh -c 'redis-server --requirepass $MAIN_REDIS_PASSWORD'"
     directories:
       - redis-data:/data
