@@ -161,6 +161,8 @@ export const actions: Actions = {
         }
       }
 
+      console.error(err);
+
       return fail(400, {
         success: false,
         message: 'Internal Server Error',
