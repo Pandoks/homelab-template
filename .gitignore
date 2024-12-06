@@ -44,3 +44,6 @@ package-lock.json
 
 # Build Visualizer
 stats.html
+
+# TLS Cert Generation
+.cert
