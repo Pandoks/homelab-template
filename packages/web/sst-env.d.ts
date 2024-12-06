@@ -10,6 +10,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "DatabaseBackupBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "GhToken": {
       "type": "sst.sst.Secret"
       "value": string

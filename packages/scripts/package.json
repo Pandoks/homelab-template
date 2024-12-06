@@ -1,0 +1,12 @@
+{
+  "name": "@startup-template/scripts",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

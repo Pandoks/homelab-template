@@ -65,7 +65,7 @@ ssh:
 accessories:
   # Use VPNs when using different machines
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     port: "127.0.0.1:5432:5432" # don't expose to public (use vpn when multi machine)
     roles:
       - web
