@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
    * TODO: Use input OTP when available on Shadcn-Svelte
+   * TODO: Show email (Code sent to email)
    */
   import LinkCountdown from '$lib/components/ui/link-countdown/link-countdown.svelte';
   import type { ActionData } from './$types';

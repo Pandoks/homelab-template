@@ -1,14 +1,9 @@
 import { generateRandomString } from "./utils";
 import { vps } from "./vps";
 
+// TODO: Setup staging
 const hash = generateRandomString(10);
 const baseDomain = "ziji.dev";
-
-export const domain =
-  {
-    production: baseDomain,
-    staging: `${hash}.${baseDomain}`,
-  }[$app.stage] || "localhost";
 
 // NOTE: Authentication error (10000) is probably an API token permissions problem
 if (!$dev) {

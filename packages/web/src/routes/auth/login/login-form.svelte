@@ -39,8 +39,8 @@
         await authenticatePasskey();
 
       if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
-        $passkeyDelayedForm = false;
         form.cancel();
+        return;
       }
 
       passkeyForm.form.set({

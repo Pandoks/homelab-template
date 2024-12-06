@@ -86,6 +86,7 @@
     delayed: passkeyDelayedForm,
     errors: passkeyErrors
   } = passkeyForm;
+  let passkeyLoading = $state(false);
 
   /** Handle synchronizing form data */
   let type: 'password' | 'passkey' = $state('password');

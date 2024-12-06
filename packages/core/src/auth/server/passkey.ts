@@ -29,6 +29,7 @@ import {
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getAppInfo } from "../../util";
 
+// TODO: Don't throw error (svelte will be stuck in infinite lag)
 export const verifyAuthenticatorData = (
   authenticatorData: AuthenticatorData,
 ): void => {
