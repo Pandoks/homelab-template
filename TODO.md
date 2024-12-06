@@ -23,3 +23,5 @@
 - [ ] Signoz for observability
 
 - [ ] Fix infinite loading in passkey onSubmit superforms
+
+- [ ] Crowdsec for DDOS -> proxy logs ?
