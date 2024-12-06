@@ -10,7 +10,7 @@ servers:
 # If using something like Cloudflare, it is recommended to set encryption mode
 # in Cloudflare's SSL/TLS setting to "Full" to enable end-to-end encryption. Set ssl: false
 proxy:
-  ssl: false
+  ssl: true
   hosts:
     - ziji.dev
   app_port: 3000
@@ -92,14 +92,3 @@ accessories:
       secret:
         - REDIS_PASSWORD
     cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
-
-  backup:
-    image: woblerr/pgbackrest:2.54.0-alpine
-    roles:
-      - web
-    port: "127.0.0.1:8432:8432"
-    env:
-      clear:
-        BACKREST_TLS_SERVER: enable
-    files:
-      - packages/core/src/database/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf

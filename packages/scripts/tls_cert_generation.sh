@@ -1,8 +1,7 @@
 #!/bin/bash
 # Create directories
 SCRIPT_DIR=$(dirname $(realpath $0))
-# mkdir -p $SCRIPT_DIR/../../certs/{ca,server,client}
-echo $SCRIPT_DIR/../../
+mkdir -p $SCRIPT_DIR/../../.certs/{ca,server,client}
 
 # # Generate CA
 # openssl genrsa -out certs/ca/ca.key 4096

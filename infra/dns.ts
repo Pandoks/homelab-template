@@ -5,9 +5,16 @@ import { vps } from "./vps";
 const hash = generateRandomString(10);
 const baseDomain = "ziji.dev";
 
-// NOTE: Authentication error (10000) is probably an API token permissions problem
+// NOTE: Authn/z error is probably an API token permissions problem
 if (!$dev) {
   var zone = cloudflare.getZoneOutput({ name: baseDomain });
+
+  new cloudflare.ZoneSettingsOverride("ZijiZoneSettings", {
+    zoneId: zone.id,
+    settings: {
+      ssl: "full",
+    },
+  });
 
   const directRecordTypes = ["A", "AAAA"];
   for (const recordType of directRecordTypes) {
