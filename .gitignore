@@ -46,4 +46,4 @@ package-lock.json
 stats.html
 
 # TLS Cert Generation
-.cert
+.certs

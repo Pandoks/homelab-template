@@ -25,3 +25,5 @@
 - [ ] Fix infinite loading in passkey onSubmit superforms
 
 - [ ] Crowdsec for DDOS -> proxy logs ?
+
+- [ ] Better build staging for gh actions
