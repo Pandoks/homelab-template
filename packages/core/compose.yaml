@@ -38,6 +38,13 @@ services:
       interval: 1s
       retries: 10
 
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+
   # essentially an empty container that makes sure the previous services are initialized
   ready:
     image: alpine:latest

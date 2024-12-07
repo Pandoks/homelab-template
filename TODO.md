@@ -20,10 +20,9 @@
 - [ ] Get emailing to work
 
 - [ ] Umami for analytics
-- [ ] Signoz for observability
+- [ ] Glitchtip for error monitoring
+- [ ] Dozzle for log management
 
 - [ ] Fix infinite loading in passkey onSubmit superforms
-
-- [ ] Crowdsec for DDOS -> proxy logs ?
 
 - [ ] Better build staging for gh actions

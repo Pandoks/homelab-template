@@ -1,0 +1,68 @@
+# Used to test database infrastructure
+networks:
+  database-network:
+    driver: bridge
+
+services:
+  masterdb:
+    image: master-database:latest
+    build:
+      context: ./master
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      # used to setup database
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=userdb
+      # used to connect to the database
+      - PGUSER=user
+      - PGDATABASE=userdb
+    volumes:
+      - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
+      - ./master/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./master/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/cert/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/cert/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/cert/server.key
+      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/cert/client.crt
+      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/cert/client.key
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+      interval: 1s
+      retries: 10
+
+  backup:
+    image: database-backup:latest
+    build:
+      context: ./pgbackrest
+      dockerfile: Dockerfile
+    volumes:
+      - ./pgbackrest/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/cert/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/cert/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/cert/server.key
+      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/cert/client.crt
+      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/cert/client.key
+    networks:
+      - database-network
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+
+  # essentially an empty container that makes sure the previous services are initialized
+  ready:
+    image: alpine:latest
+    depends_on:
+      masterdb:
+        condition: service_healthy
+      backup:
+        condition: service_started

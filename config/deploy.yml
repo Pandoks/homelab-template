@@ -63,7 +63,7 @@ ssh:
 #   wait: 2
 
 accessories:
-  # Use VPNs when using different machines
+  # Use VPNs when using different machines (don't need to setup tls)
   db:
     image: postgres:17-alpine
     port: "127.0.0.1:5432:5432" # don't expose to public (use vpn when multi machine)
@@ -79,6 +79,7 @@ accessories:
     files:
       - packages/core/src/database/main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - packages/core/src/database/main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
+      - packages/core/src/database/images/master/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
     directories:
       - postgres-data:/var/lib/postgresql/data
 
@@ -92,3 +93,10 @@ accessories:
       secret:
         - REDIS_PASSWORD
     cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "127.0.0.1:8080:8080"
