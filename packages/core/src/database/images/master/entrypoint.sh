@@ -7,7 +7,4 @@ chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 chown -R postgres:postgres /var/lib/pgbackrest
 chown -R postgres:postgres /var/spool/pgbackrest
 
-echo "Switching users"
-su postgres
-
-exec $@
+exec /usr/local/bin/docker-entrypoint.sh $@
