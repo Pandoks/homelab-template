@@ -7,6 +7,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-USER postgres
-
-CMD ["pgbackrest", "server"]
+CMD ["pgbackrest", "server", "--config=/etc/pgbackrest/pgbackrest.conf"]
