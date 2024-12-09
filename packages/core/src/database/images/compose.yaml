@@ -46,6 +46,7 @@ services:
       # used to connect to the database
       - PGUSER=user
       - PGDATABASE=userdb
+      - PGPASSWORD=password
     volumes:
       - ./postgresql.slave.conf:/etc/postgresql/postgresql.conf
     networks:
