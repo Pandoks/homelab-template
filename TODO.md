@@ -26,3 +26,5 @@
 - [ ] Fix infinite loading in passkey onSubmit superforms
 
 - [ ] Better build staging for gh actions
+
+- [ ] Add login by google

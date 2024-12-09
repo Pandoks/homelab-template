@@ -1,0 +1,12 @@
+FROM postgres:17-alpine
+
+RUN rm -rf /var/lib/postgresql/data/*
+
+COPY entrypoint.slave.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+USER postgres
+
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

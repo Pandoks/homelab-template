@@ -1,30 +1,12 @@
-# Used to test database infrastructure
+# Used to test database infrastructure (currently setup for master/slave replication)
+# This should not be used in conjunction with the setup compose file
 networks:
   database-network:
     driver: bridge
 
 services:
-  backup:
-    image: database-backup:latest
-    build:
-      context: ./pgbackrest
-      dockerfile: Dockerfile
-    volumes:
-      - ./pgbackrest/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/cert/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/cert/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/cert/server.key
-      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/cert/client.crt
-      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/cert/client.key
-    networks:
-      - database-network
-
   masterdb:
-    image: master-database:latest
-    # image: postgres:17-alpine
-    build:
-      context: ./master
-      dockerfile: Dockerfile
+    image: postgres:17-alpine
     ports:
       - "5432:5432"
     environment:
@@ -38,20 +20,48 @@ services:
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
-      - ./master/pgbackrest.sh:/docker-entrypoint-initdb.d/pgbackrest.sh
-      - ./master/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./master/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/cert/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/cert/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/cert/server.key
-      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/cert/client.crt
-      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/cert/client.key
+      - ./master.sql:/docker-entrypoint-initdb.d/master.sql
+      - ./postgresql.master.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.master.conf:/etc/postgresql/pg_hba.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - database-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
       interval: 1s
       retries: 10
+
+  slavedb:
+    image: slavedb:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.slave
+    ports:
+      - "5433:5432"
+    environment:
+      # used to setup database
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=userdb
+      # used to connect to the database
+      - PGUSER=user
+      - PGDATABASE=userdb
+    volumes:
+      - ./postgresql.slave.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+      interval: 1s
+      retries: 10
+    depends_on:
+      masterdb:
+        condition: service_healthy
+
+  # pgcat:
+  #   image: ghcr.io/postgresml/pgcat:latest
+  #   ports:
+  #     - "6432:6432"
 
   dozzle:
     image: amir20/dozzle:latest
@@ -66,5 +76,5 @@ services:
     depends_on:
       masterdb:
         condition: service_healthy
-      backup:
-        condition: service_started
+      slavedb:
+        condition: service_healthy
