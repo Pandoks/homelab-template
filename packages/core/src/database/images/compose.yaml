@@ -9,7 +9,10 @@ networks:
 
 services:
   masterdb:
-    image: postgres:17-alpine
+    image: masterdb:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "5432:5432"
     environment:

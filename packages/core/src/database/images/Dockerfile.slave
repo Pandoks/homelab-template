@@ -1,4 +1,5 @@
-FROM postgres:17-alpine
+FROM masterdb:latest
+USER root
 
 RUN rm -rf /var/lib/postgresql/data/*
 
