@@ -1,0 +1,3 @@
+#!/bin/sh
+
+psql -c "CREATE USER replicator WITH REPLICATION LOGIN ENCRYPTED PASSWORD '$(echo $PGPASSWORD)'"

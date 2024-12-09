@@ -20,12 +20,13 @@ services:
       # used to connect to the database
       - PGUSER=user
       - PGDATABASE=userdb
+      - PGPASSWORD=password
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
-      - ./master.sql:/docker-entrypoint-initdb.d/master.sql
-      - ./postgresql.master.conf:/etc/postgresql/postgresql.conf
-      - ./pg_hba.master.conf:/etc/postgresql/pg_hba.conf
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - database-network
@@ -51,7 +52,9 @@ services:
       - PGDATABASE=userdb
       - PGPASSWORD=password
     volumes:
-      - ./postgresql.slave.conf:/etc/postgresql/postgresql.conf
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
     networks:
       - database-network
     healthcheck:
