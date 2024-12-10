@@ -1,6 +1,10 @@
 # Used to test database infrastructure (currently setup for master/slave replication)
 # This should not be used in conjunction with the setup compose file
 networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16 # force default network not to conflict
   database-network:
     driver: bridge
     ipam:
