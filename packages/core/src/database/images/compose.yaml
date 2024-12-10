@@ -29,6 +29,32 @@ services:
     ports:
       - 8080:8080
 
+  backup:
+    image: backup:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    ports:
+      - "5433:5433"
+    environment:
+      # used to setup database
+      - POSTGRES_USER=user
+      - POSTGRES_DB=userdb
+      - MASTER_HOST=images-masterdb-1
+    volumes:
+      - ./pgbackrest.backup.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
+      interval: 1s
+      retries: 10
+
   masterdb:
     image: masterdb:latest
     build:
@@ -61,11 +87,12 @@ services:
     networks:
       - database-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
       interval: 1s
       retries: 10
     depends_on:
-      - backup
+      backup:
+        condition: service_healthy
 
   # slavedb:
   #   image: slavedb:latest
@@ -100,23 +127,6 @@ services:
   #       condition: service_healthy
   #     s3:
   #       condition: service_healthy
-
-  backup:
-    image: backup:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    ports:
-      - "5433:5433"
-    volumes:
-      - ./pgbackrest.backup.conf:/etc/pgbackrest/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
-    networks:
-      - database-network
 
   # pgcat:
   #   image: ghcr.io/postgresml/pgcat:latest

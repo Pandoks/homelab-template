@@ -9,16 +9,13 @@ done
 PG_PID=$!
 echo "Postgresql is ready"
 
-pgbackrest server --config=/etc/pgbackrest/pgbackrest.conf &
-PGBR_PID=$!
-
 monitor_pgbackrest() {
   while true; do
     wait $PGBR_PID
-    echo "Pgbackrest server stopped. Restarting in 5 seconds..."
-    sleep 5
+    echo "Pgbackrest doesn't exist. Starting pgbackrest..."
     pgbackrest server --config=/etc/pgbackrest/pgbackrest.conf &
     PGBR_PID=$!
+    echo "Pgbackrest is ready"
   done
 }
 monitor_pgbackrest &
