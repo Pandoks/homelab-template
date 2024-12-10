@@ -7,4 +7,4 @@ RUN apk add pgbackrest --no-cache
 
 USER postgres
 
-CMD [ "postgres -c config_file=/etc/postgresql/postgresql.conf & pgbackrest server --config=/etc/pgbackrest/pgbackrest.conf" ]
+CMD [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]

@@ -54,13 +54,14 @@ services:
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
       - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
       - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - database-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
       interval: 1s
       retries: 10
+    depends_on:
+      - backup
 
   # slavedb:
   #   image: slavedb:latest

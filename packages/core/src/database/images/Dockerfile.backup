@@ -1,5 +1,7 @@
-FROM masterdb:latest
-USER root
+FROM alpine:3
+RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
+RUN apk update && apk upgrade --no-cache
+RUN apk add pgbackrest --no-cache
 
 RUN addgroup pgbackrest
 RUN cat /etc/group
