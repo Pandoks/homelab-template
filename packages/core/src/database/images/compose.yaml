@@ -8,6 +8,23 @@ networks:
         - subnet: 172.18.0.0/16
 
 services:
+  s3:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=testsecret
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+
   masterdb:
     image: masterdb:latest
     build:
@@ -23,13 +40,20 @@ services:
       # used to connect to the database
       - PGUSER=user
       - PGDATABASE=userdb
-      - PGPASSWORD=password
+      - PGPASSWORD=password # server replication password
+      - POSTGRES_TYPE=backup
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
       - ./init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
       - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - database-network
@@ -38,47 +62,61 @@ services:
       interval: 1s
       retries: 10
 
-  slavedb:
-    image: slavedb:latest
+  # slavedb:
+  #   image: slavedb:latest
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.slave
+  #   ports:
+  #     - "5433:5432"
+  #   environment:
+  #     # used to setup database
+  #     - POSTGRES_USER=user
+  #     - POSTGRES_PASSWORD=password
+  #     - POSTGRES_DB=userdb
+  #     # used to connect to the database
+  #     - PGUSER=user
+  #     - PGDATABASE=userdb
+  #     - PGPASSWORD=password # server replication password
+  #     - POSTGRES_TYPE=backup
+  #   volumes:
+  #     - ./postgresql.conf:/etc/postgresql/postgresql.conf
+  #     - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+  #     - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+  #     - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+  #   networks:
+  #     - database-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+  #     interval: 1s
+  #     retries: 10
+  #   depends_on:
+  #     masterdb:
+  #       condition: service_healthy
+  #     s3:
+  #       condition: service_healthy
+
+  backup:
+    image: backup:latest
     build:
       context: .
-      dockerfile: Dockerfile.slave
+      dockerfile: Dockerfile.backup
     ports:
-      - "5433:5432"
-    environment:
-      # used to setup database
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
-      # used to connect to the database
-      - PGUSER=user
-      - PGDATABASE=userdb
-      - PGPASSWORD=password
+      - "5433:5433"
     volumes:
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
-      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./pgbackrest.backup.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
-      interval: 1s
-      retries: 10
-    depends_on:
-      masterdb:
-        condition: service_healthy
 
   # pgcat:
   #   image: ghcr.io/postgresml/pgcat:latest
   #   ports:
   #     - "6432:6432"
-
-  dozzle:
-    image: amir20/dozzle:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 8080:8080
 
   # essentially an empty container that makes sure the previous services are initialized
   ready:
@@ -86,5 +124,5 @@ services:
     depends_on:
       masterdb:
         condition: service_healthy
-      slavedb:
-        condition: service_healthy
+      # slavedb:
+      #   condition: service_healthy

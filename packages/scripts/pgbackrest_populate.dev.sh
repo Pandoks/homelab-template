@@ -12,7 +12,6 @@ DEV_CA=$CERT_DIR/ca
 DEV_CLIENT=$CERT_DIR/client
 DEV_SERVER=$CERT_DIR/server
 
-# Common name (CN) should be the same name as the container
 # Create CA
 if [[ ! -f $DEV_CA/ca.crt || ! -f $DEV_CA/ca.key ]]; then
   openssl req -new -x509 -days 3650 -nodes \
@@ -26,7 +25,7 @@ if [[ ! -f $DEV_SERVER/server.crt || ! -f $DEV_SERVER/server.key ]]; then
   openssl req -new -nodes \
     -out $DEV_SERVER/server.csr \
     -keyout $DEV_SERVER/server.key \
-    -subj "/CN=backup-1"
+    -subj "/CN=images-backup-1"
   chmod og-rwx $DEV_SERVER/server.key
 
   openssl x509 -req -in $DEV_SERVER/server.csr \
@@ -36,12 +35,12 @@ if [[ ! -f $DEV_SERVER/server.crt || ! -f $DEV_SERVER/server.key ]]; then
     -CAcreateserial \
     -out $DEV_SERVER/server.crt
 fi
-# Client cert (masterdb)
+# Client cert (databases)
 if [[ ! -f $DEV_CLIENT/client.crt || ! -f $DEV_CLIENT/client.key ]]; then
   openssl req -new -nodes \
     -out $DEV_CLIENT/client.csr \
     -keyout $DEV_CLIENT/client.key \
-    -subj "/CN=masterdb-1"
+    -subj "/CN=images-masterdb-1"
   chmod og-rwx $DEV_CLIENT/client.key
 
   openssl x509 -req -in $DEV_CLIENT/client.csr \

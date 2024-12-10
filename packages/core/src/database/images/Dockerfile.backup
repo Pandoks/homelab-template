@@ -1,0 +1,13 @@
+FROM masterdb:latest
+USER root
+
+RUN addgroup pgbackrest
+RUN cat /etc/group
+RUN adduser -D -h /var/lib/pgbackrest -s /bin/sh -G pgbackrest pgbackrest
+RUN chown pgbackrest:pgbackrest /var/log/pgbackrest
+RUN mkdir -p /main/backup
+RUN chown pgbackrest:pgbackrest /main/backup
+
+USER pgbackrest
+
+CMD ["pgbackrest", "server", "--config=/etc/pgbackrest/pgbackrest.conf"]

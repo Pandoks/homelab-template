@@ -20,8 +20,7 @@
 - [ ] Get emailing to work
 
 - [ ] Umami for analytics
-- [ ] Glitchtip for error monitoring
-- [ ] Dozzle for log management
+- [ ] Signoz for error monitoring
 
 - [ ] Fix infinite loading in passkey onSubmit superforms
 
