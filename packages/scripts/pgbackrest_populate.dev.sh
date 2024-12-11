@@ -20,6 +20,7 @@ if [[ ! -f $DEV_CA/ca.crt || ! -f $DEV_CA/ca.key ]]; then
     -subj "/CN=devCA"
   chmod og-rwx $DEV_CA/ca.key
 fi
+
 # Server cert (backup)
 if [[ ! -f $DEV_SERVER/server.crt || ! -f $DEV_SERVER/server.key ]]; then
   openssl req -new -nodes \
@@ -35,18 +36,22 @@ if [[ ! -f $DEV_SERVER/server.crt || ! -f $DEV_SERVER/server.key ]]; then
     -CAcreateserial \
     -out $DEV_SERVER/server.crt
 fi
-# Client cert (databases)
-if [[ ! -f $DEV_CLIENT/client.crt || ! -f $DEV_CLIENT/client.key ]]; then
-  openssl req -new -nodes \
-    -out $DEV_CLIENT/client.csr \
-    -keyout $DEV_CLIENT/client.key \
-    -subj "/CN=images-masterdb-1"
-  chmod og-rwx $DEV_CLIENT/client.key
 
-  openssl x509 -req -in $DEV_CLIENT/client.csr \
-    -days 365 \
-    -CA $DEV_CA/ca.crt \
-    -CAkey $DEV_CA/ca.key \
-    -CAcreateserial \
-    -out $DEV_CLIENT/client.crt
-fi
+# Client certs (databases)
+backup_servers=("images-slavedb-1" "images-masterdb-1")
+for server in "${backup_servers[@]}"; do
+  if [[ ! -f "$DEV_CLIENT/$server.crt" || ! -f "$DEV_CLIENT/$server.key" ]]; then
+    openssl req -new -nodes \
+      -out "$DEV_CLIENT/$server.csr" \
+      -keyout "$DEV_CLIENT/$server.key" \
+      -subj "/CN=$server"
+    chmod og-rwx "$DEV_CLIENT/$server.key"
+
+    openssl x509 -req -in "$DEV_CLIENT/$server.csr" \
+      -days 365 \
+      -CA $DEV_CA/ca.crt \
+      -CAkey $DEV_CA/ca.key \
+      -CAcreateserial \
+      -out "$DEV_CLIENT/$server.crt"
+  fi
+done
