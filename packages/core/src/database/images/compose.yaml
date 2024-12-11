@@ -40,19 +40,16 @@ services:
       # used to setup database
       - POSTGRES_USER=user
       - POSTGRES_DB=userdb
-      - POSTGRES_HOST=images-masterdb-1
-      - POSTGRES_PORT=5432
+      - MASTER_HOST=images-masterdb-1
     volumes:
       - ./pgbackrest.backup.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/client/client.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/client/client.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
     healthcheck:
-      test: ["CMD-SHELL", "pgbackrest --stanza=main info > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
       interval: 1s
       retries: 10
 
@@ -91,6 +88,9 @@ services:
       test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
       interval: 1s
       retries: 10
+    depends_on:
+      backup:
+        condition: service_healthy
 
   # slavedb:
   #   image: slavedb:latest
@@ -98,7 +98,7 @@ services:
   #     context: .
   #     dockerfile: Dockerfile.slave
   #   ports:
-  #     - "5434:5432"
+  #     - "5433:5432"
   #   environment:
   #     # used to setup database
   #     - POSTGRES_USER=user
@@ -114,23 +114,16 @@ services:
   #     - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
   #     - ./init.sh:/docker-entrypoint-initdb.d/init.sh
   #     - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
-  #     - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-  #     - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
-  #     - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
-  #     - ../../../../../.certs/dev/client/images-slavedb-1.key:/etc/pgbackrest/client.key
-  #     - ../../../../../.certs/dev/client/images-slavedb-1.crt:/etc/pgbackrest/client.crt
   #   networks:
   #     - database-network
   #   healthcheck:
-  #     test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
+  #     test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
   #     interval: 1s
   #     retries: 10
   #   depends_on:
   #     masterdb:
   #       condition: service_healthy
   #     s3:
-  #       condition: service_healthy
-  #     backup:
   #       condition: service_healthy
 
   # pgcat:
@@ -146,5 +139,3 @@ services:
         condition: service_healthy
       # slavedb:
       #   condition: service_healthy
-      backup:
-        condition: service_healthy
