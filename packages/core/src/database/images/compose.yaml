@@ -14,8 +14,6 @@ networks:
 services:
   s3:
     image: localstack/localstack
-    ports:
-      - "4566:4566"
     environment:
       - SERVICES=s3
       - AWS_DEFAULT_REGION=us-west-1
@@ -58,8 +56,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5432:5432"
     environment:
       # used to setup database
       - POSTGRES_USER=user
@@ -69,7 +65,7 @@ services:
       - PGUSER=user
       - PGDATABASE=userdb
       - PGPASSWORD=password # server replication password
-      - POSTGRES_TYPE=backup
+      # - POSTGRES_TYPE=backup
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
@@ -92,39 +88,42 @@ services:
       backup:
         condition: service_healthy
 
-  # slavedb:
-  #   image: slavedb:latest
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.slave
-  #   ports:
-  #     - "5433:5432"
-  #   environment:
-  #     # used to setup database
-  #     - POSTGRES_USER=user
-  #     - POSTGRES_PASSWORD=password
-  #     - POSTGRES_DB=userdb
-  #     # used to connect to the database
-  #     - PGUSER=user
-  #     - PGDATABASE=userdb
-  #     - PGPASSWORD=password # server replication password
-  #     - POSTGRES_TYPE=backup
-  #   volumes:
-  #     - ./postgresql.conf:/etc/postgresql/postgresql.conf
-  #     - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
-  #     - ./init.sh:/docker-entrypoint-initdb.d/init.sh
-  #     - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
-  #   networks:
-  #     - database-network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
-  #     interval: 1s
-  #     retries: 10
-  #   depends_on:
-  #     masterdb:
-  #       condition: service_healthy
-  #     s3:
-  #       condition: service_healthy
+  slavedb:
+    image: slavedb:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.slave
+    environment:
+      # used to setup database
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=userdb
+      # used to connect to the database
+      - PGUSER=user
+      - PGDATABASE=userdb
+      - PGPASSWORD=password # server replication password
+      - POSTGRES_TYPE=backup
+    volumes:
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/client/images-slavedb-1.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/client/images-slavedb-1.crt:/etc/pgbackrest/client.crt
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+      interval: 1s
+      retries: 10
+    depends_on:
+      masterdb:
+        condition: service_healthy
+      s3:
+        condition: service_healthy
 
   # pgcat:
   #   image: ghcr.io/postgresml/pgcat:latest
