@@ -65,7 +65,7 @@ services:
       - PGUSER=user
       - PGDATABASE=userdb
       - PGPASSWORD=password # server replication password
-      # - POSTGRES_TYPE=backup
+      - POSTGRES_TYPE=backup
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
