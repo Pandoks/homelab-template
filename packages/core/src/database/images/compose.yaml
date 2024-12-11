@@ -136,5 +136,5 @@ services:
     depends_on:
       masterdb:
         condition: service_healthy
-      # slavedb:
-      #   condition: service_healthy
+      slavedb:
+        condition: service_healthy
