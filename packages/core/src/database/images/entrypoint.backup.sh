@@ -6,6 +6,7 @@ setup_stanzas() {
   done
 
   pgbackrest --stanza=main stanza-create
+  pgbackrest --stanza=main check
 }
 
 setup_stanzas &
