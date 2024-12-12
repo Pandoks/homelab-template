@@ -1,7 +1,10 @@
 #!/bin/sh
 
-pg_basebackup -D /var/lib/postgresql/data/ -h images-masterdb-1 -X stream -c fast -U replicator
-chmod 700 /var/lib/postgresql/data
+while [ -z "$(ls -A /var/lib/postgresql/data)" ]; do
+  pg_basebackup -D /var/lib/postgresql/data/ -h images-masterdb-1 -X stream -c fast -U replicator
+  chmod 700 /var/lib/postgresql/data
+done
+
 touch /var/lib/postgresql/data/standby.signal
 
 postgres -c config_file=/etc/postgresql/postgresql.conf &
