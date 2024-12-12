@@ -26,6 +26,6 @@
 
 - [ ] Better build staging for gh actions
 
-- [ ] Add login by google
+- [ ] Add login by google oauth
 
 - [ ] Github actions cron job for certificate refresh

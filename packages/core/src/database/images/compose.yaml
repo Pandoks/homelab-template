@@ -19,6 +19,10 @@ services:
       - AWS_DEFAULT_REGION=us-west-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=testsecret
+    volumes:
+      - ./s3.sh:/etc/localstack/init/ready.d/s3.sh
+    networks:
+      - database-network
 
   dozzle:
     image: amir20/dozzle:latest
@@ -50,6 +54,9 @@ services:
       test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
       interval: 1s
       retries: 10
+    depends_on:
+      s3:
+        condition: service_healthy
 
   masterdb:
     image: masterdb:latest
@@ -121,8 +128,6 @@ services:
       retries: 10
     depends_on:
       masterdb:
-        condition: service_healthy
-      s3:
         condition: service_healthy
 
   # pgcat:
