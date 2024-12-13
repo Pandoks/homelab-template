@@ -34,8 +34,8 @@ services:
   backup:
     image: backup:latest
     build:
-      context: .
-      dockerfile: Dockerfile.backup
+      context: ./backup
+      dockerfile: Dockerfile
     ports:
       - "5433:5433"
     environment:
@@ -44,7 +44,7 @@ services:
       - POSTGRES_DB=userdb
       - MASTER_HOST=images-masterdb-1
     volumes:
-      - ./pgbackrest.backup.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./backup/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
@@ -61,7 +61,7 @@ services:
   masterdb:
     image: masterdb:latest
     build:
-      context: .
+      context: ./master
       dockerfile: Dockerfile
     environment:
       # used to setup database
@@ -76,10 +76,10 @@ services:
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
-      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./master/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
       - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
-      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./master/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
@@ -98,8 +98,8 @@ services:
   slavedb:
     image: slavedb:latest
     build:
-      context: .
-      dockerfile: Dockerfile.slave
+      context: ./slave
+      dockerfile: Dockerfile
     environment:
       # used to setup database
       - POSTGRES_USER=user
@@ -113,8 +113,7 @@ services:
     volumes:
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
       - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
-      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
-      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./slave/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key

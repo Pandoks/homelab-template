@@ -7,10 +7,8 @@ RUN addgroup pgbackrest
 RUN cat /etc/group
 RUN adduser -D -h /var/lib/pgbackrest -s /bin/sh -G pgbackrest pgbackrest
 RUN chown pgbackrest:pgbackrest /var/log/pgbackrest
-RUN mkdir -p /database_backups
-RUN chown pgbackrest:pgbackrest /database_backups
 
-COPY entrypoint.backup.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER pgbackrest
