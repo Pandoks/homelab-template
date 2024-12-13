@@ -1,15 +1,8 @@
 # Used to test database infrastructure (currently setup for master/slave replication)
 # This should not be used in conjunction with the setup compose file
 networks:
-  default:
-    ipam:
-      config:
-        - subnet: 172.19.0.0/16 # force default network not to conflict
   database-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.18.0.0/16
 
 services:
   s3:
@@ -36,8 +29,6 @@ services:
     build:
       context: ./backup
       dockerfile: Dockerfile
-    ports:
-      - "5433:5433"
     environment:
       # used to setup database
       - POSTGRES_USER=user
@@ -133,12 +124,17 @@ services:
   #   image: ghcr.io/postgresml/pgcat:latest
   #   ports:
   #     - "6432:6432"
+  #   volumes:
+  #     - ./pgcat.toml:/etc/pgcat/pgcat.toml
+  #   depends_on:
+  #     masterdb:
+  #       condition: service_healthy
+  #     slavedb:
+  #       condition: service_healthy
 
   # essentially an empty container that makes sure the previous services are initialized
-  ready:
-    image: alpine:latest
-    depends_on:
-      masterdb:
-        condition: service_healthy
-      slavedb:
-        condition: service_healthy
+  # ready:
+  #   image: alpine:latest
+  #   depends_on:
+  #     pgcat:
+  #       condition: service_healthy
