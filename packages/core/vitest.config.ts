@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { config } from "dotenv";
 
 export default defineConfig({
   test: {
@@ -7,10 +8,7 @@ export default defineConfig({
     include: ["./**/*.test.{js,ts}"],
     fileParallelism: false,
     env: {
-      MAIN_DB_URL: "postgresql://user:password@localhost:5432/userdb",
-      MAIN_REDIS_URL: "redis://:password@localhost:6379",
-      PUBLIC_DOMAIN: "localhost",
-      PUBLIC_APP_NAME: "homelab-template",
+      ...config({ path: "../../.env" }).parsed,
     },
   },
   esbuild: {
