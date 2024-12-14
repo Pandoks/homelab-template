@@ -16,25 +16,21 @@ services:
       interval: 1s
       retries: 10
 
-  userdb:
+  maindb:
     image: postgres:17-alpine
     ports:
       - "5432:5432"
+    env_file: "../../.env"
     environment:
-      # used to setup database
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
-      # used to connect to the database
-      - PGUSER=user
-      - PGDATABASE=userdb
+      - POSTGRES_DB=main
+      - PGDATABASE=main
     volumes:
       - ./src/database/main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./src/database/main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
     networks:
       - homelab-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "userdb"]
+      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "main"]
       interval: 1s
       retries: 10
 
@@ -49,7 +45,7 @@ services:
   ready:
     image: alpine:latest
     depends_on:
-      userdb:
+      maindb:
         condition: service_healthy
       cache:
         condition: service_healthy

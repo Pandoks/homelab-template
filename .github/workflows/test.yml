@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     # TODO: use repo variables when GitHub stops auto deploying depending on environment
     env:
-      MAIN_DB_URL: postgresql://user:password@localhost:5432/userdb,
+      MAIN_DB_URL: postgresql://user:password@localhost:5432/main,
       MAIN_REDIS_URL: redis://:password@localhost:6379,
       PUBLIC_DOMAIN: localhost
       PUBLIC_APP_NAME: homelab-template

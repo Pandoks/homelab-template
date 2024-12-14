@@ -24,9 +24,6 @@ services:
     ports:
       - "3000:3000"
     env_file: ".env"
-    environment:
-      - USER_DB_HOST=userdb
-      - MAIN_REDIS_HOST=cache
     depends_on:
       - base
     networks:
