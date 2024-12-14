@@ -120,21 +120,23 @@ services:
       masterdb:
         condition: service_healthy
 
-  # pgcat:
-  #   image: ghcr.io/postgresml/pgcat:latest
-  #   ports:
-  #     - "6432:6432"
-  #   volumes:
-  #     - ./pgcat.toml:/etc/pgcat/pgcat.toml
-  #   depends_on:
-  #     masterdb:
-  #       condition: service_healthy
-  #     slavedb:
-  #       condition: service_healthy
+  pgcat:
+    image: ghcr.io/postgresml/pgcat:latest
+    ports:
+      - "6432:6432"
+    volumes:
+      - ./pgcat.toml:/etc/pgcat/pgcat.toml
+    networks:
+      - database-network
+    depends_on:
+      masterdb:
+        condition: service_healthy
+      slavedb:
+        condition: service_healthy
 
   # essentially an empty container that makes sure the previous services are initialized
-  # ready:
-  #   image: alpine:latest
-  #   depends_on:
-  #     pgcat:
-  #       condition: service_healthy
+  ready:
+    image: alpine:latest
+    depends_on:
+      pgcat:
+        condition: service_started
