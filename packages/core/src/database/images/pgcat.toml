@@ -3,8 +3,6 @@
 # What IP to run on, 0.0.0.0 means accessible from everywhere.
 host = "0.0.0.0"
 
-dns_cache_enabled = true
-
 # Port to run on, same as PgBouncer used in this example.
 port = 6432
 
@@ -30,10 +28,10 @@ shutdown_timeout = 60000
 ban_time = 60 # seconds
 
 # If we should log client connections
-log_client_connections = true
+log_client_connections = false
 
 # If we should log client disconnections
-log_client_disconnections = true
+log_client_disconnections = false
 
 # TLS
 # tls_certificate = "server.cert"
@@ -94,7 +92,7 @@ password = "password"
 # Maximum number of server connections that can be established for this user
 # The maximum number of connection from a single Pgcat process to any database in the cluster
 # is the sum of pool_size across all users.
-pool_size = 9
+pool_size = 20
 
 # Maximum query duration. Dangerous, but protects against DBs that died in a non-obvious way.
 statement_timeout = 0

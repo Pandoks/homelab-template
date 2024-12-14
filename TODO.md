@@ -5,9 +5,8 @@
   - [ ] Use sst to manage github ci/cd variables
 
 - [ ] Caching in Cloudflare
-- [ ] Database backups
 
-  - [ ] Database recovery
+- [ ] Database recovery
 
 - [ ] Create Go api
 - [ ] Create python worker
