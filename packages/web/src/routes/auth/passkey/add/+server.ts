@@ -16,7 +16,7 @@ import {
   verifyChallenge,
   verifyClientData
 } from '@startup-template/core/auth/server/passkey';
-import { database } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { passkeys } from '@startup-template/core/database/main/schema/auth.sql';
 import { decodeBase64url, encodeBase64url } from '@oslojs/encoding';
 
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async (event) => {
   await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
 
   try {
-    await database.insert(passkeys).values({
+    await mainDatabase.insert(passkeys).values({
       userId: event.locals.user.id,
       credentialId: encodeBase64url(credential.id),
       algorithm: algorithm,

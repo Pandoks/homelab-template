@@ -11,15 +11,8 @@ describe("generateEmailVerification", () => {
   let db: PostgresJsDatabase;
 
   beforeAll(async () => {
-    db = drizzle(
-      postgres({
-        username: process.env.USER_DB_USERNAME,
-        password: process.env.USER_DB_PASSWORD,
-        host: process.env.USER_DB_HOST,
-        port: parseInt(process.env.USER_DB_PORT!),
-        database: process.env.USER_DB_DATABASE,
-      }),
-    );
+    const mainClient = postgres(process.env.MAIN_DB_URL!);
+    db = drizzle({ client: mainClient });
   });
 
   beforeEach(async () => {

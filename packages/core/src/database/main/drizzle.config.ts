@@ -16,11 +16,7 @@ export default defineConfig({
     prefix: "none",
   },
   dbCredentials: {
-    user: process.env.USER_DB_USERNAME,
-    password: process.env.USER_DB_PASSWORD,
-    host: "localhost",
-    port: parseInt(process.env.USER_DB_PORT!),
-    database: process.env.USER_DB_DATABASE!,
+    url: process.env.MAIN_DB_URL!,
   },
   verbose: true,
   strict: true,

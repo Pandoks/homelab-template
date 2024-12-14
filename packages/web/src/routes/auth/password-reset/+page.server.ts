@@ -7,7 +7,7 @@ import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
 import { building } from '$app/environment';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 import {
   createPasswordResetToken,

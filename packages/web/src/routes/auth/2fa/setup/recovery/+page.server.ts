@@ -2,7 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { database as mainDatabase } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';

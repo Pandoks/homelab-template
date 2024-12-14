@@ -35,7 +35,7 @@ import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
-import { database as mainDatabase } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';

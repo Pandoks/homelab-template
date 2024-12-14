@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { mainDb } from '../db';
+import { mainDatabase } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
 import { expect } from '@playwright/test';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
@@ -28,7 +28,7 @@ test.describe('logging in user', () => {
       passwordResetResponse
     ]);
 
-    const [passwordResetToken] = await mainDb
+    const [passwordResetToken] = await mainDatabase
       .select()
       .from(users)
       .innerJoin(passwordResets, eq(users.id, passwordResets.userId))
@@ -69,7 +69,7 @@ test.describe('logging in user', () => {
       `/auth/password-reset/${passwordResetToken.users.id}?/new-password`
     );
     await Promise.all([page.getByRole('button', { name: 'Submit' }).click(), newPasswordResponse]);
-    const [passwordReset] = await mainDb
+    const [passwordReset] = await mainDatabase
       .select()
       .from(users)
       .innerJoin(passwordResets, eq(passwordResets.userId, users.id))
@@ -101,7 +101,7 @@ test.describe('logging in user', () => {
   test('should not give information about wrong email credentials', async ({ page }) => {
     const { email } = await generateRandomTestUser('password-reset');
 
-    const [emailInfo] = await mainDb.select().from(emails).where(eq(emails.email, email));
+    const [emailInfo] = await mainDatabase.select().from(emails).where(eq(emails.email, email));
     expect(emailInfo).toBeFalsy();
 
     await page.goto('/auth/login');

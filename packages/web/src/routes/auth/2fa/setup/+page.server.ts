@@ -9,7 +9,7 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
-import { database } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { decodeHex, encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
 import { createTOTPKeyURI, verifyTOTP } from '@oslojs/otp';
@@ -34,7 +34,7 @@ export const actions: Actions = {
       });
     }
 
-    const [{ twoFactorKey }] = await database
+    const [{ twoFactorKey }] = await mainDatabase
       .select({ twoFactorKey: twoFactorAuthenticationCredentials.twoFactorKey })
       .from(twoFactorAuthenticationCredentials)
       .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
@@ -72,7 +72,7 @@ export const load: PageServerLoad = async (event) => {
     return redirect(302, '/');
   }
 
-  let [{ twoFactorKey: twoFactorKey }] = await database
+  let [{ twoFactorKey: twoFactorKey }] = await mainDatabase
     .select({ twoFactorKey: twoFactorAuthenticationCredentials.twoFactorKey })
     .from(twoFactorAuthenticationCredentials)
     .where(eq(twoFactorAuthenticationCredentials.userId, user.id))
@@ -80,7 +80,7 @@ export const load: PageServerLoad = async (event) => {
 
   if (!twoFactorKey) {
     twoFactorKey = encodeHexLowerCase(crypto.getRandomValues(new Uint8Array(20)));
-    await database
+    await mainDatabase
       .insert(twoFactorAuthenticationCredentials)
       .values({
         userId: user.id,

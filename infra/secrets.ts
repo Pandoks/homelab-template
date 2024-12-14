@@ -7,14 +7,14 @@ export const secrets = {
   GhToken: new sst.Secret("GhToken"),
 
   MainDatabase: {
-    Username: new sst.Secret("MainDatabaseUsername"),
-    Password: new sst.Secret("MainDatabasePassword"),
-    Host: new sst.Secret("MainDatabaseHost"),
-    Port: new sst.Secret("MainDatabasePort"),
-    Database: new sst.Secret("MainDatabaseName"),
+    Username: new sst.Secret("MainDbAdminUser"),
+    Password: new sst.Secret("MainDbAdminPass"),
+    Database: new sst.Secret("MainDbName"),
+    Url: new sst.Secret("MainDbUrl"),
   },
 
   MainRedis: {
-    Password: new sst.Secret("MainRedisPassword"),
+    Password: new sst.Secret("MainRedisPass"),
+    Url: new sst.Secret("MainRedisUrl"),
   },
 };

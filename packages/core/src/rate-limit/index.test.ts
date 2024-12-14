@@ -11,11 +11,7 @@ import {
 } from ".";
 
 const storage = await createClient({
-  password: process.env.MAIN_REDIS_PASSWORD,
-  socket: {
-    host: process.env.MAIN_REDIS_HOST,
-    port: parseInt(process.env.MAIN_REDIS_PORT!),
-  },
+  url: process.env.MAIN_REDIS_URL,
 }).connect();
 
 describe("ConstantRefillTokenBucketLimiter", () => {

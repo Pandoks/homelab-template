@@ -14,7 +14,7 @@ import {
   sendVerification,
   verifyVerificationCode
 } from '@startup-template/core/auth/server/email';
-import { database as mainDatabase } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { emails } from '@startup-template/core/database/main/schema/user.sql';
 import {
   createSession,

@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import { test, type AuthTest } from '../../utils';
-import { mainDb } from '../../db';
+import { mainDatabase } from '../../db';
 import { eq } from 'drizzle-orm';
 import { decodeBase32, encodeHexLowerCase } from '@oslojs/encoding';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
@@ -17,7 +17,7 @@ const setupPageTOTP = async (page: Page) => {
 
   const twoFactorKey = decodeBase32(plainTwoFactor);
 
-  const twoFactorInfo = await mainDb
+  const twoFactorInfo = await mainDatabase
     .select()
     .from(twoFactorAuthenticationCredentials)
     .where(eq(twoFactorAuthenticationCredentials.twoFactorKey, encodeHexLowerCase(twoFactorKey)));
@@ -83,7 +83,7 @@ test.describe('logged in user', () => {
         homeWait
       ]);
 
-      const twoFactorInfo = await mainDb
+      const twoFactorInfo = await mainDatabase
         .select()
         .from(twoFactorAuthenticationCredentials)
         .where(
@@ -101,7 +101,7 @@ test.describe('logged in user', () => {
   test('should be able to generate a new recovery code', async ({ fullPass, fullKey }) => {
     await Promise.all([setupPageTOTP(fullPass.page), setupPageTOTP(fullKey.page)]);
     const changeRecovery = async (fixture: AuthTest) => {
-      const oldTwoFactorInfo = await mainDb
+      const oldTwoFactorInfo = await mainDatabase
         .select()
         .from(users)
         .innerJoin(
@@ -121,7 +121,7 @@ test.describe('logged in user', () => {
         generateNewResponse
       ]);
 
-      const newTwoFactorInfo = await mainDb
+      const newTwoFactorInfo = await mainDatabase
         .select()
         .from(users)
         .innerJoin(
@@ -145,7 +145,7 @@ test.describe('logged in user', () => {
         homeWait
       ]);
 
-      const twoFactorInfo = await mainDb
+      const twoFactorInfo = await mainDatabase
         .select()
         .from(twoFactorAuthenticationCredentials)
         .where(

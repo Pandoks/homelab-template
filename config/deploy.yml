@@ -26,16 +26,9 @@ builder:
   arch: amd64
 
 env:
-  clear:
-    MAIN_REDIS_PORT: 6379
-    MAIN_REDIS_HOST: homelab-template-redis
-    USER_DB_HOST: homelab-template-db
-    USER_DB_PORT: 5432
   secret:
-    - MAIN_REDIS_PASSWORD
-    - USER_DB_PASSWORD
-    - USER_DB_USERNAME
-    - USER_DB_DATABASE
+    - MAIN_REDIS_URL
+    - MAIN_DB_URL
 
 ssh:
   user: pandoks
@@ -70,11 +63,14 @@ accessories:
     roles:
       - web
     env:
+      clear:
+        POSTGRES_TYPE: backup
       secret:
         - POSTGRES_USER
         - POSTGRES_PASSWORD
         - POSTGRES_DB
         - PGUSER
+        - PGPASSWORD
         - PGDATABASE
     files:
       - packages/core/src/database/main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql

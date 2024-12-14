@@ -10,7 +10,7 @@ import { emailSchema } from '../schema';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { Throttler } from '@startup-template/core/rate-limit/index';
-import { database as mainDatabase } from '$lib/postgres';
+import { mainDatabase } from '$lib/postgres';
 import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
 import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
 import { verifyPasskey } from '@startup-template/core/auth/server/passkey';

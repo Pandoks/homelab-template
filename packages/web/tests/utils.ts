@@ -1,4 +1,4 @@
-import { mainDb } from './db';
+import { mainDatabase } from './db';
 import { eq, sql } from 'drizzle-orm';
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType } from 'redis';
@@ -58,7 +58,7 @@ export const createNewTestUser = async ({
   email: string;
   emailVerified: boolean;
 }) => {
-  await mainDb.transaction(async (tsx) => {
+  await mainDatabase.transaction(async (tsx) => {
     await tsx.insert(users).values({
       id: username,
       username: username.toLowerCase(),
@@ -84,7 +84,10 @@ export const generateRandomTestUser = async (prefix: string) => {
       alphabet({ options: ['0-9', 'a-z', 'A-Z'] }),
       6
     )}`;
-    const [existingUser] = await mainDb.select().from(users).where(eq(users.username, username));
+    const [existingUser] = await mainDatabase
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     if (existingUser) {
       username = await createUsername();
     }
@@ -159,7 +162,7 @@ export const test = testBase.extend<AuthFixture>({
       emailVerifyWait
     ]);
 
-    const [emailVerification] = await mainDb
+    const [emailVerification] = await mainDatabase
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -188,7 +191,7 @@ export const test = testBase.extend<AuthFixture>({
       emailVerifyWait
     ]);
 
-    const [emailVerification] = await mainDb
+    const [emailVerification] = await mainDatabase
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -311,7 +314,7 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
-    const [emailVerification] = await mainDb
+    const [emailVerification] = await mainDatabase
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
@@ -358,7 +361,7 @@ export const test = testBase.extend<AuthFixture>({
       page.getByRole('button', { name: 'Sign Up', exact: true }).click(),
       emailVerifyWait
     ]);
-    const [emailVerification] = await mainDb
+    const [emailVerification] = await mainDatabase
       .select()
       .from(emailVerifications)
       .where(eq(emailVerifications.email, email.toLowerCase()));
