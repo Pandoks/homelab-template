@@ -1,14 +1,16 @@
 #!/bin/sh
 
 usage() {
-  echo "Usage: $0 [--env <env_file>] <filename>"
+  echo "Usage: $0 [--env <env_file>] [--out <output_file>] <filename>"
   echo "Options:"
   echo "  --env <env_file>    Source environment variables from specified .env file"
+  echo "  --out <output_file> Write output to specified file instead of modifying input"
   exit 1
 }
 
 env_file=""
 file=""
+out_file=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -18,6 +20,14 @@ while [ $# -gt 0 ]; do
       usage
     fi
     env_file="$2"
+    shift 2
+    ;;
+  --out)
+    if [ -z "$2" ]; then
+      echo "Error: --out requires a file argument"
+      usage
+    fi
+    out_file="$2"
     shift 2
     ;;
   -h | --help)
@@ -79,9 +89,15 @@ done <"$file"
 
 rm -f "$temp_file.bak"
 
-if cat "$temp_file" >"$file"; then
+# Determine the target file (either output file or input file)
+target_file="${out_file:-$file}"
+
+if cat "$temp_file" >"$target_file"; then
   echo "Template replacement complete"
+  if [ -n "$out_file" ]; then
+    echo "Output written to '$out_file'"
+  fi
 else
-  echo "Error: Failed to update file '$file'"
+  echo "Error: Failed to write to '$target_file'"
   exit 1
 fi
