@@ -22,10 +22,9 @@ services:
     build:
       context: ./backup
       dockerfile: Dockerfile
+    env_file: "../../../../../.env"
     environment:
-      # used to setup database
-      - POSTGRES_USER=user
-      - POSTGRES_DB=userdb
+      - POSTGRES_DB=main
       - MASTER_HOST=images-masterdb-1
     volumes:
       - ./backup/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
@@ -47,15 +46,10 @@ services:
     build:
       context: ./master
       dockerfile: Dockerfile
+    env_file: "../../../../../.env"
     environment:
-      # used to setup database
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
-      # used to connect to the database
-      - PGUSER=user
-      - PGDATABASE=userdb
-      - PGPASSWORD=password # server replication password
+      - POSTGRES_DB=main
+      - PGDATABASE=main
       - POSTGRES_TYPE=backup
     volumes:
       - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -84,15 +78,10 @@ services:
     build:
       context: ./slave
       dockerfile: Dockerfile
+    env_file: "../../../../../.env"
     environment:
-      # used to setup database
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=userdb
-      # used to connect to the database
-      - PGUSER=user
-      - PGDATABASE=userdb
-      - PGPASSWORD=password # server replication password
+      - POSTGRES_DB=main
+      - PGDATABASE=main
       - POSTGRES_TYPE=backup
     volumes:
       - ./postgresql.conf:/etc/postgresql/postgresql.conf

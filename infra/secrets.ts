@@ -1,15 +1,16 @@
 export const secrets = {
   HetznerToken: new sst.Secret("HetznerToken"),
   CloudflareApiToken: new sst.Secret("CloudflareApiToken"),
+  GhToken: new sst.Secret("GhToken"),
 
   PublicSSHKey: new sst.Secret("PublicSSHKey"),
 
-  GhToken: new sst.Secret("GhToken"),
-
   MainDatabase: {
-    Username: new sst.Secret("MainDbAdminUser"),
-    Password: new sst.Secret("MainDbAdminPass"),
+    AdminUser: new sst.Secret("MainDbAdminUser"),
+    AdminPass: new sst.Secret("MainDbAdminPass"),
     Database: new sst.Secret("MainDbName"),
+    RepPass: new sst.Secret("MainDbRepPass"),
+    PoolPass: new sst.Secret("MainDbPoolPass"),
     Url: new sst.Secret("MainDbUrl"),
   },
 
