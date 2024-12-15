@@ -21,5 +21,5 @@ monitor_pgbackrest() {
 monitor_pgbackrest &
 
 # shutdown container when database dies (allows for auto restart recovery)
-wait $PG_PID 
+wait $PG_PID
 kill $PGBR_PID

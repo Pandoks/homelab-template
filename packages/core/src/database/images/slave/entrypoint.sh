@@ -1,5 +1,7 @@
 #!/bin/sh
 
+/usr/bin/process_env.sh /etc/postgresql/pg_hba.conf
+
 while [ -z "$(ls -A /var/lib/postgresql/data)" ]; do
   pg_basebackup -D /var/lib/postgresql/data/ -h images-masterdb-1 -X stream -c fast -U replicator
   chmod 700 /var/lib/postgresql/data
@@ -29,5 +31,5 @@ monitor_pgbackrest() {
 monitor_pgbackrest &
 
 # shutdown container when database dies (allows for auto restart recovery)
-wait $PG_PID 
+wait $PG_PID
 kill $PGBR_PID
