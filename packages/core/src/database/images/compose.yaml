@@ -57,15 +57,13 @@ services:
       - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
       - ./master/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./pg_hba.conf:/tmp/postgresql/pg_hba.conf
       - ./master/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
       - ../../../../../.certs/dev/client/images-masterdb-1.key:/etc/pgbackrest/client.key
       - ../../../../../.certs/dev/client/images-masterdb-1.crt:/etc/pgbackrest/client.crt
-    command: >
-      /usr/bin/process_env.sh /etc/postgresql/postgresql.conf
     networks:
       - database-network
     healthcheck:
@@ -89,15 +87,13 @@ services:
     volumes:
       - ../../../../scripts/process_env.sh:/usr/bin/process_env.sh
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./pg_hba.conf:/tmp/postgresql/pg_hba.conf
       - ./slave/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
       - ../../../../../.certs/dev/client/images-slavedb-1.key:/etc/pgbackrest/client.key
       - ../../../../../.certs/dev/client/images-slavedb-1.crt:/etc/pgbackrest/client.crt
-    mounts:
-      # mounts aren't needed in production, just use volumes. this is here so docker doesn't change the host files
     networks:
       - database-network
     healthcheck:

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ $ENV = "development" ]; then
+  /usr/bin/process_env.sh /tmp/postgresql/pg_hba.conf --out /etc/postgresql/pg_hba.conf
+fi
+
 docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf &
 
 until pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; do

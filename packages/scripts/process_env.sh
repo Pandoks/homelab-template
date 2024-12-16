@@ -8,8 +8,8 @@ usage() {
   exit 1
 }
 
-env_file=""
 file=""
+env_file=""
 out_file=""
 
 while [ $# -gt 0 ]; do
@@ -65,13 +65,14 @@ if [ -n "$env_file" ]; then
   set +a
 fi
 
-temp_file="/tmp/template_temp.$$"
-trap 'rm -f "$temp_file" "$temp_file.bak"' EXIT
+temp_file="/tmp/process_env.$$"
+trap 'rm -f "$temp_file"' EXIT
 cp "$file" "$temp_file"
 
 while IFS= read -r line; do
   case "$line" in
   *'<%='*'%>'*)
+    echo "Processing line: $line"
     var_name=$(echo "$line" | sed -n 's/.*<%=[ ]*\([A-Za-z_][A-Za-z0-9_]*\)[ ]*%>.*/\1/p')
     if [ -n "$var_name" ]; then
       eval "var_value=\${$var_name}"
@@ -85,9 +86,7 @@ while IFS= read -r line; do
     fi
     ;;
   esac
-done <"$file"
-
-rm -f "$temp_file.bak"
+done <"$temp_file"
 
 # Determine the target file (either output file or input file)
 target_file="${out_file:-$file}"
