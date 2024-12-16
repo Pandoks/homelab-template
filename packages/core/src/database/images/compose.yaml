@@ -34,10 +34,13 @@ services:
       dockerfile: Dockerfile
     env_file: "../../../../../.env"
     environment:
-      - POSTGRES_DB=main
-      - MASTER_HOSTS=images-masterdb-1
+      - POSTGRES_DB_1=main
+      - MASTER_HOST_1=images-masterdb-1
+      - SLAVE_HOST1_1=images-slavedb-1
     volumes:
-      - ./backup/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./backup/setup_backups.sh:/usr/bin/setup_backups.sh
+      - ../../../../scripts/process_env.sh:/usr/bin/process_env.sh
+      - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key

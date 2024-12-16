@@ -6,7 +6,7 @@ RUN apk add pgbackrest --no-cache
 RUN addgroup pgbackrest
 RUN cat /etc/group
 RUN adduser -D -h /var/lib/pgbackrest -s /bin/sh -G pgbackrest pgbackrest
-RUN chown pgbackrest:pgbackrest /var/log/pgbackrest
+RUN chown pgbackrest:pgbackrest /var/log/pgbackrest /etc/pgbackrest/pgbackrest.conf
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
