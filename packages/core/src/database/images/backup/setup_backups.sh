@@ -2,9 +2,9 @@
 
 if [ $ENV = "development" ]; then
   POSTGRES_USER_1=$POSTGRES_USER
-  /usr/bin/process_env.sh /tmp/conf_templates/pgbackrest.conf --out /etc/pgbackrest/pgbackrest.conf
+  /usr/local/bin/process_env.sh /tmp/conf_templates/pgbackrest.conf --out /etc/pgbackrest/pgbackrest.conf
 else
-  /usr/bin/process_env.sh /etc/pgbackrest/pgbackrest.conf
+  /usr/local/bin/process_env.sh /etc/pgbackrest/pgbackrest.conf
 fi
 
 setup_stanzas() {
