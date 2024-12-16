@@ -1,4 +1,5 @@
 #!/bin/bash
+
 script_dir=$(dirname $(realpath $0))
 project_root=$script_dir/../..
 mkdir -p $project_root/.certs/dev/{ca,server,client}
