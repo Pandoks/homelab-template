@@ -66,29 +66,40 @@ if [ -n "$env_file" ]; then
 fi
 
 temp_file="/tmp/process_env.$$"
-trap 'rm -f "$temp_file"' EXIT
+trap 'rm -f "$temp_file" "$temp_file.bak"' EXIT
 cp "$file" "$temp_file"
 
 while IFS= read -r line; do
   case "$line" in
   *'<%='*'%>'*)
     echo "Processing line: $line"
-    var_name=$(echo "$line" | sed -n 's/.*<%=[ ]*\([A-Za-z_][A-Za-z0-9_]*\)[ ]*%>.*/\1/p')
-    if [ -n "$var_name" ]; then
-      eval "var_value=\${$var_name}"
-      if [ -z "$var_value" ]; then
-        echo "Warning: Environment variable '$var_name' is not set"
-        var_value=""
-      fi
+    modified_line="$line"
 
-      escaped_value=$(printf '%s\n' "$var_value" | sed 's/[\/&]/\\&/g')
-      sed -i.bak "s/<%=[ ]*${var_name}[ ]*%>/${escaped_value}/g" "$temp_file"
-    fi
+    while echo "$modified_line" | grep -q '<%=.*%>'; do
+      var_name=$(echo "$modified_line" | sed -n 's/.*<%=[ ]*\([A-Za-z_][A-Za-z0-9_]*\)[ ]*%>.*/\1/p')
+
+      if [ -n "$var_name" ]; then
+        eval "var_value=\${$var_name}"
+        if [ -z "$var_value" ]; then
+          echo "Warning: Environment variable '$var_name' is not set"
+          var_value=""
+        fi
+
+        pattern="<%=[ ]*$var_name[ ]*%>"
+        escaped_value=$(printf '%s\n' "$var_value" | sed 's/[\/&]/\\&/g')
+        modified_line=$(echo "$modified_line" | sed "s/$pattern/$escaped_value/")
+      else
+        break
+      fi
+    done
+
+    escaped_old_line=$(printf '%s\n' "$line" | sed 's/[\/&]/\\&/g')
+    escaped_new_line=$(printf '%s\n' "$modified_line" | sed 's/[\/&]/\\&/g')
+    sed -i.bak "s/$escaped_old_line/$escaped_new_line/" "$temp_file"
     ;;
   esac
 done <"$temp_file"
 
-# Determine the target file (either output file or input file)
 target_file="${out_file:-$file}"
 
 if cat "$temp_file" >"$target_file"; then

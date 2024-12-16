@@ -1,7 +1,11 @@
 #!/bin/sh
 
 if [ $ENV = "development" ]; then
-  /usr/bin/process_env.sh /tmp/postgresql/pg_hba.conf
+  /usr/bin/process_env.sh /tmp/postgresql/postgresql.conf --out /etc/postgresql/postgresql.conf
+  /usr/bin/process_env.sh /tmp/postgresql/pg_hba.conf --out /etc/postgresql/pg_hba.conf
+else
+  /usr/bin/process_env.sh /etc/postgresql/postgresql.conf
+  /usr/bin/process_env.sh /etc/postgresql/pg_hba.conf
 fi
 
 /usr/bin/process_env.sh /etc/postgresql/pg_hba.conf
