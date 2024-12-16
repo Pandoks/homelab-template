@@ -5,6 +5,9 @@ RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repo
 RUN apk update && apk upgrade --no-cache
 RUN apk add pgbackrest --no-cache
 
+COPY ../../../../../scripts/process_env.sh /usr/local/bin/process_env.sh
+RUN chmod +x /usr/local/bin/process_env.sh
+
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
