@@ -6,6 +6,7 @@ setup_stanzas() {
     sleep 1
   done
 
+  # TODO: Check stanza first and also create stanza from list
   pgbackrest --stanza=main stanza-create
   pgbackrest --stanza=main check
 }
