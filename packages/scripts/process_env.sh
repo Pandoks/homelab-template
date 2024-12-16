@@ -69,6 +69,7 @@ temp_file="/tmp/process_env.$$"
 trap 'rm -f "$temp_file" "$temp_file.bak"' EXIT
 cp "$file" "$temp_file"
 
+line_number=1
 while IFS= read -r line; do
   case "$line" in
   *'<%='*'%>'*)
@@ -93,12 +94,13 @@ while IFS= read -r line; do
       fi
     done
 
-    escaped_old_line=$(printf '%s\n' "$line" | sed 's/[\/&]/\\&/g')
-    escaped_new_line=$(printf '%s\n' "$modified_line" | sed 's/[\/&]/\\&/g')
-    sed -i.bak "s/$escaped_old_line/$escaped_new_line/" "$temp_file"
+    awk -v ln="$line_number" -v new_line="$modified_line" \
+      'NR == ln {print new_line; next} {print}' "$temp_file" >"$temp_file.new" &&
+      mv "$temp_file.new" "$temp_file"
     ;;
   esac
-done <"$temp_file"
+  line_number=$((line_number + 1))
+done <"$file"
 
 target_file="${out_file:-$file}"
 

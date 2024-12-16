@@ -8,6 +8,8 @@ RUN apk add pgbackrest --no-cache
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+RUN chown -R postgres:postgres /etc/pgbackrest
+
 USER postgres
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]

@@ -5,8 +5,18 @@ networks:
     driver: bridge
 
 services:
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8081:8080"
+    networks:
+      - database-network
+
   s3:
     image: localstack/localstack
+    env_file: "../../../../../.env"
     environment:
       - SERVICES=s3
       - AWS_DEFAULT_REGION=us-west-1
@@ -59,7 +69,7 @@ services:
       - ./master/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./postgresql.conf:/tmp/postgresql/postgresql.conf
       - ./pg_hba.conf:/tmp/postgresql/pg_hba.conf
-      - ./master/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./master/pgbackrest.conf:/tmp/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
@@ -90,7 +100,7 @@ services:
       - ../../../../scripts/process_env.sh:/usr/bin/process_env.sh
       - ./postgresql.conf:/tmp/postgresql/postgresql.conf
       - ./pg_hba.conf:/tmp/postgresql/pg_hba.conf
-      - ./slave/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+      - ./slave/pgbackrest.conf:/tmp/pgbackrest/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
       - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
