@@ -123,6 +123,10 @@ services:
       context: ../../../../
       dockerfile: ./core/src/database/images/pooler/Dockerfile
     env_file: "../../../../../.env"
+    environment:
+      - POSTGRES_DB=main
+      - MASTER_HOST_1=images-masterdb-1
+      - SLAVE_HOST1_1=images-slavedb-1
     ports:
       - "6432:6432"
     volumes:

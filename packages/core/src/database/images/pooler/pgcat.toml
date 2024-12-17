@@ -39,14 +39,14 @@ log_client_disconnections = false
 
 # Credentials to access the virtual administrative database (pgbouncer or pgcat)
 # Connecting to that database allows running commands like `SHOW POOLS`, `SHOW DATABASES`, etc..
-admin_username = "admin"
-admin_password = "password"
+admin_username = "<%= POSTGRES_USER %>"
+admin_password = "<%= POSTGRES_PASSWORD %>"
 
 # pool
 # configs are structured as pool.<pool_name>
 # the pool_name is what clients use as database name when connecting
 # For the example below a client can connect using "postgres://sharding_user:sharding_user@pgcat_host:pgcat_port/sharded"
-[pools.main]
+[pools.<%= POSTGRES_DB %>]
 # Pool mode (see PgBouncer docs for more).
 # session: one server connection per connected client
 # transaction: one server connection per client transaction
@@ -85,10 +85,11 @@ primary_reads_enabled = true
 #
 sharding_function = "pg_bigint_hash"
 
+# User configs are structured as pool.<pool_name>.users.<user_index>
 # Credentials for users that may connect to this cluster
-[pools.main.users.0]
+[pools.<%= POSTGRES_DB %>.users.0]
 username = "pooler"
-password = "password"
+password = "<%= PGPOOLPASS %>"
 # Maximum number of server connections that can be established for this user
 # The maximum number of connection from a single Pgcat process to any database in the cluster
 # is the sum of pool_size across all users.
@@ -97,9 +98,9 @@ pool_size = 20
 # Maximum query duration. Dangerous, but protects against DBs that died in a non-obvious way.
 statement_timeout = 0
 
-[pools.main.shards.0]
-database = "main"
+[pools.<%= POSTGRES_DB %>.shards.0]
+database = "<%= POSTGRES_DB %>"
 servers = [
-  ["images-masterdb-1", 5432, "Primary"],
-  ["images-slavedb-1", 5432, "Replica"]
+  ["<%= MASTER_HOST_1 %>", 5432, "Primary"],
+  ["<%= SLAVE_HOST1_1 %>", 5432, "Replica"]
 ]
