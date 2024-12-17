@@ -28,3 +28,4 @@
 - [ ] Add login by google oauth
 
 - [ ] Github actions cron job for certificate refresh
+  - [ ] Get officiated certificates for databases
