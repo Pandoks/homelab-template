@@ -6,20 +6,23 @@
 
 - [ ] Caching in Cloudflare
 
-- [ ] Database recovery
+- [ ] Database recovery examples
+
+  - [ ] Database backup cron job
 
 - [ ] Create Go api
 - [ ] Create python worker
 
 - [ ] Stripe payments
+  - [ ] Anti stripe fraud
 - [ ] Account management
 
 - [ ] Custom errors page for pages not found
 
-- [ ] Get emailing to work
+- [ ] Get emailing to work (plunk)
 
 - [ ] Umami for analytics
-- [ ] Signoz for error monitoring
+- [ ] Grafana for error monitoring, logging, tracing, performance, etc
 
 - [ ] Fix infinite loading in passkey onSubmit superforms
 
@@ -28,4 +31,11 @@
 - [ ] Add login by google oauth
 
 - [ ] Github actions cron job for certificate refresh
-  - [ ] Get officiated certificates for databases
+
+- [ ] Rabbitmq for emails
+
+- [ ] Redis cluster
+
+- [ ] Umami with Kafka and Clickhouse with backups
+
+- [ ] TLS certificates for databases
