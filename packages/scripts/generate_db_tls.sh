@@ -14,6 +14,7 @@ usage() {
   echo "                             (default: images-backup-1)"
   echo "  --clients NAME1,...        Set client server names (comma-separated)"
   echo "                             (default: images-slavedb-1,images-masterdb-1)"
+  echo "  --prod                     Save certificates to SST Secrets"
 }
 
 while [[ $# -gt 0 ]]; do
