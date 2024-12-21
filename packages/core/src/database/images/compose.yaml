@@ -110,7 +110,7 @@ services:
     networks:
       - database-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "admin", "-d", "userdb"]
+      test: ["CMD-SHELL", "pg_isready", "-U", "admin", "-d", "main"]
       interval: 1s
       retries: 10
     depends_on:

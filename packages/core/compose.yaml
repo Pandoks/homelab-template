@@ -30,7 +30,7 @@ services:
     networks:
       - homelab-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "user", "-d", "main"]
+      test: ["CMD-SHELL", "pg_isready", "-U", "admin", "-d", "main"]
       interval: 1s
       retries: 10
 
