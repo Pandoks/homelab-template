@@ -6,11 +6,11 @@ export const secrets = {
   PublicSSHKey: new sst.Secret("PublicSSHKey"),
 
   MainDatabase: {
-    AdminUser: new sst.Secret("MainDbAdminUser"),
-    AdminPass: new sst.Secret("MainDbAdminPass"),
-    Database: new sst.Secret("MainDbName"),
-    RepPass: new sst.Secret("MainDbRepPass"),
-    PoolPass: new sst.Secret("MainDbPoolPass"),
+    AdminUser: new sst.Secret("MainDbAdminUser", "admin"),
+    AdminPass: new sst.Secret("MainDbAdminPass", "password"),
+    Database: new sst.Secret("MainDbName", "main"),
+    RepPass: new sst.Secret("MainDbRepPass", "password"),
+    PoolPass: new sst.Secret("MainDbPoolPass", "password"),
     Shards: [
       {
         Master: {

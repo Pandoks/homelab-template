@@ -42,6 +42,30 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "MainDbAdminPass": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDbAdminUser": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDbMasterCert": {
+      "type": "sst.sst.Secret"
+      "value": any
+    }
+    "MainDbName": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDbPoolPass": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainDbRepPass": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "MainRedisPassword": {
       "type": "sst.sst.Secret"
       "value": string
