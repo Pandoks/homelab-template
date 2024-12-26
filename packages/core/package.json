@@ -9,8 +9,6 @@
     "db:reset": "rm -rf ./src/database/main/dev/meta ./src/database/main/dev/_init.sql",
     "db:gen": "pnpm run db:reset && drizzle-kit generate --config ./src/database/main/drizzle.config.ts --name init",
     "db:studio": "drizzle-kit studio --config ./src/database/main/drizzle.config.ts",
-    "db:build": "",
-    "db:cluster": "",
     "test:unit": "pnpm run setup && vitest"
   },
   "exports": {
