@@ -33,8 +33,10 @@ export const secrets = {
   },
 
   CertifiedAuthority: {
+    // If you change the names of these secrets, remember to change the generate_ca.sh script
     Cert: new sst.Secret("CACert"),
     Key: new sst.Secret("CAKey"),
+    Serial: new sst.Secret("CASerial"),
   },
 
   MainRedis: {

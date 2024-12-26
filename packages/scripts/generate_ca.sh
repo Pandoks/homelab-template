@@ -10,7 +10,7 @@ usage() {
   echo "Warning: This will override existing certificates"
   echo "Options:"
   echo "  -h, --help                 Show this help message"
-  echo "  --ca-name NAME             Set CA name (default: devCA)"
+  echo "  --ca-name NAME             Set CA name (default: dev_CA)"
   echo "  --prod                     Save certificates to SST Secrets"
 }
 
@@ -56,9 +56,9 @@ openssl req -new -x509 -days 3650 -nodes \
 if $prod; then
   base64_ca_cert=$(cat $temp_ca/ca.crt | base64 -w 0)
   base64_ca_key=$(cat $temp_ca/ca.key | base64 -w 0)
-  sst secret set CACertificate $base64_ca_cert
+  sst secret set CACert $base64_ca_cert
   sst secret set CAKey $base64_ca_key
 else
-  cp -r $temp_ca $dev_ca
+  cp -r $temp_ca/* $dev_ca
   chmod og-rwx $dev_ca/ca.key
 fi

@@ -42,8 +42,8 @@ services:
       - ./backup/setup_backups.sh:/usr/bin/setup_backups.sh
       - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
     networks:
       - database-network
     healthcheck:
@@ -73,10 +73,10 @@ services:
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
       - ./master/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/client/images-masterdb-1.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/client/images-masterdb-1.crt:/etc/pgbackrest/client.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/tls/images-masterdb-1.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/tls/images-masterdb-1.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
     healthcheck:
@@ -103,10 +103,10 @@ services:
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
       - ./slave/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/server/server.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/server/server.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/client/images-slavedb-1.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/client/images-slavedb-1.crt:/etc/pgbackrest/client.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/tls/images-slavedb-1.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/tls/images-slavedb-1.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
     healthcheck:

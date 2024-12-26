@@ -2,30 +2,26 @@
 # WARNING: This will override whatever is in prod/dev
 
 # Defaults
-backup_servers=("images-backup-1")
-client_servers=("images-slavedb-1" "images-masterdb-1")
 prod=false
 
 usage() {
-  echo "Usage: $0 [OPTIONS]"
+  echo "Usage: $0 -n COMMON_NAME"
   echo "Warning: This will override existing certificates"
   echo "Options:"
-  echo "  -h, --help                 Show this help message"
-  echo "  --backup-servers NAME1,... Set backup server names (comma-separated)"
-  echo "                             (default: images-backup-1)"
-  echo "  --clients NAME1,...        Set client server names (comma-separated)"
-  echo "                             (default: images-slavedb-1,images-masterdb-1)"
-  echo "  --prod                     Save certificates to SST Secrets"
+  echo "  -h, --help            Show this help message"
+  echo "  -n, --name NAME       Set the certificate common name (required)"
+  echo "  -c, --ca-dir DIR      Directory where ca.key and ca.crt live (Default: <project root>/.certs/dev/ca)"
+  echo "  --prod                Save certificates to SST Secrets"
 }
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-  --backup-servers)
-    IFS=',' read -ra backup_servers <<<"$2"
+  -n | --name)
+    name="$2"
     shift 2
     ;;
-  --clients)
-    IFS=',' read -ra client_servers <<<"$2"
+  -c | --ca-dir)
+    name="$2"
     shift 2
     ;;
   --prod)
@@ -44,49 +40,69 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -z "$name" ]]; then
+  echo "Error: --name option is required."
+  usage
+  exit 1
+fi
+
 script_dir=$(dirname $(realpath $0))
 project_root=$script_dir/../..
-mkdir -p $project_root/.certs/temp/{server,client}
+mkdir -p $project_root/.certs/temp/tls
 temp_dir=$project_root/.certs/temp
-temp_client=$temp_dir/client
-temp_server=$temp_dir/server
+temp_tls=$temp_dir/tls
 trap 'rm -rf $temp_dir' EXIT
 
 if ! $prod; then
-  if [ -f $]
-  mkdir -p $project_root/.certs/dev/{server,client}
+  if [ ! -f $project_root/.certs/dev/ca/ca.crt ] && [ ! -f $project_root/.certs/dev/ca/ca.key]; then
+    echo "ERROR: Certified Authority needed (CA). Did you run generate_ca?"
+    exit 1
+  fi
   dev_ca=$project_root/.certs/dev/ca
-  dev_client=$project_root/.certs/dev/client
-  dev_server=$project_root/.certs/dev/server
+  mkdir -p $project_root/.certs/dev/tls
+  dev_tls=$project_root/.certs/dev/tls
 fi
 
+openssl req -new -nodes \
+  -out "$temp_tls/$name.csr" \
+  -keyout "$temp_tls/$name.key" \
+  -subj "/CN=$name"
 
-# Server cert (backup server: pgbackrest)
-for server in "${backup_servers[@]}"; do
-  openssl req -new -nodes \
-    -out "$dev_server/$server.csr" \
-    -keyout "$dev_server/$server.key" \
-    -subj "/CN=$server"
-  chmod og-rwx "$dev_server/$server.key"
-  openssl x509 -req -in "$dev_server/$server.csr" \
+if $prod; then
+  sst_secrets=$(sst secret list | sed '1,2d')
+  base64_ca_cert=$(echo $sst_secrets | grep "CACert" | sed "s/CACert=//")
+  base64_ca_key=$(echo $sst_secrets | grep "CAKey" | sed "s/CAKey=//")
+  ca_serial=$(echo $sst_secrets | grep "CASerial" | sed "s/CASerial=//")
+
+  $base64_ca_cert | base64 -d >$temp_tls/ca.crt
+  $base64_ca_key | base64 -d >$temp_tls/ca.key
+  if [ -n $ca_serial ]; then
+    $ca_serial >$temp_tls/ca.srl
+  fi
+
+  openssl x509 -req -in "$dev_tls/$name.csr" \
+    -days 365 \
+    -CA $temp_tls/ca.crt \
+    -CAkey $temp_tls/ca.key \
+    -CAcreateserial \
+    -out "$temp_tls/$name.crt"
+
+  base64_tls_cert=$(cat $temp_tls/$name.crt)
+  base64_tls_key=$(cat $temp_tls/$name.key)
+
+  cert_name="${name}Cert"
+  key_name="${name}Key"
+  sst secret set $cert_name base64_tls_cert
+  sst secret set $key_name base64_tls_key
+  sst secret set CASerial $(cat $temp_tls/ca.srl)
+else
+  cp -r $temp_tls/* $dev_tls
+  chmod og-rwx "$dev_tls/$name.key"
+  openssl x509 -req -in "$dev_tls/$name.csr" \
     -days 365 \
     -CA $dev_ca/ca.crt \
     -CAkey $dev_ca/ca.key \
     -CAcreateserial \
-    -out "$dev_server/$server.crt"
-done
-
-# Client certs (databases: postgres)
-for server in "${client_servers[@]}"; do
-  openssl req -new -nodes \
-    -out "$dev_client/$server.csr" \
-    -keyout "$dev_client/$server.key" \
-    -subj "/CN=$server"
-  chmod og-rwx "$dev_client/$server.key"
-  openssl x509 -req -in "$dev_client/$server.csr" \
-    -days 365 \
-    -CA $dev_ca/ca.crt \
-    -CAkey $dev_ca/ca.key \
-    -CAcreateserial \
-    -out "$dev_client/$server.crt"
-done
+    -out "$dev_tls/$name.crt"
+  rm $dev_tls/$name.csr
+fi
