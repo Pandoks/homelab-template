@@ -38,4 +38,4 @@
 
 - [ ] Umami with Kafka and Clickhouse with backups
 
-- [ ] TLS certificates for databases
+- [x] TLS certificates for databases
