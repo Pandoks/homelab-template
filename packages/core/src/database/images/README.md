@@ -40,14 +40,21 @@ from the slave.
 the main database that handles auth, there is a cron job that takes care of deleting expired sessions
 every single week.
 
+> [!WARN]
+>
+> The timezone for all images is GMT. This is to ensure consistency and to avoid confusion when working
+> across multiple images/containers
+
 > [!NOTE]
 >
 > `pg_cron` may only be installed to on database in a cluster. If you need to run jobs in multiple
 > databases, use `cron.schedule_in_database()`.
 
-**ANOTHER NOTE:** `pg_cron` does not run on any server that in in `hot standby` mode, but will automatically
-start when the server is promoted. This means that all cron operations (ie. viewing & editing) should
-be done on the master database.
+> [!NOTE]
+>
+> `pg_cron` does not run on any server that in in `hot standby` mode, but will automatically
+> start when the server is promoted. This means that all cron operations (ie. viewing & editing) should
+> be done on the master database.
 
 ### Viewing Cron Jobs
 
