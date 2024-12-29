@@ -40,7 +40,9 @@ from the slave.
 the main database that handles auth, there is a cron job that takes care of deleting expired sessions
 every single week.
 
-> [!NOTE] > `pg_cron` may only be installed to on database in a cluster. If you need to run jobs in multiple
+> [!NOTE]
+>
+> `pg_cron` may only be installed to on database in a cluster. If you need to run jobs in multiple
 > databases, use `cron.schedule_in_database()`.
 
 **ANOTHER NOTE:** `pg_cron` does not run on any server that in in `hot standby` mode, but will automatically
