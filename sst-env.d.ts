@@ -6,6 +6,18 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
+    "CACert": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "CAKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "CASerial": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "CloudflareApiToken": {
       "type": "sst.sst.Secret"
       "value": string
@@ -19,26 +31,6 @@ declare module "sst" {
       "value": string
     }
     "HetznerToken": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainDatabaseHost": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainDatabaseName": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainDatabasePassword": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainDatabasePort": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainDatabaseUsername": {
       "type": "sst.sst.Secret"
       "value": string
     }
@@ -73,10 +65,6 @@ declare module "sst" {
     "MainDbSlave1Cert": {
       "type": "sst.sst.Secret"
       "value": any
-    }
-    "MainRedisPassword": {
-      "type": "sst.sst.Secret"
-      "value": string
     }
     "PublicSSHKey": {
       "type": "sst.sst.Secret"

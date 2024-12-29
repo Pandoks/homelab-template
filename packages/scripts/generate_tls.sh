@@ -55,7 +55,7 @@ trap 'rm -rf $temp_dir' EXIT
 
 if $prod; then
   # NOTE: KEEP THE QUOTES (""). They preserve the \n
-  sst_secrets=$(sst secret list | sed '1,2d')
+  sst_secrets=$(sst secret list | sed '1d')
   base64_ca_cert=$(echo "$sst_secrets" | grep "CACert" | sed "s/CACert=//")
   base64_ca_key=$(echo "$sst_secrets" | grep "CAKey" | sed "s/CAKey=//")
   ca_serial=$(echo "$sst_secrets" | grep "CASerial" | sed "s/CASerial=//")
