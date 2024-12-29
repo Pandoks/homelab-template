@@ -52,7 +52,11 @@ declare module "sst" {
     }
     "MainDbMasterCert": {
       "type": "sst.sst.Secret"
-      "value": any
+      "value": string
+    }
+    "MainDbMasterKey": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
     "MainDbName": {
       "type": "sst.sst.Secret"
@@ -65,6 +69,10 @@ declare module "sst" {
     "MainDbRepPass": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "MainDbSlave1Cert": {
+      "type": "sst.sst.Secret"
+      "value": any
     }
     "MainRedisPassword": {
       "type": "sst.sst.Secret"

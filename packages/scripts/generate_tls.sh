@@ -53,7 +53,19 @@ temp_dir=$project_root/.certs/temp
 temp_tls=$temp_dir/tls
 trap 'rm -rf $temp_dir' EXIT
 
-if ! $prod; then
+if $prod; then
+  # NOTE: KEEP THE QUOTES (""). They preserve the \n
+  sst_secrets=$(sst secret list | sed '1,2d')
+  base64_ca_cert=$(echo "$sst_secrets" | grep "CACert" | sed "s/CACert=//")
+  base64_ca_key=$(echo "$sst_secrets" | grep "CAKey" | sed "s/CAKey=//")
+  ca_serial=$(echo "$sst_secrets" | grep "CASerial" | sed "s/CASerial=//")
+
+  echo "$base64_ca_cert" | base64 -d >$temp_tls/ca.crt
+  echo "$base64_ca_key" | base64 -d >$temp_tls/ca.key
+  if [ -n "$ca_serial" ]; then
+    echo $ca_serial >$temp_tls/ca.srl
+  fi
+else
   if [ ! -f $project_root/.certs/dev/ca/ca.crt ] && [ ! -f $project_root/.certs/dev/ca/ca.key]; then
     echo "ERROR: Certified Authority needed (CA). Did you run generate_ca?"
     exit 1
@@ -69,31 +81,20 @@ openssl req -new -nodes \
   -subj "/CN=$name"
 
 if $prod; then
-  sst_secrets=$(sst secret list | sed '1,2d')
-  base64_ca_cert=$(echo $sst_secrets | grep "CACert" | sed "s/CACert=//")
-  base64_ca_key=$(echo $sst_secrets | grep "CAKey" | sed "s/CAKey=//")
-  ca_serial=$(echo $sst_secrets | grep "CASerial" | sed "s/CASerial=//")
-
-  $base64_ca_cert | base64 -d >$temp_tls/ca.crt
-  $base64_ca_key | base64 -d >$temp_tls/ca.key
-  if [ -n $ca_serial ]; then
-    $ca_serial >$temp_tls/ca.srl
-  fi
-
-  openssl x509 -req -in "$dev_tls/$name.csr" \
+  openssl x509 -req -in "$temp_tls/$name.csr" \
     -days 365 \
     -CA $temp_tls/ca.crt \
     -CAkey $temp_tls/ca.key \
     -CAcreateserial \
     -out "$temp_tls/$name.crt"
 
-  base64_tls_cert=$(cat $temp_tls/$name.crt)
-  base64_tls_key=$(cat $temp_tls/$name.key)
+  base64_tls_cert=$(cat $temp_tls/$name.crt | base64 -w 0)
+  base64_tls_key=$(cat $temp_tls/$name.key | base64 -w 0)
 
   cert_name="${name}Cert"
   key_name="${name}Key"
-  sst secret set $cert_name base64_tls_cert
-  sst secret set $key_name base64_tls_key
+  sst secret set $cert_name $base64_tls_cert
+  sst secret set $key_name $base64_tls_key
   sst secret set CASerial $(cat $temp_tls/ca.srl)
 else
   cp -r $temp_tls/* $dev_tls
