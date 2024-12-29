@@ -66,6 +66,45 @@ SELECT * FROM cron.job;
 
 ### Adding Cron Jobs
 
+> [!NOTE]
+>
+> It is generally better to independently create a SQL function to call inside of the cron job instead
+> of doing it in line so that you can test it regardless of the cron schedule
+
+#### Creating a Function
+
+```sql
+CREATE OR REPLACE FUNCTION example()
+RETURNS void AS $$
+BEGIN
+    -- SQL query here
+END;
+$$ LANGUAGE plpsql;
+```
+
+> [!TIP]
+>
+> If you're doing cleanup or bulk operations, it's generally good to end the function with
+> `VACUUM <table>` for tables that you did bulk operations on
+
+#### Creating a Cron Schedule
+
+```sql
+SELECT cron.schedule('<name>', '<cron schedule>', 'SELECT example()', '[optional: specify database]');
+```
+
+#### Update a Cron Schedule
+
+```sql
+SELECT cron.schedule('<name>', '<cron schedule>', 'SELECT example()', '[optional: specify database]');
+```
+
+#### Delete a Cron Schedule
+
+```sql
+SELECT cron.unschedule('<name>');
+```
+
 # Appendix
 
 ## Cron Format

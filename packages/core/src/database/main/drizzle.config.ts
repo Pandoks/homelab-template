@@ -11,9 +11,9 @@ config({ path: "../../../../../.env" });
 export default defineConfig({
   schema: "./src/database/main/schema/*.sql.ts",
   dialect: "postgresql",
-  out: "./src/database/main/dev",
+  out: "./src/database/main/setup",
   migrations: {
-    prefix: "none",
+    prefix: "index",
   },
   dbCredentials: {
     url: process.env.MAIN_DB_URL!,

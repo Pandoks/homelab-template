@@ -1,4 +1,5 @@
 #!/bin/sh
+# sh file instead of sql file because we need to access environment variables
 
 psql -c "CREATE USER replicator WITH REPLICATION LOGIN ENCRYPTED PASSWORD '$PGREPPASS'"
 

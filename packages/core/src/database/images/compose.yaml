@@ -66,10 +66,11 @@ services:
       - POSTGRES_TYPE=backup
       - MASTER_HOST=images-masterdb-1
     volumes:
-      - ../main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ../main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
-      - ./cron.sql:/docker-entrypoint-initdb.d/cron.sql
-      - ./master/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ../main/setup/0001_init.sql:/docker-entrypoint-initdb.d/0001_init.sql
+      - ../main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/0002_roles.sql
+      - ../main/setup/0003_extensions.sql:/docker-entrypoint-initdb.d/0003_extensions.sql
+      - ../main/setup/0004_cron.sql:/docker-entrypoint-initdb.d/0004_cron.sql
+      - ./master/master.sh:/docker-entrypoint-initdb.d/master.sh
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
       - ./master/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf

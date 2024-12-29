@@ -10,7 +10,7 @@ export default defineConfig({
   dialect: "postgresql",
   out: "./src/database/main/migrations",
   migrations: {
-    prefix: "timestamp", // compatible with Supabase
+    prefix: "index",
   },
   dbCredentials: {
     user: Resource.MainDatabaseUsername.value,
