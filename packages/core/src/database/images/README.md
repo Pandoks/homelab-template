@@ -74,7 +74,54 @@ flowchart LR
     style cloud fill:transparent
 ```
 
-## Cron Jobs
+### Backup Types
+
+| Full                                              | Diff                                                | Incr                                              |
+| ------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| Full backup from scratch                          | Backup based off of the most recent **full** backup | Backup based off of the most recent backup        |
+| `pgbackrest --stanza=<stanza> backup --type=full` | `pgbackrest --stanza=<stanza> backup --type=diff`   | `pgbackrest --stanza=<stanza> backup --type=incr` |
+
+### Backup Schedule
+
+We use the pgbackrest's container cron job to invoke `pgbackrest backup` because we take backups from
+the backup container which then communicates with the pgbackrest instances on the database containers.
+By default, we take backups from the slave container, but we still need to communicate with the master
+database as it has the WAL archives we need to complete a full backup.
+
+> [!IMPORTANT]
+>
+> The backup cron schedule is located in the `backup/cron` file, but remember to rename it to the container's
+> user (pgbackrest) when creating the volume mount for deployment:
+>
+> ```
+> - images/backup/cron:/etc/crontabs/pgbackrest
+> ```
+
+#### Recommended Schedule
+
+- **Full backups:** Once a week, preferrably weekends
+- **Differential Backups:** Every night
+- **Incremental Backups:** Multiple times throughout the day
+
+Although this is recommended, you should change your backup schedule based off of usage. For example,
+if you don't get that many database changes, you may want to decrease the frequency for backups and
+vice versa. It's a general rule of thumb to have do **incremental backups** more than **differential backups**,
+and have more **differential backups** than **full backups** because of the system resources, and storage
+requirements that they need.
+
+> [!WARNING]
+>
+> Make sure to change the retention policies for the different types of backups in `pgbackrest.conf`
+>
+> ```
+> repo-retention-full=4
+> repo-retention-diff=2
+> ```
+>
+> We don't have `repo-retention-incr` because `pgbackrest` automatically takes care of them when either
+> diff or full backups are deleted.
+
+## Database Cron Jobs
 
 `pg_cron` is already installed in the images so that you can run database cron jobs. Currently, for
 the main database that handles auth, there is a cron job that takes care of deleting expired sessions
@@ -101,7 +148,9 @@ every single week.
 To show all current cron jobs in a database, run:
 
 ```
-SELECT * FROM cron.job;
+
+SELECT \* FROM cron.job;
+
 ```
 
 ### Adding Cron Jobs
