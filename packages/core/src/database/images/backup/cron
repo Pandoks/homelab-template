@@ -1,0 +1,7 @@
+# NOTE: make sure this is renamed to the user (pgbackrest) as the mount
+# do daily/weekly/monthly maintenance
+# min	hour	day	month	weekday	command
+0 1 * * 0 pgbackrest --stanza=main --type=full backup
+0 2 * * 2,5 pgbackrest --stanza=main --type=diff backup
+0 2 * * 1-6 pgbackrest --stanza=main --type=incr backup
+* * * * * pgbackrest --stanza=main --type=full backup

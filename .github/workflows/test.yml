@@ -1,0 +1,56 @@
+name: Testing
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - core
+          - web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use caches and install dependencies if needed
+        uses: ./.github/actions/setup
+
+      - name: Run unit tests
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run test:unit
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    # TODO: use repo variables when GitHub stops auto deploying depending on environment
+    env:
+      MAIN_DB_URL: postgresql://user:password@localhost:5432/main,
+      MAIN_REDIS_URL: redis://:password@localhost:6379,
+      PUBLIC_DOMAIN: localhost
+      PUBLIC_APP_NAME: homelab-template
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use caches and install dependencies if needed
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright browsers
+        run: pnpx playwright install --with-deps
+
+      - name: Run integration tests
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run test:int

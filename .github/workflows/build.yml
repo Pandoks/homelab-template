@@ -1,0 +1,86 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      base-version: ${{ steps.base-image-location.outputs.BASE_VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          # github.repository includes the owner/org (ghcr.io/<owner/org>/repo-name)
+          images: ghcr.io/${{ github.repository }}-base
+
+      - name: Build base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - id: base-image-location
+        run: echo "BASE_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
+
+  builds:
+    runs-on: ubuntu-latest
+    needs: base
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image:
+          - web
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          # github.repository includes the owner/org (ghcr.io/<owner/org>/repo-name)
+          images: ghcr.io/${{ github.repository }}-${{ matrix.image }}
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./packages/${{ matrix.image }}
+          file: ./packages/${{ matrix.image }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            service=homelab-template
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BASE=ghcr.io/pandoks/homelab-template-base:${{ needs.base.outputs.base-version }}

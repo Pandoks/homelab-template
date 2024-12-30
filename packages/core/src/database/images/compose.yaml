@@ -1,0 +1,149 @@
+# NOTE: Build context for these images should be in ~/packages so that images have access to the scripts
+# Used to test database infrastructure (currently setup for master/slave replication)
+# This should not be used in conjunction with the setup compose file
+networks:
+  database-network:
+    driver: bridge
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8081:8080"
+    networks:
+      - database-network
+
+  s3:
+    image: localstack/localstack
+    env_file: "../../../../../.env"
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=testsecret
+    volumes:
+      - ./s3.sh:/etc/localstack/init/ready.d/s3.sh
+    networks:
+      - database-network
+
+  backup:
+    image: backup:latest
+    build:
+      context: ../../../../
+      dockerfile: ./core/src/database/images/backup/Dockerfile
+    env_file: "../../../../../.env"
+    environment:
+      - POSTGRES_DB_1=main
+      - MASTER_HOST_1=images-masterdb-1
+      - SLAVE_HOST1_1=images-slavedb-1
+    volumes:
+      - ./backup/setup_backups.sh:/usr/bin/setup_backups.sh
+      - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
+      interval: 1s
+      retries: 10
+    depends_on:
+      s3:
+        condition: service_healthy
+
+  masterdb:
+    image: masterdb:latest
+    build:
+      context: ../../../../
+      dockerfile: ./core/src/database/images/master/Dockerfile
+    env_file: "../../../../../.env"
+    environment:
+      - POSTGRES_DB=main
+      - PGDATABASE=main
+      - POSTGRES_TYPE=backup
+      - MASTER_HOST=images-masterdb-1
+    volumes:
+      - ../main/setup/0001_init.sql:/docker-entrypoint-initdb.d/0001_init.sql
+      - ../main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/0002_roles.sql
+      - ../main/setup/0003_extensions.sql:/docker-entrypoint-initdb.d/0003_extensions.sql
+      - ../main/setup/0004_cron.sql:/docker-entrypoint-initdb.d/0004_cron.sql
+      - ./master/master.sh:/docker-entrypoint-initdb.d/master.sh
+      - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
+      - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
+      - ./master/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/tls/images-masterdb-1.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/tls/images-masterdb-1.crt:/etc/pgbackrest/client.crt
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
+      interval: 1s
+      retries: 10
+    depends_on:
+      backup:
+        condition: service_healthy
+
+  slavedb:
+    image: slavedb:latest
+    build:
+      context: ../../../../
+      dockerfile: ./core/src/database/images/slave/Dockerfile
+    env_file: "../../../../../.env"
+    environment:
+      - POSTGRES_DB=main
+      - PGDATABASE=main
+      - POSTGRES_TYPE=backup
+      - MASTER_HOST=images-masterdb-1
+    volumes:
+      - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
+      - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
+      - ./slave/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
+      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../../../.certs/dev/tls/images-slavedb-1.key:/etc/pgbackrest/client.key
+      - ../../../../../.certs/dev/tls/images-slavedb-1.crt:/etc/pgbackrest/client.crt
+    networks:
+      - database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "admin", "-d", "main"]
+      interval: 1s
+      retries: 10
+    depends_on:
+      masterdb:
+        condition: service_healthy
+
+  pgcat:
+    image: pooler:latest
+    build:
+      context: ../../../../
+      dockerfile: ./core/src/database/images/pooler/Dockerfile
+    env_file: "../../../../../.env"
+    environment:
+      - POSTGRES_DB=main
+      - MASTER_HOST_1=images-masterdb-1
+      - SLAVE_HOST1_1=images-slavedb-1
+    ports:
+      - "6432:6432"
+    volumes:
+      - ./pooler/pgcat.toml:/tmp/conf_templates/pgcat.toml
+    networks:
+      - database-network
+    depends_on:
+      masterdb:
+        condition: service_healthy
+      slavedb:
+        condition: service_healthy
+
+  # essentially an empty container that makes sure the previous services are initialized
+  ready:
+    image: alpine:latest
+    depends_on:
+      pgcat:
+        condition: service_started

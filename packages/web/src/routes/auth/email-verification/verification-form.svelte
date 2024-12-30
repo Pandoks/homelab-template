@@ -1,0 +1,50 @@
+<script lang="ts">
+  /**
+   * TODO: Use input OTP when available on Shadcn-Svelte
+   */
+  import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+  import { type VerificationSchema } from './schema';
+  import { Input } from '$lib/components/ui/input';
+  import * as Form from '$lib/components/ui/form';
+  import { LoaderCircle } from 'lucide-svelte';
+
+  let {
+    data,
+    interacted
+  }: { data: SuperValidated<Infer<VerificationSchema>>; interacted?: () => void } = $props();
+
+  const form = superForm(data, {
+    clearOnSubmit: 'message',
+    multipleSubmits: 'prevent'
+  });
+
+  const { form: formData, enhance, delayed } = form;
+</script>
+
+<form class="grid gap-2" method="POST" use:enhance action="?/verify-email-code">
+  <Form.Field {form} name="code">
+    <Form.Control>
+      {#snippet children({ props })}
+        <Form.Label>Verification Code</Form.Label>
+        <Input
+          oninput={(e) => {
+            $formData.code = e.target.value.replace(/\s/g, '');
+            interacted?.();
+          }}
+          {...props}
+          class="text-center"
+          bind:value={$formData.code}
+        />
+      {/snippet}
+    </Form.Control>
+  </Form.Field>
+
+  {#if $delayed}
+    <Form.Button disabled class="w-full mt-4">
+      <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+      Activating
+    </Form.Button>
+  {:else}
+    <Form.Button class="mt-4">Activate</Form.Button>
+  {/if}
+</form>
