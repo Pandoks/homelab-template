@@ -2,7 +2,9 @@
 
 These images are used to setup a highly available and failure tolerant postgres database system.
 
-**NOTE:** This database setup requires the root `.env` file to be filled.
+> [!NOTE]
+>
+> This database setup requires the root `.env` file to be filled.
 
 ## Local Running
 
@@ -108,6 +110,11 @@ if you don't get that many database changes, you may want to decrease the freque
 vice versa. It's a general rule of thumb to have do **incremental backups** more than **differential backups**,
 and have more **differential backups** than **full backups** because of the system resources, and storage
 requirements that they need.
+
+Because I have relatively low database changes, my current backup schedule is a full backup once a week,
+a differential backup 2 times a week, and an incremental backup once a day. The retention policy for
+differential backups is 2 so that I will keep a full week's backup, and the retention policy for full
+backups is 4 so that I will keep a full month's worth of backups.
 
 > [!WARNING]
 >
