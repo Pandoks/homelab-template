@@ -127,7 +127,7 @@ requirements that they need.
 the main database that handles auth, there is a cron job that takes care of deleting expired sessions
 every single week.
 
-> [!WARN]
+> [!WARNING]
 >
 > The timezone for all images is GMT. This is to ensure consistency and to avoid confusion when working
 > across multiple images/containers
@@ -149,7 +149,7 @@ To show all current cron jobs in a database, run:
 
 ```
 
-SELECT \* FROM cron.job;
+SELECT * FROM cron.job;
 
 ```
 
