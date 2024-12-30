@@ -10,6 +10,8 @@
 
   - [ ] Database backup cron job
 
+  - [ ] Database encrypted backups
+
 - [ ] Create Go api
 - [ ] Create python worker
 

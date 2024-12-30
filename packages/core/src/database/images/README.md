@@ -34,6 +34,46 @@ and running `psql` to connect to the underlying database. You can then observe i
 in relation with `pgcat`. Ie. Replication is working and the pooler is writing to the master and reading
 from the slave.
 
+## Pgbackrest Backups
+
+For database backups, we are going to be using [pgbackrest](https://pgbackrest.org). This is the architecture:
+
+```mermaid
+flowchart LR
+    subgraph cloud[" "]
+        s3[("S3")]
+        subgraph backup[backup container]
+            pgbackrest[pgbackrest]
+            style pgbackrest fill:#000,stroke:#333,stroke-width:2px
+        end
+        subgraph slave[slave container]
+            slavepostgres[(postgres)]
+            slavebackup[pgbackrest]
+            style slavepostgres fill:#4479A1,stroke:#333,stroke-width:2px
+            style slavebackup fill:#000,stroke:#333,stroke-width:2px
+        end
+        subgraph master[master container]
+            masterpostgres[(postgres)]
+            masterbackup[pgbackrest]
+            style masterpostgres fill:#4479A1,stroke:#333,stroke-width:2px
+            style masterbackup fill:#000,stroke:#333,stroke-width:2px
+        end
+
+        style master fill:#4479A1,stroke:#333,stroke-width:2px
+        style slave fill:#,stroke:#333,stroke-width:2px
+        style backup fill:#CC6600,stroke:#333,stroke-width:2px
+        style s3 fill:#006400,stroke:#333,stroke-width:2px
+
+        masterpostgres -- "WAL replication" --- slavepostgres
+        masterbackup -- "WAL archive" --> s3
+        pgbackrest -- "upload" --> s3
+        pgbackrest <-. "main backup" .-> slavebackup
+        pgbackrest -. "supplement main backup" .-> masterbackup
+    end
+
+    style cloud fill:transparent
+```
+
 ## Cron Jobs
 
 `pg_cron` is already installed in the images so that you can run database cron jobs. Currently, for

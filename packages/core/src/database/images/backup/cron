@@ -1,0 +1,4 @@
+# NOTE: make sure this is renamed to the user (pgbackrest) as the mount
+# do daily/weekly/monthly maintenance
+# min	hour	day	month	weekday	command
+
