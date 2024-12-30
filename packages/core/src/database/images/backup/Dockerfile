@@ -17,3 +17,5 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 USER pgbackrest
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
+
+CMD [ "pgbackrest", "server", "--config=/etc/pgbackrest/pgbackrest.conf" ]
