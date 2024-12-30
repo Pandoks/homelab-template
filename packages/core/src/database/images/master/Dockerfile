@@ -6,7 +6,7 @@ RUN apk update && apk upgrade --no-cache
 RUN apk add pgbackrest postgresql-pg_cron --no-cache
 
 RUN ln -s /usr/lib/postgresql17/pg_cron.so /usr/local/lib/postgresql/pg_cron.so
-RUN cp /usr/share/postgresql/extension/* /usr/local/share/postgresql/extension
+RUN ln -s /usr/share/postgresql/extension/pg_cron* /usr/local/share/postgresql/extension
 
 COPY ./scripts/process_env.sh /usr/local/bin/process_env.sh
 RUN chmod +x /usr/local/bin/process_env.sh
