@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: maindb
+
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+  selector:
+    app: postgres
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+
+  template:
+    metadata:
+      labels:
+        app: postgres
+
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - name: POSTGRES_DB # change for prod
+              value: "main"
+            - name: PGDATABASE
+              value: "main"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+
+    volumes:
+      - name: init-scripts
+        configMap:
+          name: postgres-init-scripts

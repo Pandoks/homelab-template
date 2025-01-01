@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.9.0",
   "scripts": {
+    "init": "./packages/scripts/dev/setup_env.sh",
     "setup": "pnpm run reset && docker compose -f ./packages/core/compose.yaml -p setup up -d",
     "reset": "docker compose -p setup down && docker compose -p homelab down",
     "start": "pnpm run setup && docker compose -p homelab up",
