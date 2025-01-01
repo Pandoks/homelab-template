@@ -12,6 +12,8 @@
 
   - [ ] Database encrypted backups
 
+  - [ ] Patroni for master promotions
+
 - [ ] Create Go api
 - [ ] Create python worker
 
@@ -41,3 +43,5 @@
 - [ ] Umami with Kafka and Clickhouse with backups
 
 - [x] TLS certificates for databases
+
+- [ ] Deploy with k3s
