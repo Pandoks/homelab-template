@@ -25,8 +25,8 @@ services:
       - POSTGRES_DB=main
       - PGDATABASE=main
     volumes:
-      - ./src/database/main/setup/_init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./src/database/main/setup/roles.sql:/docker-entrypoint-initdb.d/roles.sql
+      - ./src/database/main/setup/0001_init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/database/main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/roles.sql
     networks:
       - homelab-network
     healthcheck:

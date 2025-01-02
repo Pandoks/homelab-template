@@ -11,3 +11,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: env-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          envFrom:
+            - configMapRef:
+                name: env-config

@@ -32,17 +32,48 @@ spec:
         - name: postgres
           image: postgres:17-alpine
           env:
-            - name: POSTGRES_DB # change for prod
+            - name: POSTGRES_DB # TODO: change for prod
               value: "main"
             - name: PGDATABASE
               value: "main"
+
           ports:
             - containerPort: 5432
-          volumeMounts:
-            - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d
 
-    volumes:
-      - name: init-scripts
-        configMap:
-          name: postgres-init-scripts
+          volumeMounts:
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d/0001_init.sql
+            - name: roles-sql
+              mountPath: /docker-entrypoint-initdb.d/0002_roles.sql
+
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - admin
+                - -d
+                - main
+            initialDelaySeconds: 5
+            periodSeconds: 1
+
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - admin
+                - -d
+                - main
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+      volumes:
+        - name: init-sql
+          hostPath:
+            path: /postgres/packages/core/src/database/main/setup/0001_init.sql
+            type: File
+        - name: roles-sql
+          hostPath:
+            path: /postgres/packages/core/src/database/main/setup/0002_roles.sql
+            type: File
