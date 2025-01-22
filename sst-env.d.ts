@@ -26,10 +26,6 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "GhToken": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "HetznerToken": {
       "type": "sst.sst.Secret"
       "value": string
@@ -64,15 +60,31 @@ declare module "sst" {
     }
     "MainDbSlave1Cert": {
       "type": "sst.sst.Secret"
-      "value": any
+      "value": string
+    }
+    "MainDbSlave1Key": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainRedisPass": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MainRedisUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PgBackrestCert": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PgBackrestKey": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
     "PublicSSHKey": {
       "type": "sst.sst.Secret"
       "value": string
-    }
-    "Vps": {
-      "ipv4": string
-      "type": "sst.sst.Linkable"
     }
   }
 }

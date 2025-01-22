@@ -1,9 +1,8 @@
-import { secrets } from "./secrets";
-import { baseName } from "./utils";
+import { secrets } from "../secrets";
+import { baseName } from "../utils";
 
-if (!$dev) {
-  const sshPort = 61189;
-  const vpsInit = $interpolate`#cloud-config
+const sshPort = 61189;
+const vpsInit = $interpolate`#cloud-config
 bootcmd:
   - iptables -P INPUT DROP
   - iptables -P OUTPUT ACCEPT
@@ -175,63 +174,58 @@ runcmd:
   - systemctl daemon-reload
   - systemctl restart ssh
 `;
-  const cloudflareIps = ["0.0.0.0/0"];
-  const firewall = new hcloud.Firewall("Firewall", {
-    name: `${baseName}-firewall`,
-    rules: [
+const cloudflareIps = ["0.0.0.0/0"];
+const firewall = new hcloud.Firewall("Firewall", {
+  name: `${baseName}-firewall`,
+  rules: [
+    {
+      // SSH from anywhere
+      direction: "in",
+      protocol: "tcp",
+      port: sshPort.toString(),
+      sourceIps: ["0.0.0.0/0"],
+      description: "Allow all SSH connections",
+    },
+    {
+      // Allow HTTP from Cloudflare IPs
+      direction: "in",
+      protocol: "tcp",
+      port: "80",
+      sourceIps: cloudflareIps,
+      description: "Allow HTTP from Cloudflare IPs",
+    },
+    {
+      // Allow HTTPS from Cloudflare IPs
+      direction: "in",
+      protocol: "tcp",
+      port: "443",
+      sourceIps: cloudflareIps,
+      description: "Allow HTTPS from Cloudflare IPs",
+    },
+  ],
+});
+
+var vps = new hcloud.Server(
+  "Server",
+  {
+    name: `${baseName}-server`,
+    image: "docker-ce",
+    location: "hil",
+    serverType: "cpx11",
+    sshKeys: ["M1 Max Macbook Pro"],
+    // deleteProtection: true,
+    // rebuildProtection: true,
+    publicNets: [
       {
-        // SSH from anywhere
-        direction: "in",
-        protocol: "tcp",
-        port: sshPort.toString(),
-        sourceIps: ["0.0.0.0/0"],
-        description: "Allow all SSH connections",
-      },
-      {
-        // Allow HTTP from Cloudflare IPs
-        direction: "in",
-        protocol: "tcp",
-        port: "80",
-        sourceIps: cloudflareIps,
-        description: "Allow HTTP from Cloudflare IPs",
-      },
-      {
-        // Allow HTTPS from Cloudflare IPs
-        direction: "in",
-        protocol: "tcp",
-        port: "443",
-        sourceIps: cloudflareIps,
-        description: "Allow HTTPS from Cloudflare IPs",
+        ipv4Enabled: true,
+        ipv6Enabled: true,
       },
     ],
-  });
-
-  var vps = new hcloud.Server(
-    "Server",
-    {
-      name: `${baseName}-server`,
-      image: "docker-ce",
-      location: "hil",
-      serverType: "cpx11",
-      sshKeys: ["M1 Max Macbook Pro"],
-      // deleteProtection: true,
-      // rebuildProtection: true,
-      publicNets: [
-        {
-          ipv4Enabled: true,
-          ipv6Enabled: true,
-        },
-      ],
-      firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
-      userData: vpsInit,
-    },
-    { ignoreChanges: ["userData"] }, // don't want to restart server if eg. ssh key changes (keeps prod up)
-  );
-  vps.ipv4Address.apply((ip) => console.log(`ssh pandoks@${ip} -p ${sshPort}`));
-
-  const vpsInfo = new sst.Linkable("Vps", {
-    properties: { ipv4: vps.ipv4Address },
-  });
-}
+    firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
+    userData: vpsInit,
+  },
+  { ignoreChanges: ["userData"] }, // don't want to restart server if eg. ssh key changes (keeps prod up)
+);
+vps.ipv4Address.apply((ip) => console.log(`ssh pandoks@${ip} -p ${sshPort}`));
 
 export { vps };

@@ -1,4 +1,4 @@
-- [ ] See if you can setup tests to use .env file
+- [x] See if you can setup tests to use .env file
 - [ ] Make env variables and sst secret consistent
 - [ ] Clean up sst
 
@@ -15,7 +15,7 @@
   - [ ] Patroni for master promotions
 
 - [ ] Create Go api
-- [ ] Create python worker
+- [ ] Create worker
 
 - [ ] Stripe payments
   - [ ] Anti stripe fraud
