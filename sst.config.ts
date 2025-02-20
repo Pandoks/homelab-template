@@ -15,7 +15,6 @@ export default $config({
         "pulumi-stripe": true,
         github: true,
         hcloud: true,
-        kubernetes: { renderYamlToDirectory: "../../.k3s" },
       },
     };
   },

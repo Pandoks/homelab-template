@@ -78,10 +78,11 @@ flowchart LR
 
 ### Backup Types
 
-| Full                                              | Diff                                                | Incr                                              |
-| ------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
-| Full backup from scratch                          | Backup based off of the most recent **full** backup | Backup based off of the most recent backup        |
-| `pgbackrest --stanza=<stanza> backup --type=full` | `pgbackrest --stanza=<stanza> backup --type=diff`   | `pgbackrest --stanza=<stanza> backup --type=incr` |
+| Type     | Command                                           | Description                                       |
+| -------- | ------------------------------------------------- | ------------------------------------------------- |
+| **Full** | `pgbackrest --stanza=<stanza> backup --type=full` | Full backup from scratch                          |
+| **Diff** | `pgbackrest --stanza=<stanza> backup --type=diff` | Backup based off of the most recent _full_ backup |
+| **Incr** | `pgbackrest --stanza=<stanza> backup --type=incr` | Backup based off of the most recent backup        |
 
 ### Backup Schedule
 
