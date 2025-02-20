@@ -18,9 +18,9 @@ import {
 } from "@oslojs/crypto/ecdsa";
 import { and, eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { passkeys } from "../../database/main/schema/auth.sql";
+import { passkeys } from "../../../../../postgres/main/drizzle/schema/auth.sql";
 import { ResponseError } from "../../util/error";
-import { redis } from "../../redis/main";
+import { redis } from "../../../../../redis/main";
 import {
   decodeBase64url,
   encodeBase64url,

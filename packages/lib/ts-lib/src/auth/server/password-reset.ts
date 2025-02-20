@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import { passwordResets } from "../../database/main/schema/auth.sql";
+import { passwordResets } from "../../../../../postgres/main/drizzle/schema/auth.sql";
 import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,
 } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { createDate, TimeSpan } from "@startup-template/core/util/time";
+import { createDate, TimeSpan } from "../../util/time";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // Token should be valid for at most a few hours

@@ -1,10 +1,13 @@
 import { and, eq, sql } from "drizzle-orm";
-import { emailVerifications } from "../../database/main/schema/auth.sql";
-import { emails, users } from "../../database/main/schema/user.sql";
+import { emailVerifications } from "../../../../../postgres/main/drizzle/schema/auth.sql";
+import {
+  emails,
+  users,
+} from "../../../../../postgres/main/drizzle/schema/user.sql";
 import { generateRandomString } from "@oslojs/crypto/random";
-import { alphabet } from "@startup-template/core/util/index";
-import { createDate, TimeSpan } from "@startup-template/core/util/time";
-import { type User } from "@startup-template/core/database/main/schema/user.sql";
+import { alphabet } from "../../util/index";
+import { createDate, TimeSpan } from "../../util/time";
+import { type User } from "../../../../../postgres/main/drizzle/schema/user.sql";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // TODO: make everything only handle lowercase username and email

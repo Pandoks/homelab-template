@@ -8,9 +8,13 @@ import {
   passkeys,
   sessions,
   twoFactorAuthenticationCredentials,
-} from "../../database/main/schema/auth.sql";
+} from "../../../../../postgres/main/drizzle/schema/auth.sql";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { type User, emails, users } from "../../database/main/schema/user.sql";
+import {
+  type User,
+  emails,
+  users,
+} from "../../../../../postgres/main/drizzle/schema/user.sql";
 import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
