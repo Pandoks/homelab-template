@@ -1,11 +1,11 @@
 {
-  "name": "@startup-template/web",
+  "name": "@homelab-template/web",
   "version": "0.0.0",
   "files": [
     "build"
   ],
   "scripts": {
-    "setup": "pnpm run reset && docker compose -f ../core/compose.yaml -p setup up -d",
+    "setup": "pnpm run reset && docker compose -f ../../setup-compose.yaml -p setup up -d",
     "reset": "docker compose -p setup down",
     "dev": "pnpm run setup && dotenv -e ../../.env -- vite dev",
     "build": "vite build",
@@ -53,7 +53,7 @@
     "@oslojs/encoding": "^1.1.0",
     "@oslojs/otp": "^1.0.0",
     "@oslojs/webauthn": "^1.0.0",
-    "@startup-template/core": "workspace:^",
+    "@homelab-template/ts-lib": "workspace:^",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
     "drizzle-zod": "^0.5.1",

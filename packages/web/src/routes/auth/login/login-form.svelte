@@ -10,7 +10,7 @@
   import { Button } from '$lib/components/ui/button';
   import { slide } from 'svelte/transition';
   import { get } from 'svelte/store';
-  import { authenticatePasskey } from '@startup-template/core/auth/passkey';
+  import { authenticatePasskey } from '@homelab-template/ts-lib/auth/passkey';
 
   let {
     data,

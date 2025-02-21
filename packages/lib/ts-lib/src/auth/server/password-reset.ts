@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { passwordResets } from "../../../../../postgres/main/drizzle/schema/auth.sql";
+import { passwordResets } from "@homelab-template/postgres/main/auth.sql";
 import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,

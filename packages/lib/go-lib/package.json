@@ -1,5 +1,5 @@
 {
-  "name": "@homelab-template/scripts",
+  "name": "@homelab-template/go-lib",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,

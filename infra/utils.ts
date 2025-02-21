@@ -1,4 +1,4 @@
-export const baseName = `${$app.stage}-startup-template`;
+export const baseName = `${$app.stage}-homelab-template`;
 
 export const generateRandomString = (length: number) => {
   const characters = "abcdefghijklmnopqrstuvwxyz0123456789";

@@ -3,12 +3,9 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { generateEmailVerification } from "./email";
 import { eq } from "drizzle-orm";
 import { createDate, TimeSpan } from "../../util/time";
-import {
-  emails,
-  users,
-} from "../../../../../postgres/main/drizzle/schema/user.sql";
-import { emailVerifications } from "../../../../../postgres/main/drizzle/schema/auth.sql";
+import { emailVerifications } from "@homelab-template/postgres/main/auth.sql";
 import postgres from "postgres";
+import { emails, users } from "@homelab-template/postgres/main/user.sql";
 
 describe("generateEmailVerification", () => {
   let db: PostgresJsDatabase;

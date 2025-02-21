@@ -1,13 +1,10 @@
 import { and, eq, sql } from "drizzle-orm";
-import { emailVerifications } from "../../../../../postgres/main/drizzle/schema/auth.sql";
-import {
-  emails,
-  users,
-} from "../../../../../postgres/main/drizzle/schema/user.sql";
+import { emailVerifications } from "@homelab-template/postgres/main/auth.sql";
+import { emails, users } from "@homelab-template/postgres/main/user.sql";
 import { generateRandomString } from "@oslojs/crypto/random";
 import { alphabet } from "../../util/index";
 import { createDate, TimeSpan } from "../../util/time";
-import { type User } from "../../../../../postgres/main/drizzle/schema/user.sql";
+import { type User } from "@homelab-template/postgres/main/user.sql";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 // TODO: make everything only handle lowercase username and email

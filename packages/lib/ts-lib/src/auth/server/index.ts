@@ -8,13 +8,13 @@ import {
   passkeys,
   sessions,
   twoFactorAuthenticationCredentials,
-} from "../../../../../postgres/main/drizzle/schema/auth.sql";
+} from "@homelab-template/postgres/main/auth.sql";
 import { sha256 } from "@oslojs/crypto/sha2";
 import {
   type User,
   emails,
   users,
-} from "../../../../../postgres/main/drizzle/schema/user.sql";
+} from "@homelab-template/postgres/main/user.sql";
 import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 

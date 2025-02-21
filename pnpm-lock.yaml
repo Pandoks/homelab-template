@@ -18,8 +18,13 @@ importers:
         specifier: 5.7.2
         version: 5.7.2
 
-  packages/core:
+  packages/lib/go-lib: {}
+
+  packages/lib/ts-lib:
     dependencies:
+      '@homelab-template/postgres':
+        specifier: workspace:^
+        version: link:../../postgres
       '@oslojs/crypto':
         specifier: ^1.0.1
         version: 1.0.1
@@ -43,7 +48,7 @@ importers:
         version: 4.7.0
       sst:
         specifier: ^3.3.27
-        version: 3.3.27
+        version: 3.4.50
     devDependencies:
       drizzle-kit:
         specifier: ^0.28.1
@@ -52,10 +57,34 @@ importers:
         specifier: ^2.1.5
         version: 2.1.5(@types/node@22.9.3)
 
+  packages/postgres:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.36.4
+        version: 0.36.4(postgres@3.4.5)
+      drizzle-zod:
+        specifier: ^0.5.1
+        version: 0.5.1(drizzle-orm@0.36.4(postgres@3.4.5))(zod@3.23.8)
+      postgres:
+        specifier: ^3.4.5
+        version: 3.4.5
+      sst:
+        specifier: ^3.3.27
+        version: 3.4.50
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.28.1
+        version: 0.28.1
+
+  packages/redis: {}
+
   packages/scripts: {}
 
   packages/web:
     dependencies:
+      '@homelab-template/ts-lib':
+        specifier: workspace:^
+        version: link:../lib/ts-lib
       '@node-rs/argon2':
         specifier: ^2.0.0
         version: 2.0.0
@@ -71,9 +100,6 @@ importers:
       '@oslojs/webauthn':
         specifier: ^1.0.0
         version: 1.0.0
-      '@startup-template/core':
-        specifier: workspace:^
-        version: link:../core
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1502,15 +1528,6 @@ packages:
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
 
-  debug@4.3.6:
-    resolution: {integrity: sha512-O/09Bd4Z1fBrU4VzkhFqVgpPzaGbw6Sm9FEkBT1A/YBXQFGuuSxa1dN2nxgxS34JmKXqYx8CZAwEVoJFImUXIg==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
@@ -1996,9 +2013,6 @@ packages:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
     engines: {node: '>=10'}
 
-  ms@2.1.2:
-    resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
-
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -2269,19 +2283,9 @@ packages:
     resolution: {integrity: sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==}
     engines: {node: '>= 8'}
 
-  sst-darwin-arm64@3.3.27:
-    resolution: {integrity: sha512-ywhSxpnKEFuqXqYM2zp5sqc2SfHMqnSYxOlKQOU/XVvPyPQ4vLSD9LnNjRj9EI4Ygz6wOVIKwyRktZyd0WrY2Q==}
-    cpu: [arm64]
-    os: [darwin]
-
   sst-darwin-arm64@3.4.50:
     resolution: {integrity: sha512-aA0bX7KKYaY7Dj3amiw6B8dHvXdqPQ4UJKhz6jSzFcA27UMM1BDYMZsOjAmlyUyTZfjvC2kYbvRGDnyUnQpwMQ==}
     cpu: [arm64]
-    os: [darwin]
-
-  sst-darwin-x64@3.3.27:
-    resolution: {integrity: sha512-HRvGS3am4h4VEtzxIXIQ/hp239qinuKE4BHhXJ64yUZ8s29EbaCtqjt0pl9bAoPrkDGx5A8fAa7WlPbsWbPm6w==}
-    cpu: [x64]
     os: [darwin]
 
   sst-darwin-x64@3.4.50:
@@ -2289,19 +2293,9 @@ packages:
     cpu: [x64]
     os: [darwin]
 
-  sst-linux-arm64@3.3.27:
-    resolution: {integrity: sha512-wYD/lQ0w2NFueeJSQo6nM/31mQH2DBO178lEk6OHdveBcd/631489LOp5l6W8Ms6JKXICt4bDyeRSdE4sEE1sQ==}
-    cpu: [arm64]
-    os: [linux]
-
   sst-linux-arm64@3.4.50:
     resolution: {integrity: sha512-9GhI5xNCHcqqTVmNXuEYWLkLyaiYuUiBrPxu+G+UZRJoFdBXA+7jzd8gXyBenBu0nC8d8AHrvQKfZ90CKHA74g==}
     cpu: [arm64]
-    os: [linux]
-
-  sst-linux-x64@3.3.27:
-    resolution: {integrity: sha512-tkdDkem1uxHbF16tLvEKw6Ra43NdyjAHgOoFBY58iffP7lJ9CiouSVEsl/GJHTgVf+ZB0XXrOYkvFgzcAORmZQ==}
-    cpu: [x64]
     os: [linux]
 
   sst-linux-x64@3.4.50:
@@ -2309,27 +2303,10 @@ packages:
     cpu: [x64]
     os: [linux]
 
-  sst-linux-x86@3.3.27:
-    resolution: {integrity: sha512-8MpHzAdPsGoFORjY8BKCW+05U0wXvJVL1sNGzt4NvV+vYCYZHZvkgoEYLtQCffSoJSqU2qGpnJOrZ5nj46+7Pw==}
-    cpu: [x86]
-    os: [linux]
-
   sst-linux-x86@3.4.50:
     resolution: {integrity: sha512-LSQBfUBgCEYPr1DE8B+8Z2LfoIbExra5MRI6EW16lMQ1cRzN+kxCi7NpwRx3yjkU08ugnhhjjaStTQjVCzlB8A==}
     cpu: [x86]
     os: [linux]
-
-  sst@3.3.27:
-    resolution: {integrity: sha512-JN/LvJUZvgSPTGmqDYFxtobsgWL5njdxDWjhdJpcSs5g26UpfnEtoW4eqfoqkhTifp0DU6ixgg4VPRlL6k15/w==}
-    hasBin: true
-    peerDependencies:
-      hono: 4.x
-      valibot: 0.30.x
-    peerDependenciesMeta:
-      hono:
-        optional: true
-      valibot:
-        optional: true
 
   sst@3.4.50:
     resolution: {integrity: sha512-Mynk3xMcCfRbsKMB9JYl0GmnxXWyTNrN4RD+JXp0jt5lEZ0k76YZleikck+ytrN2tJXhE9gV/FVN7V/3SDj3cA==}
@@ -3725,10 +3702,6 @@ snapshots:
   dayjs@1.11.13:
     optional: true
 
-  debug@4.3.6:
-    dependencies:
-      ms: 2.1.2
-
   debug@4.3.7:
     dependencies:
       ms: 2.1.3
@@ -3798,7 +3771,7 @@ snapshots:
 
   esbuild-register@3.6.0(esbuild@0.19.12):
     dependencies:
-      debug: 4.3.6
+      debug: 4.3.7
       esbuild: 0.19.12
     transitivePeerDependencies:
       - supports-color
@@ -4153,8 +4126,6 @@ snapshots:
 
   mrmime@2.0.0: {}
 
-  ms@2.1.2: {}
-
   ms@2.1.3: {}
 
   mz@2.7.0:
@@ -4399,47 +4370,20 @@ snapshots:
 
   source-map@0.7.4: {}
 
-  sst-darwin-arm64@3.3.27:
-    optional: true
-
   sst-darwin-arm64@3.4.50:
-    optional: true
-
-  sst-darwin-x64@3.3.27:
     optional: true
 
   sst-darwin-x64@3.4.50:
     optional: true
 
-  sst-linux-arm64@3.3.27:
-    optional: true
-
   sst-linux-arm64@3.4.50:
-    optional: true
-
-  sst-linux-x64@3.3.27:
     optional: true
 
   sst-linux-x64@3.4.50:
     optional: true
 
-  sst-linux-x86@3.3.27:
-    optional: true
-
   sst-linux-x86@3.4.50:
     optional: true
-
-  sst@3.3.27:
-    dependencies:
-      aws4fetch: 1.0.20
-      jose: 5.2.3
-      openid-client: 5.6.4
-    optionalDependencies:
-      sst-darwin-arm64: 3.3.27
-      sst-darwin-x64: 3.3.27
-      sst-linux-arm64: 3.3.27
-      sst-linux-x64: 3.3.27
-      sst-linux-x86: 3.3.27
 
   sst@3.4.50:
     dependencies:

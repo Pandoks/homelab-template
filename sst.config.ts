@@ -6,7 +6,7 @@ export default $config({
   // Your app's config
   app(input) {
     return {
-      name: "startup-template", // WARN: changing this will create new resources (remove all resources before changing the name)
+      name: "homelab-template", // WARN: changing this will create new resources (remove all resources before changing the name)
       removal: input?.stage === "production" ? "retain" : "remove",
       home: "aws",
       providers: {
