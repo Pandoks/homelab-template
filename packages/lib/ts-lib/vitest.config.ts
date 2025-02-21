@@ -8,7 +8,7 @@ export default defineConfig({
     include: ["./**/*.test.{js,ts}"],
     fileParallelism: false,
     env: {
-      ...config({ path: "../../.env" }).parsed,
+      ...config({ path: "../../../.env" }).parsed,
     },
   },
   esbuild: {

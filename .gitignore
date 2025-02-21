@@ -42,6 +42,7 @@ package-lock.json
 # Docker
 .docker-cache
 .build-cache
+.docker-volumes
 
 # Build Visualizer
 stats.html

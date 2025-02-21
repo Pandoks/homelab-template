@@ -6,9 +6,9 @@ import { defineConfig } from "drizzle-kit";
 import { Resource } from "sst";
 
 export default defineConfig({
-  schema: "./src/database/main/schema/*.sql.ts",
+  schema: "./main/drizzle/schema/*.sql.ts",
   dialect: "postgresql",
-  out: "./src/database/main/migrations",
+  out: "./main/migrations",
   migrations: {
     prefix: "index",
   },

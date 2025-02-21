@@ -4,25 +4,23 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "setup": "pnpm run reset && docker compose -p setup up -d",
+    "setup": "pnpm run reset && docker compose -f ../../../setup-compose.yaml -p setup up -d",
     "reset": "docker compose -p setup down",
-    "db:reset": "rm -rf ./src/database/main/dev/meta ./src/database/main/dev/_init.sql",
-    "db:gen": "pnpm run db:reset && drizzle-kit generate --config ./src/database/main/drizzle.config.ts --name init",
-    "db:studio": "drizzle-kit studio --config ./src/database/main/drizzle.config.ts",
     "test:unit": "pnpm run setup && vitest"
   },
   "exports": {
     "./*": "./src/*.ts"
   },
   "dependencies": {
+    "@homelab-template/postgres": "workspace:^",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@oslojs/webauthn": "^1.0.0",
     "drizzle-orm": "^0.36.4",
-    "redis": "^4.6.15",
-    "@homelab-template/postgres": "workspace:^"
+    "redis": "^4.6.15"
   },
   "devDependencies": {
+    "postgres": "^3.4.5",
     "vitest": "^2.1.5"
   }
 }
