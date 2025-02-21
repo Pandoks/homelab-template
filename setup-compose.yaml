@@ -20,13 +20,13 @@ services:
     image: postgres:17-alpine
     ports:
       - "5432:5432"
-    env_file: "../../.env"
+    env_file: ".env"
     environment:
       - POSTGRES_DB=main
       - PGDATABASE=main
     volumes:
-      - ./src/database/main/setup/0001_init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./src/database/main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/roles.sql
+      - ./packages/postgres/main/setup/0001_init.sql:/docker-entrypoint-initdb.d/0001_init.sql
+      - ./packages/postgres/main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/0002_roles.sql
     networks:
       - homelab-network
     healthcheck:
