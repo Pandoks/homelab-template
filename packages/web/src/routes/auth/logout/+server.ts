@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { invalidateSession } from '@startup-template/core/auth/server/index';
+import { invalidateSession } from '@homelab-template/ts-lib/auth/server/index';
 import { deleteSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainDatabase } from '$lib/postgres';
 

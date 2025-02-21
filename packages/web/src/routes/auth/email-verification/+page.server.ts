@@ -8,19 +8,19 @@ import { building } from '$app/environment';
 import {
   ConstantRefillTokenBucketLimiter,
   FixedRefillTokenBucketLimiter
-} from '@startup-template/core/rate-limit/index';
+} from '@homelab-template/ts-lib/rate-limit/index';
 import {
   generateEmailVerification,
   sendVerification,
   verifyVerificationCode
-} from '@startup-template/core/auth/server/email';
+} from '@homelab-template/ts-lib/auth/server/email';
 import { mainDatabase } from '$lib/postgres';
-import { emails } from '@startup-template/core/database/main/schema/user.sql';
+import { emails } from '@homelab-template/postgres/main/user.sql';
 import {
   createSession,
   generateSessionToken,
   invalidateUserSessions
-} from '@startup-template/core/auth/server/index';
+} from '@homelab-template/ts-lib/auth/server/index';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 

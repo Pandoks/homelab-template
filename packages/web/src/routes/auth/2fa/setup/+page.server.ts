@@ -10,7 +10,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorSetupSchema } from './schema';
 import { mainDatabase } from '$lib/postgres';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
 import { decodeHex, encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
 import { createTOTPKeyURI, verifyTOTP } from '@oslojs/otp';
 import { PUBLIC_APP_NAME } from '$env/static/public';

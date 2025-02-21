@@ -5,15 +5,15 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
 import { building } from '$app/environment';
-import { Throttler } from '@startup-template/core/rate-limit/index';
+import { Throttler } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
 import { encodeHexLowerCase } from '@oslojs/encoding';
 import {
   createSession,
   generateSessionToken,
   invalidateUserSessions
-} from '@startup-template/core/auth/server/index';
+} from '@homelab-template/ts-lib/auth/server/index';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';

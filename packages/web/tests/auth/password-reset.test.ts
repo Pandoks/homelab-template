@@ -2,8 +2,8 @@ import { eq } from 'drizzle-orm';
 import { mainDatabase } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
 import { expect } from '@playwright/test';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
-import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
+import { emails, users } from '@homelab-template/postgres/main/user.sql';
+import { passwordResets } from '@homelab-template/postgres/main/auth.sql';
 
 test.describe('logging in user', () => {
   test('should reset with a verified and strong password with created token', async ({ page }) => {

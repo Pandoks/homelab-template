@@ -15,9 +15,9 @@ import {
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '@startup-template/core/auth/server/passkey';
+} from '@homelab-template/ts-lib/auth/server/passkey';
 import { mainDatabase } from '$lib/postgres';
-import { passkeys } from '@startup-template/core/database/main/schema/auth.sql';
+import { passkeys } from '@homelab-template/postgres/main/auth.sql';
 import { decodeBase64url, encodeBase64url } from '@oslojs/encoding';
 
 /**

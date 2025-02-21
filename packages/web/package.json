@@ -54,6 +54,7 @@
     "@oslojs/otp": "^1.0.0",
     "@oslojs/webauthn": "^1.0.0",
     "@homelab-template/ts-lib": "workspace:^",
+    "@homelab-template/postgres": "workspace:^",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
     "drizzle-zod": "^0.5.1",

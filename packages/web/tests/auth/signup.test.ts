@@ -2,12 +2,8 @@ import { expect } from '@playwright/test';
 import { and, eq, or } from 'drizzle-orm';
 import { mainDatabase } from '../db';
 import { createNewTestUser, generateRandomTestUser, test } from '../utils';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
-import {
-  emailVerifications,
-  passkeys,
-  sessions
-} from '@startup-template/core/database/main/schema/auth.sql';
+import { emails, users } from '@homelab-template/postgres/main/user.sql';
+import { emailVerifications, passkeys, sessions } from '@homelab-template/postgres/main/auth.sql';
 
 test.describe('new user', () => {
   test('should not allow duplicate credentials', async ({ page }) => {

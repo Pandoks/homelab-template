@@ -9,21 +9,21 @@ import {
   createSession,
   generateSessionToken,
   verifyPasswordStrength
-} from '@startup-template/core/auth/server/index';
+} from '@homelab-template/ts-lib/auth/server/index';
 import {
   passkeys,
   twoFactorAuthenticationCredentials
-} from '@startup-template/core/database/main/schema/auth.sql';
+} from '@homelab-template/postgres/main/auth.sql';
 import {
   generateEmailVerification,
   sendVerification
-} from '@startup-template/core/auth/server/email';
+} from '@homelab-template/ts-lib/auth/server/email';
 import {
   getPublicKeyFromCredential,
   verifyAuthenticatorData,
   verifyChallenge,
   verifyClientData
-} from '@startup-template/core/auth/server/passkey';
+} from '@homelab-template/ts-lib/auth/server/passkey';
 import type { Actions, PageServerLoad } from './$types';
 import { hash } from '@node-rs/argon2';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -33,13 +33,13 @@ import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
-import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
+import { ConstantRefillTokenBucketLimiter } from '@homelab-template/ts-lib/rate-limit/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { mainDatabase } from '$lib/postgres';
 import { decodeBase64url, encodeBase32LowerCaseNoPadding, encodeBase64url } from '@oslojs/encoding';
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
+import { emails, users } from '@homelab-template/postgres/main/user.sql';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
 const bucket = !building

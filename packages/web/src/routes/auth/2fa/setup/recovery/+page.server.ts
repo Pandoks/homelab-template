@@ -3,9 +3,9 @@ import { eq } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { mainDatabase } from '$lib/postgres';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
-import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
+import { createSession, generateSessionToken } from '@homelab-template/ts-lib/auth/server/index';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
 

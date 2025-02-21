@@ -8,7 +8,7 @@ import {
   encodeHexLowerCase
 } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
-import { TimeSpan } from '@startup-template/core/util/time';
+import { TimeSpan } from '@homelab-template/ts-lib/util/time';
 import { mainRedis } from '$lib/redis';
 
 /**

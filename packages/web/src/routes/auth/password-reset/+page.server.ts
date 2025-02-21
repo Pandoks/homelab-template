@@ -6,15 +6,15 @@ import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
 import { building } from '$app/environment';
-import { ConstantRefillTokenBucketLimiter } from '@startup-template/core/rate-limit/index';
+import { ConstantRefillTokenBucketLimiter } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
-import { emails } from '@startup-template/core/database/main/schema/user.sql';
+import { emails } from '@homelab-template/postgres/main/user.sql';
 import {
   createPasswordResetToken,
   sendPasswordReset
-} from '@startup-template/core/auth/server/password-reset';
+} from '@homelab-template/ts-lib/auth/server/password-reset';
 import { mainRedis } from '$lib/redis';
-import { getAppInfo } from '@startup-template/core/util/index';
+import { getAppInfo } from '@homelab-template/ts-lib/util/index';
 
 const bucket = !building
   ? new ConstantRefillTokenBucketLimiter({

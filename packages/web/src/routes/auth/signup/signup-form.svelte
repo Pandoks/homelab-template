@@ -16,7 +16,7 @@
   import { tick } from 'svelte';
   import { z } from 'zod';
   import { emailSchema, usernameSchema } from '../schema';
-  import { registerPasskey } from '@startup-template/core/auth/passkey';
+  import { registerPasskey } from '@homelab-template/ts-lib/auth/passkey';
   import { PUBLIC_APP_NAME } from '$env/static/public';
 
   let {

@@ -7,16 +7,16 @@ import { newPasswordSchema } from './schema';
 import { zod } from 'sveltekit-superforms/adapters';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { mainDatabase } from '$lib/postgres';
-import { passwordResets } from '@startup-template/core/database/main/schema/auth.sql';
-import { users } from '@startup-template/core/database/main/schema/user.sql';
+import { passwordResets } from '@homelab-template/postgres/main/auth.sql';
+import { users } from '@homelab-template/postgres/main/user.sql';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeHexLowerCase } from '@oslojs/encoding';
 import {
   invalidateUserSessions,
   verifyPasswordStrength
-} from '@startup-template/core/auth/server/index';
+} from '@homelab-template/ts-lib/auth/server/index';
 import { deleteSessionTokenCookie } from '$lib/auth/server/sessions';
-import { isWithinExpirationDate } from '@startup-template/core/util/time';
+import { isWithinExpirationDate } from '@homelab-template/ts-lib/util/time';
 
 export const actions: Actions = {
   'new-password': async (event) => {

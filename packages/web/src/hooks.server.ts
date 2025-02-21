@@ -1,7 +1,7 @@
 // Middleware
 import { deleteSessionTokenCookie, setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainDatabase } from '$lib/postgres';
-import { validateSessionToken } from '@startup-template/core/auth/server/index';
+import { validateSessionToken } from '@homelab-template/ts-lib/auth/server/index';
 import { error, json, text, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 

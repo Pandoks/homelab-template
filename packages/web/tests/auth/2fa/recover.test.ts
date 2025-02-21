@@ -2,8 +2,8 @@ import { eq } from 'drizzle-orm';
 import { mainDatabase } from '../../db';
 import { logout, test } from '../../utils';
 import { expect } from '@playwright/test';
-import { users } from '@startup-template/core/database/main/schema/user.sql';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { users } from '@homelab-template/postgres/main/user.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
 
 test('should disable 2fa with recovery code', async ({ twoFacPass }) => {
   const page = twoFacPass.page;

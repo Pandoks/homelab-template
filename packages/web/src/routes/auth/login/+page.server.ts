@@ -9,12 +9,12 @@ import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
 import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
-import { Throttler } from '@startup-template/core/rate-limit/index';
+import { Throttler } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
-import { emails, users } from '@startup-template/core/database/main/schema/user.sql';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
-import { verifyPasskey } from '@startup-template/core/auth/server/passkey';
-import { createSession, generateSessionToken } from '@startup-template/core/auth/server/index';
+import { emails, users } from '@homelab-template/postgres/main/user.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
+import { verifyPasskey } from '@homelab-template/ts-lib/auth/server/passkey';
+import { createSession, generateSessionToken } from '@homelab-template/ts-lib/auth/server/index';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 

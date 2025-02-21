@@ -82,6 +82,9 @@ importers:
 
   packages/web:
     dependencies:
+      '@homelab-template/postgres':
+        specifier: workspace:^
+        version: link:../postgres
       '@homelab-template/ts-lib':
         specifier: workspace:^
         version: link:../lib/ts-lib

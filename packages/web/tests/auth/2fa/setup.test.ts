@@ -3,9 +3,9 @@ import { test, type AuthTest } from '../../utils';
 import { mainDatabase } from '../../db';
 import { eq } from 'drizzle-orm';
 import { decodeBase32, encodeHexLowerCase } from '@oslojs/encoding';
-import { twoFactorAuthenticationCredentials } from '@startup-template/core/database/main/schema/auth.sql';
+import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
 import { sha256 } from '@oslojs/crypto/sha2';
-import { users } from '@startup-template/core/database/main/schema/user.sql';
+import { users } from '@homelab-template/postgres/main/user.sql';
 import { generateTOTP } from '@oslojs/otp';
 
 const setupPageTOTP = async (page: Page) => {
