@@ -7,6 +7,8 @@ import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
 
 config({ path: "../../../../.env" });
+console.log("PROCESS ENV");
+console.log(process.env.MAIN_DB_URL);
 
 export default defineConfig({
   schema: "./main/drizzle/schema/*.sql.ts",

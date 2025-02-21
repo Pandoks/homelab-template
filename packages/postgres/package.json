@@ -4,19 +4,19 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "db:reset": "pnpm run db:main:reset",
-    "db:main:reset": "rm -rf ./main/setup/meta ./main/setup/0001_init.sql",
-    "db:main:gen": "pnpm run db:main:reset && drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init",
-    "db:main:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts"
+    "db:reset": "pnpm run maindb:reset",
+    "maindb:reset": "rm -rf ./main/setup/meta ./main/setup/0001_init.sql",
+    "maindb:gen": "pnpm run db:main:reset && drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init",
+    "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts"
   },
   "exports": {
     "./main/*": "./main/drizzle/schema/*.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.36.4",
+    "drizzle-orm": "^0.39.3",
     "sst": "^3.3.27"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.28.1"
+    "drizzle-kit": "^0.30.4"
   }
 }
