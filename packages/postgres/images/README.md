@@ -22,10 +22,10 @@ You can connect to the databses via the connection pooler `pgcat`. Currently thi
 to accept connections on `localhost:6432` with the username `pooler`.
 
 Because of certain configurations and implementation details of `pgcat` we need to connect to it via
-a connection string with `gssencmod=disable`:
+a connection string with `gssencmode=disable`:
 
 ```
-psql 'postgresql://pooler:password@127.0.0.1:6432/main?gssencmod=disable'
+psql 'postgresql://pooler:password@127.0.0.1:6432/main?gssencmode=disable'
 ```
 
 ### Checking Master & Slave Behavior

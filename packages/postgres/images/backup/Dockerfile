@@ -11,7 +11,7 @@ RUN chown pgbackrest:pgbackrest /var/log/pgbackrest /etc/pgbackrest/pgbackrest.c
 COPY ./scripts/process_env.sh /usr/local/bin/process_env.sh
 RUN chmod +x /usr/local/bin/process_env.sh
 
-COPY ./core/src/database/images/backup/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./postgres/images/backup/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER pgbackrest
