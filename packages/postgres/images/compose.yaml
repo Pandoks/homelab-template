@@ -17,23 +17,23 @@ services:
 
   s3:
     image: localstack/localstack
-    env_file: "../../../../../.env"
+    env_file: ../../../.env
     environment:
       - SERVICES=s3
       - AWS_DEFAULT_REGION=us-west-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=testsecret
     volumes:
-      - ./s3.sh:/etc/localstack/init/ready.d/s3.sh
+      - ../../scripts/dev/s3.sh:/etc/localstack/init/ready.d/s3.sh
     networks:
       - database-network
 
   backup:
     image: backup:latest
     build:
-      context: ../../../../
-      dockerfile: ./core/src/database/images/backup/Dockerfile
-    env_file: "../../../../../.env"
+      context: ../../
+      dockerfile: ./postgres/images/backup/Dockerfile
+    env_file: ../../../.env
     environment:
       - POSTGRES_DB_1=main
       - MASTER_HOST_1=images-masterdb-1
@@ -41,9 +41,9 @@ services:
     volumes:
       - ./backup/setup_backups.sh:/usr/bin/setup_backups.sh
       - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
     networks:
       - database-network
     healthcheck:
@@ -57,28 +57,28 @@ services:
   masterdb:
     image: masterdb:latest
     build:
-      context: ../../../../
-      dockerfile: ./core/src/database/images/master/Dockerfile
-    env_file: "../../../../../.env"
+      context: ../../
+      dockerfile: ./postgres/images/master/Dockerfile
+    env_file: ../../../.env
     environment:
       - POSTGRES_DB=main
       - PGDATABASE=main
       - POSTGRES_TYPE=backup
       - MASTER_HOST=images-masterdb-1
     volumes:
-      - ../main/setup/0001_init.sql:/docker-entrypoint-initdb.d/0001_init.sql
-      - ../main/setup/0002_roles.sql:/docker-entrypoint-initdb.d/0002_roles.sql
-      - ../main/setup/0003_extensions.sql:/docker-entrypoint-initdb.d/0003_extensions.sql
-      - ../main/setup/0004_cron.sql:/docker-entrypoint-initdb.d/0004_cron.sql
+      - ../main/setup/0000_init.sql:/docker-entrypoint-initdb.d/0000_init.sql
+      - ../main/setup/0001_roles.sql:/docker-entrypoint-initdb.d/0001_roles.sql
+      - ../main/setup/0002_extensions.sql:/docker-entrypoint-initdb.d/0002_extensions.sql
+      - ../main/setup/0003_cron.sql:/docker-entrypoint-initdb.d/0003_cron.sql
       - ./master/master.sh:/docker-entrypoint-initdb.d/master.sh
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
       - ./master/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/tls/images-masterdb-1.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/tls/images-masterdb-1.crt:/etc/pgbackrest/client.crt
+      - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../.certs/dev/tls/images-masterdb-1.key:/etc/pgbackrest/client.key
+      - ../../../.certs/dev/tls/images-masterdb-1.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
     healthcheck:
@@ -92,9 +92,9 @@ services:
   slavedb:
     image: slavedb:latest
     build:
-      context: ../../../../
-      dockerfile: ./core/src/database/images/slave/Dockerfile
-    env_file: "../../../../../.env"
+      context: ../../
+      dockerfile: ./postgres/images/slave/Dockerfile
+    env_file: ../../../.env
     environment:
       - POSTGRES_DB=main
       - PGDATABASE=main
@@ -104,11 +104,11 @@ services:
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
       - ./slave/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
-      - ../../../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
-      - ../../../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
-      - ../../../../../.certs/dev/tls/images-slavedb-1.key:/etc/pgbackrest/client.key
-      - ../../../../../.certs/dev/tls/images-slavedb-1.crt:/etc/pgbackrest/client.crt
+      - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
+      - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
+      - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
+      - ../../../.certs/dev/tls/images-slavedb-1.key:/etc/pgbackrest/client.key
+      - ../../../.certs/dev/tls/images-slavedb-1.crt:/etc/pgbackrest/client.crt
     networks:
       - database-network
     healthcheck:
@@ -122,9 +122,9 @@ services:
   pgcat:
     image: pooler:latest
     build:
-      context: ../../../../
-      dockerfile: ./core/src/database/images/pooler/Dockerfile
-    env_file: "../../../../../.env"
+      context: ../../
+      dockerfile: ./postgres/images/pooler/Dockerfile
+    env_file: ../../../.env
     environment:
       - POSTGRES_DB=main
       - MASTER_HOST_1=images-masterdb-1

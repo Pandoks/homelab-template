@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_dir=$(dirname $(realpath $0))
-project_root=$script_dir/../../../..
+project_root=$script_dir/../..
 scripts_dir=$project_root/scripts
 
 $scripts_dir/generate_ca.sh

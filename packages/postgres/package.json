@@ -6,7 +6,7 @@
   "scripts": {
     "db:reset": "pnpm run maindb:reset",
     "maindb:reset": "rm -rf ./main/setup/meta ./main/setup/0001_init.sql",
-    "maindb:gen": "pnpm run db:main:reset && drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init",
+    "maindb:gen": "pnpm run maindb:reset && drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init",
     "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts"
   },
   "exports": {
