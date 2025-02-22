@@ -6,8 +6,7 @@
 import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
 
-config({ path: "../../../../.env" });
-console.log("PROCESS ENV");
+config({ path: "../../.env" }); // based off of package.json of this project
 console.log(process.env.MAIN_DB_URL);
 
 export default defineConfig({
