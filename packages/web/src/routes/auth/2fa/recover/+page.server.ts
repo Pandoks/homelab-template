@@ -21,7 +21,7 @@ import { mainRedis } from '$lib/redis';
 const throttler = !building
   ? new Throttler({
       name: '2fa-recovery',
-      storage: mainRedis,
+      redis: mainRedis,
       timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,

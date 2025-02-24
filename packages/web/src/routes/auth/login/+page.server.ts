@@ -22,7 +22,7 @@ const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180,
 const throttler = !building
   ? new Throttler({
       name: 'login-throttle',
-      storage: mainRedis,
+      redis: mainRedis,
       timeoutSeconds: timeoutSeconds,
       resetType: 'instant',
       cutoffSeconds: 24 * 60 * 60,

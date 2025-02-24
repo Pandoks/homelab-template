@@ -21,7 +21,7 @@ const bucket = !building
       name: 'password-reset-request',
       max: 3,
       refillIntervalSeconds: 30,
-      storage: mainRedis
+      redis: mainRedis
     })
   : undefined;
 

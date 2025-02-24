@@ -10,22 +10,22 @@ export class ConstantRefillTokenBucketLimiter {
   public refillIntervalSeconds: number;
 
   private name: string;
-  private storage: RedisClientType | RedisClusterType;
+  private redis: RedisClientType | RedisClusterType;
 
   constructor({
     name,
     max,
     refillIntervalSeconds,
-    storage,
+    redis,
   }: {
     name: string;
     max: number;
     refillIntervalSeconds: number;
-    storage: RedisClientType | RedisClusterType;
+    redis: RedisClientType | RedisClusterType;
   }) {
     this.max = max;
     this.refillIntervalSeconds = refillIntervalSeconds;
-    this.storage = storage;
+    this.redis = redis;
     this.name = name;
   }
 
@@ -37,7 +37,7 @@ export class ConstantRefillTokenBucketLimiter {
     cost: number;
   }): Promise<boolean> {
     const redisQuery = `${this.name}:${key}`;
-    const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
+    const bucket = (await this.redis.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
     if (!Object.keys(bucket).length && cost <= this.max) {
@@ -45,7 +45,7 @@ export class ConstantRefillTokenBucketLimiter {
         count: this.max - cost,
         refilledAt: now,
       };
-      await this.storage.hSet(redisQuery, newBucket);
+      await this.redis.hSet(redisQuery, newBucket);
       return true;
     } else if (cost > this.max) {
       return false;
@@ -65,7 +65,7 @@ export class ConstantRefillTokenBucketLimiter {
         count: count,
         refilledAt: now,
       };
-      await this.storage.hSet(redisQuery, updatedBucket);
+      await this.redis.hSet(redisQuery, updatedBucket);
       return false;
     }
 
@@ -73,13 +73,13 @@ export class ConstantRefillTokenBucketLimiter {
       count: count - cost,
       refilledAt: now,
     };
-    await this.storage.hSet(redisQuery, updatedBucket);
+    await this.redis.hSet(redisQuery, updatedBucket);
     return true;
   }
 
   public async reset(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
-    await this.storage.del(redisQuery);
+    await this.redis.del(redisQuery);
   }
 }
 
@@ -99,7 +99,7 @@ export class ConstantRefillTokenBucketLimiter {
  */
 export class Throttler {
   private name: string;
-  private storage: RedisClientType | RedisClusterType;
+  private redis: RedisClientType | RedisClusterType;
   private timeoutSeconds: number[];
   private resetType?: "gradual" | "instant";
   private cutoffSeconds?: number;
@@ -107,21 +107,21 @@ export class Throttler {
 
   constructor({
     name,
-    storage,
+    redis,
     timeoutSeconds,
     resetType,
     cutoffSeconds,
     grace,
   }: {
     name: string;
-    storage: RedisClientType | RedisClusterType;
+    redis: RedisClientType | RedisClusterType;
     timeoutSeconds: number[];
     resetType?: "gradual" | "instant";
     cutoffSeconds?: number;
     grace?: number;
   }) {
     this.name = name;
-    this.storage = storage;
+    this.redis = redis;
     this.timeoutSeconds = timeoutSeconds;
     this.resetType = resetType;
     if (
@@ -139,7 +139,7 @@ export class Throttler {
 
   public async check(key: string): Promise<boolean> {
     const redisQuery = `${this.name}:${key}`;
-    const counter = (await this.storage.hGetAll(
+    const counter = (await this.redis.hGetAll(
       redisQuery,
     )) as ThrottlingCounter<string>;
     if (!Object.keys(counter).length || parseInt(counter.graceCounter) > 0) {
@@ -153,7 +153,7 @@ export class Throttler {
 
   public async increment(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
-    const counter = (await this.storage.hGetAll(
+    const counter = (await this.redis.hGetAll(
       redisQuery,
     )) as ThrottlingCounter<string>;
     const now = Date.now();
@@ -163,7 +163,7 @@ export class Throttler {
         graceCounter: this.grace - 1,
         updatedAt: now,
       };
-      await this.storage.hSet(redisQuery, newCounter);
+      await this.redis.hSet(redisQuery, newCounter);
       return;
     }
 
@@ -235,12 +235,12 @@ export class Throttler {
         updatedAt: now,
       };
     }
-    await this.storage.hSet(redisQuery, updatedCounter);
+    await this.redis.hSet(redisQuery, updatedCounter);
   }
 
   public async reset(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
-    await this.storage.del(redisQuery);
+    await this.redis.del(redisQuery);
   }
 }
 
@@ -254,22 +254,22 @@ export class FixedRefillTokenBucketLimiter {
   public refillIntervalSeconds: number;
 
   private name: string;
-  private storage: RedisClientType | RedisClusterType;
+  private redis: RedisClientType | RedisClusterType;
 
   constructor({
     name,
     max,
     refillIntervalSeconds,
-    storage,
+    redis,
   }: {
     name: string;
     max: number;
     refillIntervalSeconds: number;
-    storage: RedisClientType | RedisClusterType;
+    redis: RedisClientType | RedisClusterType;
   }) {
     this.max = max;
     this.refillIntervalSeconds = refillIntervalSeconds;
-    this.storage = storage;
+    this.redis = redis;
     this.name = name;
   }
 
@@ -281,7 +281,7 @@ export class FixedRefillTokenBucketLimiter {
     cost: number;
   }): Promise<boolean> {
     const redisQuery = `${this.name}:${key}`;
-    const bucket = (await this.storage.hGetAll(redisQuery)) as Bucket<string>;
+    const bucket = (await this.redis.hGetAll(redisQuery)) as Bucket<string>;
     const now = Date.now();
 
     if (!Object.keys(bucket).length && cost <= this.max) {
@@ -289,7 +289,7 @@ export class FixedRefillTokenBucketLimiter {
         count: this.max - cost,
         refilledAt: now,
       };
-      await this.storage.hSet(redisQuery, newBucket);
+      await this.redis.hSet(redisQuery, newBucket);
       return true;
     } else if (cost > this.max) {
       return false;
@@ -313,13 +313,13 @@ export class FixedRefillTokenBucketLimiter {
       return false;
     }
 
-    await this.storage.hSet(redisQuery, updatedBucket);
+    await this.redis.hSet(redisQuery, updatedBucket);
     return true;
   }
 
   public async reset(key: string): Promise<void> {
     const redisQuery = `${this.name}:${key}`;
-    await this.storage.del(redisQuery);
+    await this.redis.del(redisQuery);
   }
 }
 

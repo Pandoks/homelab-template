@@ -10,7 +10,7 @@ import {
   Throttler,
 } from ".";
 
-const storage = await createClient({
+const redis = await createClient({
   url: process.env.MAIN_REDIS_URL,
 }).connect();
 
@@ -19,17 +19,17 @@ describe("ConstantRefillTokenBucketLimiter", () => {
   let limiter: ConstantRefillTokenBucketLimiter;
 
   beforeAll(async () => {
-    redisClient = storage as RedisClientType;
+    redisClient = redis as RedisClientType;
     limiter = new ConstantRefillTokenBucketLimiter({
       name: "test-limiter",
       max: 5,
       refillIntervalSeconds: 1,
-      storage: redisClient as RedisClientType,
+      redis: redisClient as RedisClientType,
     });
   });
 
   afterEach(async () => {
-    await (storage as RedisClientType).flushAll();
+    await (redis as RedisClientType).flushAll();
   });
 
   it("should allow requests within the limit", async () => {
@@ -139,10 +139,10 @@ describe("Throttler", () => {
 
   describe("default cutoff mode (none)", () => {
     beforeAll(async () => {
-      redisClient = storage as RedisClientType;
+      redisClient = redis as RedisClientType;
       throttler = new Throttler({
         name: "test-throttler",
-        storage: redisClient,
+        redis: redisClient,
         timeoutSeconds: [1, 2, 4, 8, 16],
         grace: 3,
       });
@@ -264,10 +264,10 @@ describe("Throttler", () => {
 
   describe("gradual cutoff mode", () => {
     beforeAll(async () => {
-      redisClient = storage as RedisClientType;
+      redisClient = redis as RedisClientType;
       throttler = new Throttler({
         name: "test-throttler",
-        storage: redisClient,
+        redis: redisClient,
         timeoutSeconds: [1, 2, 4, 8, 16],
         resetType: "gradual",
         cutoffSeconds: 30,
@@ -441,10 +441,10 @@ describe("Throttler", () => {
 
   describe("instant cutoff mode", () => {
     beforeAll(async () => {
-      redisClient = storage as RedisClientType;
+      redisClient = redis as RedisClientType;
       throttler = new Throttler({
         name: "test-throttler",
-        storage: redisClient,
+        redis: redisClient,
         timeoutSeconds: [1, 2, 4, 8, 16],
         resetType: "instant",
         cutoffSeconds: 30,
@@ -579,17 +579,17 @@ describe("FixedRefillTokenBucketLimiter", () => {
   let limiter: FixedRefillTokenBucketLimiter;
 
   beforeAll(async () => {
-    redisClient = storage as RedisClientType;
+    redisClient = redis as RedisClientType;
     limiter = new FixedRefillTokenBucketLimiter({
       name: "test-limiter",
       max: 5,
       refillIntervalSeconds: 1,
-      storage: redisClient,
+      redis: redisClient,
     });
   });
 
   afterEach(async () => {
-    await (storage as RedisClientType).flushAll();
+    await (redis as RedisClientType).flushAll();
   });
 
   it("should allow requests within the limit", async () => {

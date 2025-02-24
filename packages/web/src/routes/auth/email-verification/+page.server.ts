@@ -29,7 +29,7 @@ const verificationBucket = !building
       name: 'email-verification',
       max: 5,
       refillIntervalSeconds: 60 * 30, // 30 minutes
-      storage: mainRedis
+      redis: mainRedis
     })
   : undefined;
 const resendBucket = !building
@@ -37,7 +37,7 @@ const resendBucket = !building
       name: 'email-resend',
       max: 5,
       refillIntervalSeconds: 60, // 1 minute
-      storage: mainRedis
+      redis: mainRedis
     })
   : undefined;
 

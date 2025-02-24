@@ -47,7 +47,7 @@ const bucket = !building
       name: 'signup-limiter',
       max: 10,
       refillIntervalSeconds: refillIntervalSeconds,
-      storage: mainRedis
+      redis: mainRedis
     })
   : undefined;
 
