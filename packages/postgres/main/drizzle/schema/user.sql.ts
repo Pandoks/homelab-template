@@ -10,12 +10,9 @@ import {
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(), // will be converted to lower case
-  passwordHash: text("password_hash"),
+  passwordHash: text("password_hash"), // NOTE: Password can only be null if the user has at least a single passkey (check in runtime)
   role: text("role").notNull().default("default"),
 });
-/** TODO: when checks get released in Drizzle ORM, add check for password.
- * Password can only be null if the user has at least a single passkey
- */
 export const userRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   passkeys: many(passkeys),
