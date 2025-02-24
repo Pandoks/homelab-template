@@ -4,12 +4,12 @@ import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { RedisClientType } from 'redis';
 import { hash } from '@node-rs/argon2';
 import { test as testBase, type Page } from '@playwright/test';
-import { emails, users } from '@homelab-template/ts-lib/database/main/schema/user.sql';
 import { generateRandomString } from '@oslojs/crypto/random';
 import { alphabet } from '@homelab-template/ts-lib/util/index';
 import { decodeBase32, encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
-import { emailVerifications } from '@homelab-template/ts-lib/database/main/schema/auth.sql';
 import { generateTOTP } from '@oslojs/otp';
+import { emails, users } from '@homelab-template/postgres/main/user.sql';
+import { emailVerifications } from '@homelab-template/postgres/main/auth.sql';
 
 export const resetTestDatabases = async ({
   redis,

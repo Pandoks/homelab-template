@@ -1,10 +1,10 @@
 import { building } from '$app/environment';
-import { MAIN_REDIS_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { createClient, type RedisClientType } from 'redis';
 
 let mainRedis: RedisClientType;
 if (!building) {
-  const redis = createClient({ url: MAIN_REDIS_URL });
+  const redis = createClient({ url: env.MAIN_REDIS_URL });
   mainRedis = (await redis.connect().catch((err) => {
     console.error('Redis Error:');
     console.error(err);

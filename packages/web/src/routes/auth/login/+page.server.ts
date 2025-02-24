@@ -223,7 +223,8 @@ export const actions: Actions = {
       signature: loginForm.data.signature,
       encodedAuthenticatorData: loginForm.data.encodedAuthenticatorData,
       clientDataJSON: loginForm.data.clientDataJSON,
-      database: mainDatabase
+      database: mainDatabase,
+      redis: mainRedis
     });
     if (!isValidPasskey) {
       throttler?.increment(ipAddress);

@@ -20,7 +20,6 @@ import { and, eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { passkeys } from "@homelab-template/postgres/main/auth.sql";
 import { ResponseError } from "../../util/error";
-import { redis } from "../../../../../redis/main";
 import {
   decodeBase64url,
   encodeBase64url,
@@ -28,6 +27,7 @@ import {
 } from "@oslojs/encoding";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getAppInfo } from "../../util";
+import { RedisClientType, RedisClusterType } from "redis";
 
 // TODO: Don't throw error (svelte will be stuck in infinite lag)
 export const verifyAuthenticatorData = (
@@ -63,9 +63,11 @@ export const verifyClientData = ({
 export const verifyChallenge = async ({
   challengeId,
   challenge,
+  redis,
 }: {
   challengeId: string;
   challenge: Uint8Array;
+  redis: RedisClientType | RedisClusterType;
 }): Promise<void> => {
   const redisQuery = `passkey-challenge:${challengeId}`;
   const clientChallengeHash = encodeHexLowerCase(sha256(challenge));
@@ -103,6 +105,7 @@ export const verifyPasskey = async ({
   encodedAuthenticatorData,
   clientDataJSON,
   database,
+  redis,
 }: {
   userId: string;
   challengeId: string;
@@ -111,6 +114,7 @@ export const verifyPasskey = async ({
   encodedAuthenticatorData: string;
   clientDataJSON: string;
   database: PostgresJsDatabase;
+  redis: RedisClientType | RedisClusterType;
 }): Promise<boolean> => {
   const decodedSignature = decodeBase64url(signature);
   const decodedAuthenticatorData = decodeBase64url(encodedAuthenticatorData);
@@ -125,6 +129,7 @@ export const verifyPasskey = async ({
   await verifyChallenge({
     challengeId: challengeId,
     challenge: clientData.challenge,
+    redis,
   });
 
   const [passkeyInfo] = await database
