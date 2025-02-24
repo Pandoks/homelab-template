@@ -7,7 +7,10 @@
     "db:reset": "pnpm run maindb:reset",
     "maindb:reset": "rm -rf ./main/setup/meta ./main/setup/0001_init.sql",
     "maindb:gen": "pnpm run maindb:reset && drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init",
-    "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts"
+    "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts",
+    "build": "docker compose -f ./images/compose.yaml build",
+    "reset": "rm -rf ../../.docker-volumes/postgres/ && docker compose -f ./images/compose.yaml down",
+    "up": "pnpm run reset && docker compose -f ./images/compose.yaml up"
   },
   "exports": {
     "./main/*": "./main/drizzle/schema/*.ts"

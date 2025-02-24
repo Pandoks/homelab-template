@@ -38,6 +38,11 @@ from the slave.
 
 ## Pgbackrest Backups
 
+> [!NOTE]
+>
+> We need to install pgbackrest inside of the postgres container because postgres needs to call `pgbackrest`
+> for archiving and restoration.
+
 For database backups, we are going to be using [pgbackrest](https://pgbackrest.org). This is the architecture:
 
 ```mermaid
