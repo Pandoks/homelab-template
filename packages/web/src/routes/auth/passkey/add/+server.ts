@@ -49,7 +49,14 @@ export const POST: RequestHandler = async (event) => {
   if (!credential) {
     return error(406, { message: 'Missing credential' });
   }
-  const publicKey = getPublicKeyFromCredential(credential);
+  let publicKey: string;
+  try {
+    publicKey = getPublicKeyFromCredential(credential);
+  } catch (err) {
+    if (err instanceof Error) {
+      return error(406, { message: err.message });
+    }
+  }
 
   const algorithm = credential.publicKey.algorithm();
   if (!algorithm || (algorithm !== coseAlgorithmES256 && algorithm !== coseAlgorithmRS256)) {
@@ -70,7 +77,7 @@ export const POST: RequestHandler = async (event) => {
       userId: event.locals.user.id,
       credentialId: encodeBase64url(credential.id),
       algorithm: algorithm,
-      encodedPublicKey: publicKey,
+      encodedPublicKey: publicKey!,
       name: data.name
     });
   } catch (err) {

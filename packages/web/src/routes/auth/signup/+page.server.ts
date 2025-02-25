@@ -213,7 +213,14 @@ export const actions: Actions = {
     if (!algorithm || algorithm !== coseAlgorithmES256) {
       return error(406, { message: 'Unsupported algorithm' });
     }
-    const publicKey = getPublicKeyFromCredential(credential);
+    let publicKey: string;
+    try {
+      publicKey = getPublicKeyFromCredential(credential);
+    } catch (err) {
+      if (err instanceof Error) {
+        return error(406, { message: err.message });
+      }
+    }
 
     const clientData = parseClientDataJSON(decodeBase64url(signupForm.data.clientDataJSON));
     verifyClientData({ clientData: clientData, type: ClientDataType.Create });
