@@ -19,7 +19,6 @@ import {
 import { and, eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { passkeys } from "@homelab-template/postgres/main/auth.sql";
-import { ResponseError } from "../../util/error";
 import {
   decodeBase64url,
   encodeBase64url,
@@ -29,36 +28,28 @@ import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getAppInfo } from "../../util";
 import { RedisClientType, RedisClusterType } from "redis";
 
-// TODO: Don't throw error (svelte will be stuck in infinite lag)
 export const verifyAuthenticatorData = (
   authenticatorData: AuthenticatorData,
-): void => {
-  if (!authenticatorData.verifyRelyingPartyIdHash(getAppInfo("domain")!)) {
-    throw new ResponseError(406, "Invalid relying party ID hash");
-  } else if (
-    !authenticatorData.userPresent ||
-    !authenticatorData.userVerified
-  ) {
-    throw new ResponseError(406, "User must be present and verified");
-  }
+): boolean => {
+  return (
+    authenticatorData.verifyRelyingPartyIdHash(getAppInfo("domain")!) &&
+    authenticatorData.userPresent &&
+    authenticatorData.userVerified
+  );
 };
 
-// TODO: handle this error thrown
 export const verifyClientData = ({
   clientData,
   type,
 }: {
   clientData: ClientData;
   type: ClientDataType;
-}): void => {
-  if (clientData.type !== type) {
-    throw new ResponseError(406, "Invalid client data type");
-  } else if (
-    clientData.origin !== getAppInfo("origin") ||
-    clientData.crossOrigin
-  ) {
-    throw new ResponseError(406, "Invalid origin");
-  }
+}): boolean => {
+  return (
+    clientData.type === type &&
+    clientData.origin === getAppInfo("origin") &&
+    !clientData.crossOrigin
+  );
 };
 
 export const verifyChallenge = async ({
@@ -69,23 +60,22 @@ export const verifyChallenge = async ({
   challengeId: string;
   challenge: Uint8Array;
   redis: RedisClientType | RedisClusterType;
-}): Promise<void> => {
+}): Promise<boolean> => {
   const redisQuery = `passkey-challenge:${challengeId}`;
   const clientChallengeHash = encodeHexLowerCase(sha256(challenge));
   const challengeHash = await redis.get(redisQuery);
-  if (!challengeHash) {
-    throw new ResponseError(404);
-  } else if (challengeHash !== clientChallengeHash) {
-    throw new ResponseError(406, "Invalid challenge");
+  if (!challengeHash || challengeHash !== clientChallengeHash) {
+    return false;
   }
   await redis.del(redisQuery);
+  return true;
 };
 
 // Parse the COSE key depending on the algorithm. The structure depends on the algorithm.
 export const getPublicKeyFromCredential = (credential: WebAuthnCredential) => {
   const cosePublicKey = credential.publicKey.ec2();
   if (cosePublicKey.curve !== coseEllipticCurveP256) {
-    throw new ResponseError(406, "Unsupported algorithm");
+    throw new Error("Unsupported algorithm");
   }
 
   return encodeBase64url(
@@ -122,17 +112,24 @@ export const verifyPasskey = async ({
   const decodedClientDataJSON = decodeBase64url(clientDataJSON);
 
   const authenticatorData = parseAuthenticatorData(decodedAuthenticatorData);
-  verifyAuthenticatorData(authenticatorData);
+  if (!verifyAuthenticatorData(authenticatorData)) {
+    return false;
+  }
 
   const clientData = parseClientDataJSON(decodedClientDataJSON);
-  verifyClientData({ clientData: clientData, type: ClientDataType.Get });
+  if (!verifyClientData({ clientData: clientData, type: ClientDataType.Get })) {
+    return false;
+  }
 
-  // TODO: should return boolean and let function caller handle
-  await verifyChallenge({
-    challengeId: challengeId,
-    challenge: clientData.challenge,
-    redis: redis,
-  });
+  if (
+    !(await verifyChallenge({
+      challengeId: challengeId,
+      challenge: clientData.challenge,
+      redis: redis,
+    }))
+  ) {
+    return false;
+  }
 
   const [passkeyInfo] = await database
     .select({

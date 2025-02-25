@@ -67,6 +67,10 @@ export const registerPasskey = async ({
   };
 };
 
+/**
+ * Start passkey authentication in the browser
+ *
+ */
 export const authenticatePasskey = async () => {
   try {
     const challengeResponse = await fetch("/auth/passkey/challenge", {
