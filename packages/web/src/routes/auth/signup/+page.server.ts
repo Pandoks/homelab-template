@@ -219,7 +219,8 @@ export const actions: Actions = {
     verifyClientData({ clientData: clientData, type: ClientDataType.Create });
     await verifyChallenge({
       challengeId: signupForm.data.challengeId,
-      challenge: clientData.challenge
+      challenge: clientData.challenge,
+      redis: mainRedis
     });
 
     try {

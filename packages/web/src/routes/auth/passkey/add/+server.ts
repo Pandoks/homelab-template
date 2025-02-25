@@ -19,6 +19,7 @@ import {
 import { mainDatabase } from '$lib/postgres';
 import { passkeys } from '@homelab-template/postgres/main/auth.sql';
 import { decodeBase64url, encodeBase64url } from '@oslojs/encoding';
+import { mainRedis } from '$lib/redis';
 
 /**
  * Client hits this endpoint to add a new passkey to their EXISTING account. (must be logged in)
@@ -58,7 +59,11 @@ export const POST: RequestHandler = async (event) => {
   const clientDataJSON = decodeBase64url(data.clientDataJSON);
   const clientData = parseClientDataJSON(clientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Create });
-  await verifyChallenge({ challengeId: data.challengeId, challenge: clientData.challenge });
+  await verifyChallenge({
+    challengeId: data.challengeId,
+    challenge: clientData.challenge,
+    redis: mainRedis
+  });
 
   try {
     await mainDatabase.insert(passkeys).values({

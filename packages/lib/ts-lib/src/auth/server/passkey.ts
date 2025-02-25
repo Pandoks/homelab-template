@@ -127,10 +127,11 @@ export const verifyPasskey = async ({
   const clientData = parseClientDataJSON(decodedClientDataJSON);
   verifyClientData({ clientData: clientData, type: ClientDataType.Get });
 
+  // TODO: should return boolean and let function caller handle
   await verifyChallenge({
     challengeId: challengeId,
     challenge: clientData.challenge,
-    redis,
+    redis: redis,
   });
 
   const [passkeyInfo] = await database
