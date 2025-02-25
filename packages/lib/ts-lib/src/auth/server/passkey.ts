@@ -87,7 +87,6 @@ export const getPublicKeyFromCredential = (credential: WebAuthnCredential) => {
   );
 };
 
-// TODO: function now throws errors. update code that uses
 export const verifyPasskey = async ({
   userId,
   challengeId,
