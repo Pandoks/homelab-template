@@ -43,6 +43,7 @@ export const verifyAuthenticatorData = (
   }
 };
 
+// TODO: handle this error thrown
 export const verifyClientData = ({
   clientData,
   type,

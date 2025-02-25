@@ -123,6 +123,7 @@ export type AuthFixture = {
 };
 export const test = testBase.extend<AuthFixture>({
   partPass: async ({ browser }, use) => {
+    // signed up with username, email, and password, but not email verified
     const { username, email, password } = await generateRandomTestUser('partial_password');
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -144,6 +145,7 @@ export const test = testBase.extend<AuthFixture>({
     await use({ page, username, email, password });
   },
   fullPass: async ({ browser }, use) => {
+    // signed up with username, email, and password, and has verified email
     const { username, email, password } = await generateRandomTestUser('full_password');
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -173,6 +175,7 @@ export const test = testBase.extend<AuthFixture>({
     await use({ page, username, email, password });
   },
   twoFacPass: async ({ browser }, use) => {
+    // signed up with username, email, and password, and has verified email and setup 2FA
     const { username, email, password } = await generateRandomTestUser('two_factor_full_password');
     const context = await browser.newContext();
     const page = await context.newPage();
