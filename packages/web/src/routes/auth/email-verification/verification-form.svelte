@@ -28,7 +28,7 @@
         <Form.Label>Verification Code</Form.Label>
         <Input
           oninput={(e) => {
-            $formData.code = e.target.value.replace(/\s/g, '');
+            $formData.code = e.target?.value.replace(/\s/g, '');
             interacted?.();
           }}
           {...props}
