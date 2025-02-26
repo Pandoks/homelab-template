@@ -35,30 +35,36 @@
     multipleSubmits: 'prevent',
     dataType: 'json',
     onSubmit: async (form) => {
+      passkeyLoading = true;
       // NOTE: doesn't need the zod validation like /auth/signup/signup-form.svelte because we're logging in
-      const { challengeId, credentialId, signature, authenticatorData, clientDataJSON } =
-        await authenticatePasskey();
+      try {
+        const { challengeId, credentialId, signature, authenticatorData, clientDataJSON } =
+          await authenticatePasskey();
 
-      if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
+        if (!challengeId || !credentialId || !signature || !authenticatorData || !clientDataJSON) {
+          passkeyLoading = false;
+          form.cancel();
+          return;
+        }
+
+        passkeyForm.form.set({
+          usernameOrEmail: get(passkeyForm.form).usernameOrEmail,
+          credentialId: credentialId || '',
+          challengeId: challengeId || '',
+          signature: signature || '',
+          encodedAuthenticatorData: authenticatorData || '',
+          clientDataJSON: clientDataJSON || ''
+        });
+      } catch (err) {
+        passkeyLoading = false;
+        console.error(err);
         form.cancel();
         return;
       }
-
-      passkeyForm.form.set({
-        usernameOrEmail: get(passkeyForm.form).usernameOrEmail,
-        credentialId: credentialId || '',
-        challengeId: challengeId || '',
-        signature: signature || '',
-        encodedAuthenticatorData: authenticatorData || '',
-        clientDataJSON: clientDataJSON || ''
-      });
     }
   });
-  const {
-    form: passkeyFormData,
-    enhance: passkeyEnhance,
-    delayed: passkeyDelayedForm
-  } = passkeyForm;
+  const { form: passkeyFormData, enhance: passkeyEnhance } = passkeyForm;
+  let passkeyLoading = $state(false);
 
   /** Handle synchronizing form data */
   let type: 'password' | 'passkey' = $state('password');
@@ -184,8 +190,8 @@
       </Form.Control>
     </Form.Field>
 
-    <Form.Button disabled={$passkeyDelayedForm} class="w-full mt-6">
-      {#if $passkeyDelayedForm}
+    <Form.Button disabled={passkeyLoading} class="w-full mt-6">
+      {#if passkeyLoading}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Logging In
       {:else}
