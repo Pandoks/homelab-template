@@ -47,12 +47,14 @@
     clearOnSubmit: 'message',
     multipleSubmits: 'prevent',
     onSubmit: async (form) => {
+      passkeyLoading = true;
       // before submitting the form (only username, email), setup the passkey
       const data = form.formData;
       const username = data.get('username') as string;
       const email = data.get('email');
       const validator = z.object({ username: usernameSchema, email: emailSchema });
       if (!validator.safeParse({ username, email }).success) {
+        passkeyLoading = false;
         form.cancel();
         return;
       }
@@ -64,6 +66,7 @@
           appName: PUBLIC_APP_NAME
         });
         if (!challengeId || !clientDataJSON || !attestationObject) {
+          passkeyLoading = false;
           form.cancel();
           return;
         }
@@ -72,7 +75,7 @@
         data.set('clientDataJSON', clientDataJSON);
         data.set('attestationObject', attestationObject);
       } catch (error) {
-        $passkeyDelayedForm = false;
+        passkeyLoading = false;
         console.error(error);
         // TODO: delete the passkey (wait for https://github.com/w3c/webauthn/pull/2093)
         form.cancel();
@@ -80,12 +83,7 @@
       }
     }
   });
-  const {
-    form: passkeyFormData,
-    enhance: passkeyEnhance,
-    delayed: passkeyDelayedForm,
-    errors: passkeyErrors
-  } = passkeyForm;
+  const { form: passkeyFormData, enhance: passkeyEnhance, errors: passkeyErrors } = passkeyForm;
   let passkeyLoading = $state(false);
 
   /** Handle synchronizing form data */
@@ -247,8 +245,8 @@
       <Form.FieldErrors class="text-xs" />
     </Form.Field>
 
-    <Form.Button disabled={$passkeyDelayedForm} class="w-full mt-4">
-      {#if $passkeyDelayedForm}
+    <Form.Button disabled={passkeyLoading} class="w-full mt-4">
+      {#if passkeyLoading}
         <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
         Signing Up
       {:else}

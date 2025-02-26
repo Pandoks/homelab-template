@@ -35,6 +35,7 @@
     multipleSubmits: 'prevent',
     dataType: 'json',
     onSubmit: async (form) => {
+      // NOTE: doesn't need the zod validation like /auth/signup/signup-form.svelte because we're logging in
       const { challengeId, credentialId, signature, authenticatorData, clientDataJSON } =
         await authenticatePasskey();
 
