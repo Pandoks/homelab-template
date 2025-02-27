@@ -4,7 +4,6 @@ import { and, count, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { twoFactorRecoverySchema } from './schema';
-import { building } from '$app/environment';
 import { Throttler } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
@@ -18,16 +17,14 @@ import { sha256 } from '@oslojs/crypto/sha2';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 
-const throttler = !building
-  ? new Throttler({
-      name: '2fa-recovery',
-      redis: mainRedis,
-      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
-      resetType: 'instant',
-      cutoffSeconds: 24 * 60 * 60,
-      grace: 5
-    })
-  : undefined;
+const throttler = new Throttler({
+  name: '2fa-recovery',
+  redis: mainRedis,
+  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+  resetType: 'instant',
+  cutoffSeconds: 24 * 60 * 60,
+  grace: 5
+});
 
 export const actions: Actions = {
   'recover-2fa': async (event) => {

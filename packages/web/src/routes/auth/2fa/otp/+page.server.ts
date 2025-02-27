@@ -4,7 +4,6 @@ import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { oneTimePasswordSchema } from './schema';
-import { building } from '$app/environment';
 import { Throttler } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
 import { twoFactorAuthenticationCredentials } from '@homelab-template/postgres/main/auth.sql';
@@ -14,16 +13,14 @@ import { verifyTOTP } from '@oslojs/otp';
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 
-const throttler = !building
-  ? new Throttler({
-      name: '2fa-otp',
-      redis: mainRedis,
-      timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
-      resetType: 'instant',
-      cutoffSeconds: 24 * 60 * 60,
-      grace: 5
-    })
-  : undefined;
+const throttler = new Throttler({
+  name: '2fa-otp',
+  redis: mainRedis,
+  timeoutSeconds: [1, 2, 4, 8, 16, 30, 60, 180, 300, 600],
+  resetType: 'instant',
+  cutoffSeconds: 24 * 60 * 60,
+  grace: 5
+});
 
 export const actions: Actions = {
   'verify-otp': async (event) => {

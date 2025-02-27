@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verificationSchema } from './schema';
-import { building } from '$app/environment';
 import {
   ConstantRefillTokenBucketLimiter,
   FixedRefillTokenBucketLimiter
@@ -24,22 +23,18 @@ import {
 import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 
-const verificationBucket = !building
-  ? new FixedRefillTokenBucketLimiter({
-      name: 'email-verification',
-      max: 5,
-      refillIntervalSeconds: 60 * 30, // 30 minutes
-      redis: mainRedis
-    })
-  : undefined;
-const resendBucket = !building
-  ? new ConstantRefillTokenBucketLimiter({
-      name: 'email-resend',
-      max: 5,
-      refillIntervalSeconds: 60, // 1 minute
-      redis: mainRedis
-    })
-  : undefined;
+const verificationBucket = new FixedRefillTokenBucketLimiter({
+  name: 'email-verification',
+  max: 5,
+  refillIntervalSeconds: 60 * 30, // 30 minutes
+  redis: mainRedis
+});
+const resendBucket = new ConstantRefillTokenBucketLimiter({
+  name: 'email-resend',
+  max: 5,
+  refillIntervalSeconds: 60, // 1 minute
+  redis: mainRedis
+});
 
 export const actions: Actions = {
   'verify-email-code': async (event) => {

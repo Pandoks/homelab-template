@@ -7,7 +7,6 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { loginPasskeySchema, loginSchema } from './schema';
 import { emailSchema } from '../schema';
-import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { Throttler } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
@@ -19,16 +18,14 @@ import { setSessionTokenCookie } from '$lib/auth/server/sessions';
 import { mainRedis } from '$lib/redis';
 
 const timeoutSeconds = NODE_ENV === 'test' ? [0] : [1, 2, 4, 8, 16, 30, 60, 180, 300, 600];
-const throttler = !building
-  ? new Throttler({
-      name: 'login-throttle',
-      redis: mainRedis,
-      timeoutSeconds: timeoutSeconds,
-      resetType: 'instant',
-      cutoffSeconds: 24 * 60 * 60,
-      grace: 5
-    })
-  : undefined;
+const throttler = new Throttler({
+  name: 'login-throttle',
+  redis: mainRedis,
+  timeoutSeconds: timeoutSeconds,
+  resetType: 'instant',
+  cutoffSeconds: 24 * 60 * 60,
+  grace: 5
+});
 
 export const actions: Actions = {
   login: async (event) => {

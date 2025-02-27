@@ -5,7 +5,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { passwordResetSchema } from './schema';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
 import { fail, redirect } from '@sveltejs/kit';
-import { building } from '$app/environment';
 import { ConstantRefillTokenBucketLimiter } from '@homelab-template/ts-lib/rate-limit/index';
 import { mainDatabase } from '$lib/postgres';
 import { emails } from '@homelab-template/postgres/main/user.sql';
@@ -16,14 +15,12 @@ import {
 import { mainRedis } from '$lib/redis';
 import { getAppInfo } from '@homelab-template/ts-lib/util/index';
 
-const bucket = !building
-  ? new ConstantRefillTokenBucketLimiter({
-      name: 'password-reset-request',
-      max: 3,
-      refillIntervalSeconds: 30,
-      redis: mainRedis
-    })
-  : undefined;
+const bucket = new ConstantRefillTokenBucketLimiter({
+  name: 'password-reset-request',
+  max: 3,
+  refillIntervalSeconds: 30,
+  redis: mainRedis
+});
 
 export const actions: Actions = {
   'password-reset': async (event) => {

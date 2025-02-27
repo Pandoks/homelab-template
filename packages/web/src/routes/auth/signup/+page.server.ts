@@ -31,7 +31,6 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signupPasskeySchema, signupSchema } from './schema';
 import { eq } from 'drizzle-orm';
-import { building } from '$app/environment';
 import { NODE_ENV } from '$env/static/private';
 import { ConstantRefillTokenBucketLimiter } from '@homelab-template/ts-lib/rate-limit/index';
 import { handleAlreadyLoggedIn } from '$lib/auth/server';
@@ -42,14 +41,12 @@ import { mainRedis } from '$lib/redis';
 import { emails, users } from '@homelab-template/postgres/main/user.sql';
 
 const refillIntervalSeconds = NODE_ENV === 'test' ? 0 : 5;
-const bucket = !building
-  ? new ConstantRefillTokenBucketLimiter({
-      name: 'signup-limiter',
-      max: 10,
-      refillIntervalSeconds: refillIntervalSeconds,
-      redis: mainRedis
-    })
-  : undefined;
+const bucket = new ConstantRefillTokenBucketLimiter({
+  name: 'signup-limiter',
+  max: 10,
+  refillIntervalSeconds: refillIntervalSeconds,
+  redis: mainRedis
+});
 
 export const actions: Actions = {
   signup: async (event) => {
