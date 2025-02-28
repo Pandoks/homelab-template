@@ -15,7 +15,9 @@
     "test:ui": "dotenv -e ../../.env -- playwright test --ui",
     "lint": "svelte-check",
     "format": "prettier --write .",
-    "prepare": "svelte-kit sync"
+    "prepare": "svelte-kit sync",
+    "k3d:tag": "docker tag homelab-web:latest localhost:12345/homelab-web:latest",
+    "k3d:push": "pnpm run k3d:tag && docker push localhost:12345/homelab-web:latest"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",

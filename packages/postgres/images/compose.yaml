@@ -29,11 +29,12 @@ services:
       - database-network
 
   backup:
-    image: backup:latest
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}backup:${BACKUP_TAG:-latest}
     build:
       context: ../../
       dockerfile: ./postgres/images/backup/Dockerfile
     env_file: ../../../.env
+    profiles: ["build-for-prod"]
     environment:
       - POSTGRES_DB_1=main
       - MASTER_HOST_1=images-masterdb-1
@@ -55,11 +56,12 @@ services:
         condition: service_healthy
 
   masterdb:
-    image: masterdb:latest
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}masterdb:${MASTERDB_TAG:-latest}
     build:
       context: ../../
       dockerfile: ./postgres/images/master/Dockerfile
     env_file: ../../../.env
+    profiles: ["build-for-prod"]
     environment:
       - POSTGRES_DB=main
       - PGDATABASE=main
@@ -90,11 +92,12 @@ services:
         condition: service_healthy
 
   slavedb:
-    image: slavedb:latest
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}slavedb:${SLAVEDB_TAG:-latest}
     build:
       context: ../../
       dockerfile: ./postgres/images/slave/Dockerfile
     env_file: ../../../.env
+    profiles: ["build-for-prod"]
     environment:
       - POSTGRES_DB=main
       - PGDATABASE=main
@@ -120,11 +123,12 @@ services:
         condition: service_healthy
 
   pgcat:
-    image: pooler:latest
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}pooler:${POOLER_TAG:-latest}
     build:
       context: ../../
       dockerfile: ./postgres/images/pooler/Dockerfile
     env_file: ../../../.env
+    profiles: ["build-for-prod"]
     environment:
       - POSTGRES_DB=main
       - MASTER_HOST_1=images-masterdb-1
