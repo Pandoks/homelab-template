@@ -1,7 +1,7 @@
 {
   "name": "homelab-template",
   "version": "0.0.0",
-  "packageManager": "pnpm@9.9.0",
+  "packageManager": "pnpm@10.5.2",
   "scripts": {
     "init": "./packages/scripts/dev/setup_env.sh",
     "setup": "pnpm run reset && docker compose -f ./setup-compose.yaml -p setup up -d",
