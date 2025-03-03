@@ -9,11 +9,6 @@
     "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts",
     "k3d:tag": "REGISTRY_URL=localhost:12345 docker compose --profile build-for-prod -f ./images/compose.yaml build",
     "k3d:push": "pnpm run k3d:tag && REGISTRY_URL=localhost:12345 docker compose --profile build-for-prod -f ./images/compose.yaml push",
-    "master:build": "echo master",
-    "backup:build": "echo backup",
-    "slave:build": "echo slave",
-    "pooler:build": "echo pooler",
-    "build": "",
     "reset": "rm -rf ../../.docker-volumes/postgres/ && docker compose -f ./images/compose.yaml down",
     "up": "pnpm run reset && docker compose -f ./images/compose.yaml up"
   },
