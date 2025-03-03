@@ -7,7 +7,7 @@
     "setup": "pnpm run reset && docker compose -f ./setup-compose.yaml -p setup up -d",
     "reset": "docker compose -p setup down && docker compose -p homelab down",
     "start": "pnpm run setup && docker compose -p homelab up",
-    "build": "docker compose build",
+    "build": "docker compose -f ./build-compose.yaml build",
     "k3d:init": "k3d registry create localhost --port 12345",
     "k3d:push": "pnpm -r run k3d:push",
     "dev": "sst dev"

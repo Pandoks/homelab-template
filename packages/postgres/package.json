@@ -13,6 +13,7 @@
     "backup:build": "echo backup",
     "slave:build": "echo slave",
     "pooler:build": "echo pooler",
+    "build": "",
     "reset": "rm -rf ../../.docker-volumes/postgres/ && docker compose -f ./images/compose.yaml down",
     "up": "pnpm run reset && docker compose -f ./images/compose.yaml up"
   },
