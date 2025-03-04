@@ -1,6 +1,6 @@
 # NOTE: Build context for these images should be in ~/packages so that images have access to the scripts
 # Used to test database infrastructure (currently setup for master/slave replication)
-# This should not be used in conjunction with the setup compose file
+# This should NOT be used in conjunction with the setup compose file
 networks:
   database-network:
     driver: bridge

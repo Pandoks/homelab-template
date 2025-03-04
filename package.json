@@ -10,6 +10,7 @@
     "build": "./packages/scripts/build_all.sh",
     "k3d:init": "k3d registry create localhost --port 12345",
     "k3d:push": "pnpm -r run k3d:push",
+    "k3d:start": "echo implementation-needed",
     "dev": "sst dev"
   },
   "devDependencies": {
