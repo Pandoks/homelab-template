@@ -15,9 +15,12 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: sveltekit-web-deployment
+  labels:
+    app: web
 
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: web
