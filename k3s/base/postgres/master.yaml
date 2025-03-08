@@ -1,31 +1,46 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: maindb
+  name: main-postgres-master-service
+  labels:
+    app: main-postgres-master
 
 spec:
   ports:
     - port: 5432
       targetPort: 5432
 
+  clusterIP: None
   selector:
-    app: postgres
+    app: main-postgres-master
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: postgres
+  name: main-postgres-master
 
 spec:
+  serviceName: main-postgres-master-service
+  replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: main-postgres-master
+
+  volumeClaimTemplates:
+    - metadata:
+        name: main-postgres-master-data
+
+      spec:
+        accessMode: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 
   template:
     metadata:
       labels:
-        app: postgres
+        app: main-postgres-master
 
     spec:
       containers:

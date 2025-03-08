@@ -9,7 +9,7 @@ k3d registry create localhost --port 12345
 ```
 
 ```
-k3d cluster create --registry-use localhost:12345 --volume $(pwd):/postgres@all --k3s-arg "--disable=traefik@server:*" -p "80:80@loadbalancer" -p "443:443@loadbalancer"
+k3d cluster create --registry-use localhost:12345 --k3s-arg "--disable=traefik@server:*" --k3s-arg "--disable=servicelb@server:*"
 ```
 
 For some of the docker compose files, you'll need to be logged in. Make sure that you are logged
