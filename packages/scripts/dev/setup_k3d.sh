@@ -4,14 +4,14 @@ SCRIPT_DIR=$(dirname $(realpath $0))
 PROJECT_ROOT=$SCRIPT_DIR/../../..
 DOCKER_SUBNET=$(docker network inspect k3d-local-cluster | jq '.[0].IPAM.Config[0].Subnet')
 
-kubectl apply -f $PROJECT_ROOT/k3s/helm/metallb.yaml
+kubectl apply -f $PROJECT_ROOT/k3s/base/helm-charts/metallb.yaml
 until kubectl get deployment metallb-controller -n metallb-system >/dev/null 2>&1; do
   sleep 1
 done
 kubectl rollout status deployment/metallb-controller -n metallb-system --timeout=300s
 env IP_POOL_RANGE=$DOCKER_SUBNET envsubst <$PROJECT_ROOT/k3s/base/metallb.yaml | kubectl apply -f -
 
-kubectl apply -f $PROJECT_ROOT/k3s/helm/haproxy-ingress.yaml
+kubectl apply -f $PROJECT_ROOT/k3s/base/helm-charts/haproxy-ingress.yaml
 until kubectl get deployment haproxy-ingress -n ingress-controller >/dev/null 2>&1; do
   sleep 1
 done
