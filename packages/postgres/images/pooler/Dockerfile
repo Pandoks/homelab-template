@@ -1,7 +1,7 @@
 FROM ghcr.io/postgresml/pgcat:latest
 
-COPY ./scripts/process_env.sh /usr/local/bin/process_env.sh
-RUN chmod +x /usr/local/bin/process_env.sh
+RUN apt update
+RUN apt install -y --no-install-recommends gettext-base
 
 COPY ./postgres/images/pooler/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

@@ -1,11 +1,7 @@
 #!/bin/sh
 
-if [ $ENV = "development" ]; then
-  POSTGRES_USER_1=$POSTGRES_USER
-  /usr/local/bin/process_env.sh /tmp/conf_templates/pgbackrest.conf --out /etc/pgbackrest/pgbackrest.conf
-else
-  /usr/local/bin/process_env.sh /etc/pgbackrest/pgbackrest.conf
-fi
+POSTGRES_USER_1=$POSTGRES_USER
+envsubst </tmp/conf_templates/pgbackrest.conf >/etc/pgbackrest/pgbackrest.conf
 
 setup_stanzas() {
   until pg_isready -h $MASTER_HOST_1 -U $POSTGRES_USER_1 -d $POSTGRES_DB_1; do
