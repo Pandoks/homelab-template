@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  repo: https://metallb.github.io/metallb
+  chart: metallb
+  version: 0.14.7
+  targetNamespace: metallb-system
+  createNamespace: true
+  valuesContent: |-
+    speaker:
+      frr:
+        enabled: true

@@ -5,7 +5,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    # change this to progammatically set this
+    # TODO: change this to progammatically set this
     - 172.18.255.200-172.18.255.250
 
 ---

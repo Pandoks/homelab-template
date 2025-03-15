@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-controller
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: haproxy-ingress
+  namespace: kube-system
+spec:
+  repo: https://haproxy-ingress.github.io/charts
+  chart: haproxy-ingress
+  version: 0.14.7
+  targetNamespace: ingress-controller
+  createNamespace: true
+  valuesContent: |-
+    controller:
+      ingressClassResource:
+        enabled: true
