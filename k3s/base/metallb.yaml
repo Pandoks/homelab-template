@@ -5,8 +5,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    # TODO: change this to progammatically set this
-    - 172.18.255.200-172.18.255.250
+    - ${IP_POOL_RANGE}
 
 ---
 apiVersion: metallb.io/v1beta1
