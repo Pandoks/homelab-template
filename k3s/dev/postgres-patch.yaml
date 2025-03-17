@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-master
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres-master
+          image: k3d-registry.localhost:5500/masterdb:latest
+          envFrom:
+            - configMapRef:
+                name: env-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-slave
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres-slave
+          image: k3d-registry.localhost:5500/slavedb:latest
+          envFrom:
+            - configMapRef:
+                name: env-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-pgcat
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres-pgcat
+          image: k3d-registry.localhost:5500/pooler:latest
+          envFrom:
+            - configMapRef:
+                name: env-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-backup
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres-backup
+          image: k3d-registry.localhost:5500/backup:latest
+          envFrom:
+            - configMapRef:
+                name: env-config

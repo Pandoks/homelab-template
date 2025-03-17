@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backup
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: postgres-backup
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-backup
+spec:
+  selector:
+    matchLabels:
+      app: postgres-backup
+  template:
+    metadata:
+      labels:
+        app: postgres-backup
+    spec:
+      containers:
+        - name: postgres-backup
+          image: ${REGISTRY_URL:+${REGISTRY_URL}/}backup:${BACKUP_TAG:-latest}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB_1
+              value: main
+            - name: MASTER_HOST_1
+              value: postgres-master
+            - name: SLAVE_HOST1_1
+              value: postgres-slave
+            - name: AWS_DEFAULT_REGION
+              value: us-west-1
+            - name: AWS_ACCESS_KEY_ID
+              value: test
+            - name: AWS_SECRET_ACCESS_KEY
+              value: testsecret
+          volumeMounts:
+            - name: setup-backups
+              mountPath: /usr/bin/setup_backups.sh
+              subPath: setup_backups.sh
+            - name: pgbackrest-conf
+              mountPath: /tmp/conf_templates/pgbackrest.conf
+              subPath: pgbackrest.conf
+          readinessProbe:
+            exec:
+              command: ["pgrep", "-af", "pgbackrest"]
+            initialDelaySeconds: 5
+            periodSeconds: 1
+      volumes:
+        - name: setup-backups
+          configMap:
+            name: postgres-scripts
+            defaultMode: 0755
+        - name: pgbackrest-conf
+          configMap:
+            name: postgres-config

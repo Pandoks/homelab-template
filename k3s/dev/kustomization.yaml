@@ -10,3 +10,4 @@ configMapGenerator:
 
 patches:
   - path: env-patch.yaml
+  - path: postgres-patch.yaml

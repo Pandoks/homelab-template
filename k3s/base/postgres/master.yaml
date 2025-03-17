@@ -1,94 +1,105 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: main-postgres-master-service
-  labels:
-    app: main-postgres-master
-
+  name: masterdb
 spec:
   ports:
     - port: 5432
       targetPort: 5432
-
-  clusterIP: None
   selector:
-    app: main-postgres-master
+    app: postgres-master
 
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
-  name: main-postgres-master
-
+  name: postgres-master
 spec:
-  serviceName: main-postgres-master-service
-  replicas: 1
   selector:
     matchLabels:
-      app: main-postgres-master
-
-  volumeClaimTemplates:
-    - metadata:
-        name: main-postgres-master-data
-
-      spec:
-        accessMode: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
-
+      app: postgres-master
   template:
     metadata:
       labels:
-        app: main-postgres-master
-
+        app: postgres-master
     spec:
       containers:
-        - name: postgres
-          image: postgres:17-alpine
+        - name: postgres-master
+          image: ${REGISTRY_URL:+${REGISTRY_URL}/}masterdb:${MASTERDB_TAG:-latest}
+          imagePullPolicy: IfNotPresent
           env:
-            - name: POSTGRES_DB # TODO: change for prod
-              value: "main"
+            - name: POSTGRES_DB
+              value: main
             - name: PGDATABASE
-              value: "main"
-
+              value: main
+            - name: POSTGRES_TYPE
+              value: backup
+            - name: MASTER_HOST
+              value: postgres-master
           ports:
             - containerPort: 5432
-
           volumeMounts:
             - name: init-sql
-              mountPath: /docker-entrypoint-initdb.d/0001_init.sql
+              mountPath: /docker-entrypoint-initdb.d/0000_init.sql
+              subPath: 0000_init.sql
             - name: roles-sql
-              mountPath: /docker-entrypoint-initdb.d/0002_roles.sql
-
+              mountPath: /docker-entrypoint-initdb.d/0001_roles.sql
+              subPath: 0001_roles.sql
+            - name: extensions-sql
+              mountPath: /docker-entrypoint-initdb.d/0002_extensions.sql
+              subPath: 0002_extensions.sql
+            - name: cron-sql
+              mountPath: /docker-entrypoint-initdb.d/0003_cron.sql
+              subPath: 0003_cron.sql
+            - name: master-sh
+              mountPath: /docker-entrypoint-initdb.d/master.sh
+              subPath: master.sh
+            - name: postgresql-conf
+              mountPath: /tmp/conf_templates/postgresql.conf
+              subPath: postgresql.conf
+            - name: pg-hba-conf
+              mountPath: /tmp/conf_templates/pg_hba.conf
+              subPath: pg_hba.conf
+            - name: pgbackrest-conf
+              mountPath: /tmp/conf_templates/pgbackrest.conf
+              subPath: pgbackrest.conf
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
           readinessProbe:
             exec:
-              command:
-                - pg_isready
-                - -U
-                - admin
-                - -d
-                - main
+              command: ["pg_isready", "-U", "admin", "-d", "main"]
             initialDelaySeconds: 5
             periodSeconds: 1
-
           livenessProbe:
             exec:
-              command:
-                - pg_isready
-                - -U
-                - admin
-                - -d
-                - main
+              command: ["pg_isready", "-U", "admin", "-d", "main"]
             initialDelaySeconds: 5
             periodSeconds: 10
-
       volumes:
         - name: init-sql
-          hostPath:
-            path: /postgres/packages/core/src/database/main/setup/0001_init.sql
-            type: File
+          configMap:
+            name: postgres-scripts
         - name: roles-sql
-          hostPath:
-            path: /postgres/packages/core/src/database/main/setup/0002_roles.sql
-            type: File
+          configMap:
+            name: postgres-scripts
+        - name: extensions-sql
+          configMap:
+            name: postgres-scripts
+        - name: cron-sql
+          configMap:
+            name: postgres-scripts
+        - name: master-sh
+          configMap:
+            name: postgres-scripts
+        - name: postgresql-conf
+          configMap:
+            name: postgres-config
+        - name: pg-hba-conf
+          configMap:
+            name: postgres-config
+        - name: pgbackrest-conf
+          configMap:
+            name: postgres-config
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-master-data

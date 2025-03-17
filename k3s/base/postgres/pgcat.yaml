@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pooler
+spec:
+  ports:
+    - port: 6432
+      targetPort: 6432
+  selector:
+    app: postgres-pgcat
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-pgcat
+spec:
+  selector:
+    matchLabels:
+      app: postgres-pgcat
+  template:
+    metadata:
+      labels:
+        app: postgres-pgcat
+    spec:
+      containers:
+        - name: postgres-pgcat
+          image: ${REGISTRY_URL:+${REGISTRY_URL}/}pooler:${POOLER_TAG:-latest}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: main
+            - name: MASTER_HOST_1
+              value: postgres-master
+            - name: SLAVE_HOST1_1
+              value: postgres-slave
+          ports:
+            - containerPort: 6432
+          volumeMounts:
+            - name: pgcat-toml
+              mountPath: /tmp/conf_templates/pgcat.toml
+              subPath: pgcat.toml
+      volumes:
+        - name: pgcat-toml
+          configMap:
+            name: postgres-config
