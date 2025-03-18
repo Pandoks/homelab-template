@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: internal-selfsigned-issuer
+  namespace: main
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: internal-selfsigned-ca
+  namespace: main
+spec:
+  isCA: true
+  commonName: internal-selfsigned-ca
+  secretName: internal-selfsigned-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: internal-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: internal-ca-issuer
+  namespace: main
+spec:
+  ca:
+    secretName: internal-selfsigned-ca-secret
