@@ -17,4 +17,4 @@ spec:
     spec:
       containers:
         - name: pg-backup
-          image: backup:latest
+          image: local-registry:12345/backup:latest

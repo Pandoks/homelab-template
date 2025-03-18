@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: homelab-web:latest
+          image: local-registry:12345/homelab-web:latest
           ports:
             - containerPort: 3000
       initContainers:

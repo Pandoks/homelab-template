@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: masterdb-main-1
+  namespace: main
+  labels:
+    app: masterdb-main-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: masterdb-main-1
+  template:
+    metadata:
+      labels:
+        app: masterdb-main-1
+    spec:
+      containers:
+        - name: masterdb-main-1
+          image: local-registry:12345/masterdb:latest
+  volumeClaimTemplates:
+    - metadata:
+        name: masterdb-main-1-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
