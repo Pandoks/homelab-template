@@ -16,3 +16,9 @@ until kubectl get deployment haproxy-ingress -n ingress-controller >/dev/null 2>
   sleep 1
 done
 kubectl rollout status deployment/haproxy-ingress -n ingress-controller --timeout=300s
+
+kubectl apply -f $PROJECT_ROOT/k3s/base/helm-charts/cert-manager.yaml
+until kubectl get deployment cert-manager -n cert-manager >/dev/null 2>&1; do
+  sleep 1
+done
+kubectl rollout status deployment/cert-manager -n cert-manager --timeout=300s
