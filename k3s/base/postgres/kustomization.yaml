@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: main
+# resources:
+#   - certs.yaml
+#   - cluster.yaml
+#   - pgbackrest.yaml
+#   - pooler.yaml
+configMapGenerator:
+  - name: pgcat-main-config
+    files:
+      - ../../../packages/postgres/images/pooler/pgcat.toml
+  - name: pgbackrest-main-config
+    files:
+      - ../../../packages/postgres/images/backup/pgbackrest.conf
+  - name: masterdb-main-1-pgbackrest-config
+    files:
+      - ../../../packages/postgres/images/master/pgbackrest.conf
+  - name: slavedb-main-1-pgbackrest-config
+    files:
+      - ../../../packages/postgres/images/slave/pgbackrest.conf
+  - name: postgres-main-config
+    files:
+      - ../../../packages/postgres/images/postgresql.conf
+  - name: postgres-auth-main-config
+    files:
+      - ../../../packages/postgres/images/pg_hba.conf

@@ -23,3 +23,5 @@ until kubectl get deployment cert-manager -n cert-manager >/dev/null 2>&1; do
 done
 kubectl rollout status deployment/cert-manager -n cert-manager --timeout=300s
 kubectl apply -f $PROJECT_ROOT/k3s/base/cert-manager.yaml
+
+kubectl kustomize $PROJECT_ROOT/k3s/base/postgres --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
