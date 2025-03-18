@@ -28,6 +28,7 @@ services:
     networks:
       - database-network
 
+  # TODO: add cron
   backup:
     image: ${REGISTRY_URL:+${REGISTRY_URL}/}backup:${BACKUP_TAG:-latest}
     build:
@@ -40,7 +41,6 @@ services:
       - MASTER_HOST_1=images-masterdb-1
       - SLAVE_HOST1_1=images-slavedb-1
     volumes:
-      - ./backup/setup_backups.sh:/usr/bin/setup_backups.sh
       - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
