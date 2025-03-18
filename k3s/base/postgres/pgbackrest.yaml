@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbackrest-backup
+  namespace: main
+  labels:
+    app: pg-backup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pg-backup
+  template:
+    metadata:
+      labels:
+        app: pg-backup
+    spec:
+      containers:
+        - name: pg-backup
+          image: backup:latest

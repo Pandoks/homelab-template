@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
-
+  name: sveltekit-web-deployment
+  namespace: main
 spec:
   template:
     spec:
@@ -10,19 +10,34 @@ spec:
         - name: web
           envFrom:
             - configMapRef:
-                name: env-config
+                name: env
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
-
+  name: pgbackrest-backup
+  namespace: main
 spec:
   template:
     spec:
       containers:
-        - name: postgres
+        - name: pg-backup
           envFrom:
             - configMapRef:
-                name: env-config
+                name: env
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgcat-pooler
+  namespace: main
+spec:
+  template:
+    spec:
+      containers:
+        - name: pgcat
+          envFrom:
+            - configMapRef:
+                name: env

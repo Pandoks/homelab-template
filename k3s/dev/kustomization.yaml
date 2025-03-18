@@ -1,13 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../base
-
+  - ../base/web.yaml
+  - ../base/postgres/pgbackrest.yaml
+  - ../base/postgres/pooler.yaml
 configMapGenerator:
-  - name: env-config
+  - name: env
     envs:
-      - .env.link
-
+      - ../../.env
 patches:
   - path: env-patch.yaml
-  - path: postgres-patch.yaml

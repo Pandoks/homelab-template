@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgcat-pooler
+  namespace: main
+  labels:
+    app: pgcat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgcat
+  template:
+    metadata:
+      labels:
+        app: pgcat
+    spec:
+      containers:
+        - name: pgcat
+          image: pooler:latest
