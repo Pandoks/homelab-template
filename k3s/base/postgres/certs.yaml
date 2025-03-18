@@ -1,0 +1,50 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pgbackrest-backup
+  namespace: main
+spec:
+  commonName: pgbackrest-backup.main.svc.cluster.local
+  secretName: pgbackrest-backup-tls
+  dnsNames:
+    - pgbackrest-backup.main.svc.cluster.local
+    - pgbackrest-backup
+  usages:
+    - server auth
+    - client auth
+  issuerRef:
+    name: internal-ca-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: masterdb-main-1
+  namespace: main
+spec:
+  commonName: masterdb-main-1.main.svc.cluster.local
+  secretName: masterdb-main-1-tls
+  dnsNames:
+    - masterdb-main-1.main.svc.cluster.local
+    - masterdb-main-1
+  usages:
+    - server auth
+    - client auth
+  issuerRef:
+    name: internal-ca-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: slavedb-main-1
+  namespace: main
+spec:
+  commonName: slavedb-main-1.main.svc.cluster.local
+  secretName: slavedb-main-1-tls
+  dnsNames:
+    - slavedb-main-1.main.svc.cluster.local
+    - slavedb-main-1
+  usages:
+    - server auth
+    - client auth
+  issuerRef:
+    name: internal-ca-issuer

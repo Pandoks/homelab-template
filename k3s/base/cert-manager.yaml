@@ -5,7 +5,6 @@ metadata:
   namespace: main
 spec:
   selfSigned: {}
-
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -23,7 +22,6 @@ spec:
     name: internal-selfsigned-issuer
     kind: Issuer
     group: cert-manager.io
-
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer

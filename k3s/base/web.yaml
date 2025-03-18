@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: main
-
 ---
 apiVersion: v1
 kind: Service
@@ -11,15 +10,12 @@ metadata:
   namespace: main
   labels:
     app: web
-
 spec:
   ports:
     - port: 3000
       targetPort: 3000
-
   selector:
     app: web
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -28,25 +24,21 @@ metadata:
   namespace: main
   labels:
     app: web
-
 spec:
   replicas: 3
   selector:
     matchLabels:
       app: web
-
   template:
     metadata:
       labels:
         app: web
-
     spec:
       containers:
         - name: web
           image: homelab-web:latest
           ports:
             - containerPort: 3000
-
       initContainers:
         - name: wait-for-dependencies
           image: busybox

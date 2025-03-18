@@ -3,32 +3,26 @@ kind: Service
 metadata:
   name: cache
   namespace: main
-
 spec:
   ports:
     - port: 6379
       targetPort: 6379
-
   selector:
     app: redis
-
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
   namespace: main
-
 spec:
   selector:
     matchLabels:
       app: redis
-
   template:
     metadata:
       labels:
         app: redis
-
     spec:
       containers:
         - name: redis
