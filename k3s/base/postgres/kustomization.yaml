@@ -3,9 +3,9 @@ kind: Kustomization
 namespace: main
 resources:
   - certs.yaml
-#   - cluster.yaml
-#   - pgbackrest.yaml
-#   - pooler.yaml
+  # - cluster.yaml
+  # - pgbackrest.yaml
+  # - pooler.yaml
 configMapGenerator:
   - name: pgcat-main-config
     files:
@@ -25,3 +25,5 @@ configMapGenerator:
   - name: postgres-auth-main-config
     files:
       - ../../../packages/postgres/images/pg_hba.conf
+generatorOptions:
+  disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload

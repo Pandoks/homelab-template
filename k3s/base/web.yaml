@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: main
+
 ---
 apiVersion: v1
 kind: Service
@@ -16,6 +17,7 @@ spec:
       targetPort: 3000
   selector:
     app: web
+
 ---
 apiVersion: apps/v1
 kind: Deployment

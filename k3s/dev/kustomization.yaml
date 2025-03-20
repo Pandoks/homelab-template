@@ -5,9 +5,11 @@ resources:
   - ../base/web.yaml
   - ../base/postgres/pgbackrest.yaml
   - ../base/postgres/pooler.yaml
-configMapGenerator:
+secretGenerator:
   - name: env
     envs:
       - ../../.env
+generatorOptions:
+  disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload
 patches:
   - path: env-patch.yaml

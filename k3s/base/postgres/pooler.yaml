@@ -18,3 +18,10 @@ spec:
       containers:
         - name: pgcat
           image: local-registry:12345/pooler:latest
+          volumeMounts:
+            - name: pgcat-conf-volume
+              mountPath: /tmp/conf_templates/pgcat.toml
+      volumes:
+        - name: pgcat-conf-volume
+          configMap:
+            name: pgcat-main-config
