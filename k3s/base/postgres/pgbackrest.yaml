@@ -18,3 +18,29 @@ spec:
       containers:
         - name: pg-backup
           image: local-registry:12345/backup:latest
+          volumeMounts:
+            - name: pgbackrest-conf-volume
+              mountPath: /tmp/conf_templates/pgbackrest.conf
+              readOnly: true
+            - name: pgbackrest-ca-cert
+              mountPath: /etc/pgbackrest/ca.crt
+              subPath: tls.crt
+              readOnly: true
+            - name: pgbackrest-server-tls
+              mountPath: /etc/pgbackrest/server.crt
+              subPath: tls.crt
+              readOnly: true
+            - name: pgbackrest-server-tls
+              mountPath: /etc/pgbackrest/server.key
+              subPath: tls.key
+              readOnly: true
+      volumes:
+        - name: pgbackrest-conf-volume
+          configMap:
+            name: pgbackrest-main-config
+        - name: pgbackrest-ca-cert
+          secret:
+            secretName: internal-root-ca-secret
+        - name: pgbackrest-server-tls
+          secret:
+            secretName: pgbackrest-backup-tls

@@ -4,8 +4,8 @@ namespace: main
 resources:
   - certs.yaml
   # - cluster.yaml
-  # - pgbackrest.yaml
-  # - pooler.yaml
+  - pgbackrest.yaml
+  - pooler.yaml
 configMapGenerator:
   - name: pgcat-main-config
     files:

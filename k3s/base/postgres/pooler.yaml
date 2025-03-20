@@ -18,6 +18,13 @@ spec:
       containers:
         - name: pgcat
           image: local-registry:12345/pooler:latest
+          env:
+            - name: POSTGRES_DB
+              value: main
+            - name: MASTER_HOST_1
+              value: masterdb-1
+            - name: SLAVE_HOST_1
+              value: slavedb-1
           volumeMounts:
             - name: pgcat-conf-volume
               mountPath: /tmp/conf_templates/pgcat.toml

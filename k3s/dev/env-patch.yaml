@@ -39,5 +39,5 @@ spec:
       containers:
         - name: pgcat
           envFrom:
-            - configMapRef:
+            - secretRef:
                 name: env
