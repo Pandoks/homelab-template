@@ -9,36 +9,6 @@ spec:
       containers:
         - name: web
           envFrom:
-            - configMapRef:
-                name: env
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pgbackrest-backup
-  namespace: main
-spec:
-  template:
-    spec:
-      containers:
-        - name: pg-backup
-          envFrom:
-            - configMapRef:
-                name: env
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pgcat-pooler
-  namespace: main
-spec:
-  template:
-    spec:
-      containers:
-        - name: pgcat
-          envFrom:
             - secretRef:
                 name: env
 
@@ -53,6 +23,21 @@ spec:
     spec:
       containers:
         - name: pg-backup
+          envFrom:
+            - secretRef:
+                name: env
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgcat-pooler
+  namespace: main
+spec:
+  template:
+    spec:
+      containers:
+        - name: pgcat
           envFrom:
             - secretRef:
                 name: env
