@@ -25,10 +25,3 @@ spec:
               value: masterdb-1
             - name: SLAVE_HOST_1
               value: slavedb-1
-          volumeMounts:
-            - name: pgcat-conf-volume
-              mountPath: /tmp/conf_templates/pgcat.toml
-      volumes:
-        - name: pgcat-conf-volume
-          configMap:
-            name: pgcat-main-config

@@ -41,3 +41,18 @@ spec:
           envFrom:
             - secretRef:
                 name: env
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbackrest-backup
+  namespace: main
+spec:
+  template:
+    spec:
+      containers:
+        - name: pg-backup
+          envFrom:
+            - secretRef:
+                name: env

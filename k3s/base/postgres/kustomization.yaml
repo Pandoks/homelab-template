@@ -27,3 +27,5 @@ configMapGenerator:
       - ../../../packages/postgres/images/pg_hba.conf
 generatorOptions:
   disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload
+patches:
+  - path: conf-patch.yaml

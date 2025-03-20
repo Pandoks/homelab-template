@@ -18,10 +18,14 @@ spec:
       containers:
         - name: pg-backup
           image: local-registry:12345/backup:latest
+          env:
+            - name: POSTGRES_DB_1
+              value: main
+            - name: MASTER_HOST_1
+              value: masterdb-1
+            - name: SLAVE_HOST1_1
+              value: slavedb-1
           volumeMounts:
-            - name: pgbackrest-conf-volume
-              mountPath: /tmp/conf_templates/pgbackrest.conf
-              readOnly: true
             - name: pgbackrest-ca-cert
               mountPath: /etc/pgbackrest/ca.crt
               subPath: tls.crt
@@ -35,9 +39,6 @@ spec:
               subPath: tls.key
               readOnly: true
       volumes:
-        - name: pgbackrest-conf-volume
-          configMap:
-            name: pgbackrest-main-config
         - name: pgbackrest-ca-cert
           secret:
             secretName: internal-root-ca-secret

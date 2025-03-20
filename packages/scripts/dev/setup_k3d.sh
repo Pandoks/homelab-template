@@ -9,7 +9,7 @@ until kubectl get deployment metallb-controller -n metallb-system >/dev/null 2>&
   sleep 1
 done
 kubectl rollout status deployment/metallb-controller -n metallb-system --timeout=300s
-env IP_POOL_RANGE=$DOCKER_SUBNET envsubst <$PROJECT_ROOT/k3s/base/metallb.yaml | kubectl apply -f -
+env IP_POOL_RANGE=$DOCKER_SUBNET envsubst <$PROJECT_ROOT/k3s/base/metallb-setup.yaml | kubectl apply -f -
 
 kubectl apply -f $PROJECT_ROOT/k3s/base/helm-charts/haproxy-ingress.yaml
 until kubectl get deployment haproxy-ingress -n ingress-controller >/dev/null 2>&1; do
@@ -25,4 +25,3 @@ kubectl rollout status deployment/cert-manager -n cert-manager --timeout=300s
 kubectl apply -f $PROJECT_ROOT/k3s/base/cert-manager.yaml
 
 kubectl kustomize $PROJECT_ROOT/k3s/dev --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
-kubectl kustomize $PROJECT_ROOT/k3s/base/postgres --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
