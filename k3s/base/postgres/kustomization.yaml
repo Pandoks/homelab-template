@@ -3,7 +3,8 @@ kind: Kustomization
 namespace: main
 resources:
   - certs.yaml
-  - cluster.yaml
+  - master.yaml
+  - slave.yaml
   - pgbackrest.yaml
   - pooler.yaml
 configMapGenerator:
