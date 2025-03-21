@@ -3,7 +3,12 @@
 ## Running Locally
 
 ```
-k3d cluster create local-cluster --agents 3 --registry-create local-registry:12345 --api-port 6443 --k3s-arg "--disable=traefik@server:*" --k3s-arg "--disable=servicelb@server:*"
+k3d cluster create local-cluster \
+    --agents 3 \
+    --registry-create local-registry:12345 \
+    --api-port 6443 \
+    --k3s-arg "--disable=traefik@server:*" \
+    --k3s-arg "--disable=servicelb@server:*"
 ```
 
 For some of the docker compose files, you'll need to be logged in. Make sure that you are logged
