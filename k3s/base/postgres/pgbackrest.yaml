@@ -37,6 +37,10 @@ spec:
             - name: pgbackrest-server-tls
               mountPath: /etc/pgbackrest/server.key
               subPath: tls.key
+            - name: pgbackrest-conf
+              mountPath: /tmp/conf_templates/pgbackrest.conf
+              subPath: pgbackrest.conf
+              readOnly: true
       volumes:
         - name: pgbackrest-ca-cert
           secret:
@@ -46,3 +50,6 @@ spec:
           secret:
             secretName: pgbackrest-backup-tls
             defaultMode: 0600
+        - name: pgbackrest-conf
+          configMap:
+            name: pgbackrest-main-config

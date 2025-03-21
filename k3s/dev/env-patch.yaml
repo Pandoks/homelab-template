@@ -41,3 +41,18 @@ spec:
           envFrom:
             - secretRef:
                 name: env
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: masterdb-main-1
+  namespace: main
+spec:
+  template:
+    spec:
+      containers:
+        - name: masterdb-main-1
+          envFrom:
+            - secretRef:
+                name: env
