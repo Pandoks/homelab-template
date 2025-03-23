@@ -88,8 +88,8 @@ sharding_function = "pg_bigint_hash"
 # User configs are structured as pool.<pool_name>.users.<user_index>
 # Credentials for users that may connect to this cluster
 [pools.${POSTGRES_DB}.users.0]
-username = "pooler"
-password = "${PGPOOLPASS}"
+username = "pgcat"
+password = "${PGCATPASS}"
 # Maximum number of server connections that can be established for this user
 # The maximum number of connection from a single Pgcat process to any database in the cluster
 # is the sum of pool_size across all users.

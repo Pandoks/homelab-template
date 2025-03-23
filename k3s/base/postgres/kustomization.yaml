@@ -6,11 +6,11 @@ resources:
   - master.yaml
   - slave.yaml
   - pgbackrest.yaml
-  - pooler.yaml
+  - pgcat.yaml
 configMapGenerator:
   - name: pgcat-main-config
     files:
-      - ../../../packages/postgres/images/pooler/pgcat.toml
+      - ../../../packages/postgres/images/pgcat/pgcat.toml
   - name: pgbackrest-main-config
     files:
       - ../../../packages/postgres/images/backup/pgbackrest.conf

@@ -123,10 +123,10 @@ services:
         condition: service_healthy
 
   pgcat:
-    image: ${REGISTRY_URL:+${REGISTRY_URL}/}pooler:${POOLER_TAG:-latest}
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}pgcat:${PGCAT_TAG:-latest}
     build:
       context: ../../
-      dockerfile: ./postgres/images/pooler/Dockerfile
+      dockerfile: ./postgres/images/pgcat/Dockerfile
     env_file: ../../../.env
     profiles: ["build-for-prod"]
     environment:
@@ -136,7 +136,7 @@ services:
     ports:
       - "6432:6432"
     volumes:
-      - ./pooler/pgcat.toml:/tmp/conf_templates/pgcat.toml
+      - ./pgcat/pgcat.toml:/tmp/conf_templates/pgcat.toml
     networks:
       - database-network
     depends_on:

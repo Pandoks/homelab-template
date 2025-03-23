@@ -19,8 +19,6 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
-  packages/lib/go-lib: {}
-
   packages/lib/ts-lib:
     dependencies:
       '@homelab-template/postgres':

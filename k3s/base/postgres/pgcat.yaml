@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: pgcat
-          image: local-registry:12345/pooler:latest
+          image: local-registry:12345/pgcat:latest
           env:
             - name: POSTGRES_DB
               value: main
