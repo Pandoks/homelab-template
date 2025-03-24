@@ -1,3 +1,5 @@
+`docker rm -f pg && docker run --rm --name pg -e POSTGRES_PASSWORD=mysecret -p 5432:5432 -d patroni:latest`
+
 # Database Images
 
 These images are used to setup a highly available and failure tolerant postgres database system.
