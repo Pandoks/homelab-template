@@ -5,21 +5,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   pgbackrest \
   postgresql-17-cron \
   postgresql-17-postgis-3 \
+  postgresql-17-pgvector \
   python3-pip 
-
-# Install pgvector
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  git \
-  build-essential \
-  postgresql-server-dev-17 \
-  && cd /tmp \
-  && git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git \
-  && cd pgvector \
-  && make install \
-  && cd / \
-  && apt-get remove -y git build-essential postgresql-server-dev-17 \
-  && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/* /tmp/pgvector
 
 # Install patroni
 RUN pip3 install --break-system-packages patroni[psycopg3,kubernetes]
