@@ -1,0 +1,59 @@
+scope: postgres-cluster
+namespace: /postgres/
+name: ${HOSTNAME}
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: ${HOSTNAME}:8008
+
+pgbackrest:
+  command: /usr/bin/pgbackrest
+  retention_full_type: count
+  retention_full: 2
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        shared_buffers: 256MB
+        max_connections: 100
+        max_wal_size: 1GB
+        max_worker_processes: 8
+        wal_log_hints: "on"
+        shared_preload_libraries: 'pg_stat_statements,auto_explain,pg_cron'
+        pg_cron.database_name: 'postgres'
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+    - locale: en_US.UTF-8
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: ${HOSTNAME}:5432
+  data_dir: /var/lib/postgresql/data
+  bin_dir: /usr/lib/postgresql/17/bin
+  pgpass: /tmp/pgpass
+  parameters:
+    archive_mode: "on"
+    archive_command: "pgbackrest --stanza=main archive-push %p"
+    max_replication_slots: 10
+    max_wal_senders: 10
+    hot_standby: "on"
+    wal_keep_size: 512MB
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

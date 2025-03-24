@@ -1,19 +1,38 @@
-FROM postgres:17-alpine
-# postgres doesn't use the most updated alpine version so we need to add this installation source
-# TODO: remove this source when the alpine version updates
-RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
-RUN apk update && apk upgrade --no-cache
-RUN apk add pgbackrest postgresql-pg_cron gettext-envsubst py3-psycopg2 --no-cache
-RUN pip install patroni[psycopg,kubernetes]
+FROM postgres:17
 
-RUN ln -s /usr/lib/postgresql17/pg_cron.so /usr/local/lib/postgresql/pg_cron.so
-RUN ln -s /usr/share/postgresql/extension/pg_cron* /usr/local/share/postgresql/extension
+# Install extensions with minimal dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  pgbackrest \
+  postgresql-17-cron \
+  postgresql-17-postgis-3 \
+  python3-pip 
 
-COPY ./postgres/images/master/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Install pgvector
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  git \
+  build-essential \
+  postgresql-server-dev-17 \
+  && cd /tmp \
+  && git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git \
+  && cd pgvector \
+  && make install \
+  && cd / \
+  && apt-get remove -y git build-essential postgresql-server-dev-17 \
+  && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/* /tmp/pgvector
 
-RUN chown -R postgres:postgres /etc/pgbackrest
+# Install patroni
+RUN pip3 install --break-system-packages patroni[psycopg3,kubernetes]
 
-USER postgres
+# Configure postgres to load pg_cron
+RUN echo "shared_preload_libraries = 'pg_cron,vector'" >> /usr/share/postgresql/postgresql.conf.sample \
+  && echo "cron.database_name = 'postgres'" >> /usr/share/postgresql/postgresql.conf.sample
 
-ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
+# Set correct permissions for pgbackrest
+RUN mkdir -p /etc/pgbackrest \
+  && chown -R postgres:postgres /etc/pgbackrest
+
+# Use default postgres entrypoint for simple testing of extensions
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"]
+
