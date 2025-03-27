@@ -3,8 +3,7 @@ FROM postgres:17-alpine
 # TODO: remove this source when the alpine version updates
 RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
 RUN apk update && apk upgrade --no-cache
-RUN apk add pgbackrest postgresql-pg_cron gettext-envsubst py3-psycopg2 --no-cache
-RUN pip install patroni[psycopg,kubernetes]
+RUN apk add pgbackrest postgresql-pg_cron gettext-envsubst --no-cache
 
 RUN ln -s /usr/lib/postgresql17/pg_cron.so /usr/local/lib/postgresql/pg_cron.so
 RUN ln -s /usr/share/postgresql/extension/pg_cron* /usr/local/share/postgresql/extension
