@@ -75,7 +75,7 @@ services:
       - ./master/master.sh:/docker-entrypoint-initdb.d/master.sh
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
-      - ./master/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
+      - ./pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
       - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
@@ -106,7 +106,7 @@ services:
     volumes:
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
-      - ./slave/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
+      - ./pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
       - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
       - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
