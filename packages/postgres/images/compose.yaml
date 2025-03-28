@@ -40,6 +40,7 @@ services:
       - POSTGRES_DB_1=main
       - MASTER_HOST_1=images-masterdb-1
       - SLAVE_HOST1_1=images-slavedb-1
+      - MAIN_ENCRYPTION_KEY=openssl-rand-hex-32
     volumes:
       - ./backup/pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
       - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
@@ -67,6 +68,7 @@ services:
       - PGDATABASE=main
       - POSTGRES_TYPE=backup
       - MASTER_HOST=images-masterdb-1
+      - MAIN_ENCRYPTION_KEY=openssl-rand-hex-32
     volumes:
       - ../main/setup/0000_init.sql:/docker-entrypoint-initdb.d/0000_init.sql
       - ../main/setup/0001_roles.sql:/docker-entrypoint-initdb.d/0001_roles.sql
@@ -103,6 +105,7 @@ services:
       - PGDATABASE=main
       - POSTGRES_TYPE=backup
       - MASTER_HOST=images-masterdb-1
+      - MAIN_ENCRYPTION_KEY=openssl-rand-hex-32
     volumes:
       - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
       - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
