@@ -6,7 +6,10 @@ metadata:
 spec:
   selector:
     app: s3
-
+  ports:
+    - protocol: TCP
+      port: 4566
+      targetPort: 4566
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,6 +28,9 @@ spec:
       containers:
         - name: s3
           image: localstack/localstack
+          envFrom:
+            - secretRef:
+                name: env
           env:
             - name: SERVICES
               value: s3
