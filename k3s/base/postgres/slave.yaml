@@ -36,7 +36,7 @@ spec:
             - name: postgres-main-config
               mountPath: /tmp/conf_templates/pg_hba.conf
               subPath: pg_hba.conf
-            - name: slavedb-main-config
+            - name: postgres-main-config
               mountPath: /tmp/conf_templates/pgbackrest.conf
               subPath: pgbackrest.conf
             - name: slavedb-ca-cert

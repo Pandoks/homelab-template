@@ -51,7 +51,7 @@ spec:
             - name: postgres-main-config
               mountPath: /tmp/conf_templates/pg_hba.conf
               subPath: pg_hba.conf
-            - name: masterdb-main-config
+            - name: postgres-main-config
               mountPath: /tmp/conf_templates/pgbackrest.conf
               subPath: pgbackrest.conf
             - name: masterdb-ca-cert

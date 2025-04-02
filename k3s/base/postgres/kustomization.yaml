@@ -16,17 +16,14 @@ configMapGenerator:
       - ../../../packages/postgres/images/backup/pgbackrest.conf
   - name: masterdb-main-config
     files:
-      - ../../../packages/postgres/images/master/pgbackrest.conf
       - ../../../packages/postgres/images/master/master.sh
       - ../../../packages/postgres/main/setup/0000_init.sql
       - ../../../packages/postgres/main/setup/0001_roles.sql
       - ../../../packages/postgres/main/setup/0002_extensions.sql
       - ../../../packages/postgres/main/setup/0003_cron.sql
-  - name: slavedb-main-config
-    files:
-      - ../../../packages/postgres/images/slave/pgbackrest.conf
   - name: postgres-main-config
     files:
+      - ../../../packages/postgres/images/pgbackrest.conf
       - ../../../packages/postgres/images/postgresql.conf
       - ../../../packages/postgres/images/pg_hba.conf
 generatorOptions:
