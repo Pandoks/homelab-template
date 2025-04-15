@@ -1,22 +1,18 @@
-scope: postgres-cluster
-namespace: /postgres/
-name: ${HOSTNAME}
+# https://patroni.readthedocs.io/en/latest/yaml_configuration.html#yaml-configuration
+# some of the defaults are verbosely set here just so that you don't have to reference docs every time
+scope: ${PATRONI_SCOPE} # Name for pg cluster
+namespace: ${PATRONI_KUBERNETES_NAMESPACE}
+name: ${PATRONI_KUBERNETES_POD_NAME}
 
-restapi:
-  listen: 0.0.0.0:8008
-  connect_address: ${HOSTNAME}:8008
-
-pgbackrest:
-  command: /usr/bin/pgbackrest
-  retention_full_type: count
-  retention_full: 2
-
-bootstrap:
-  dcs:
+# postgresql defaults to async replication
+bootstrap: # how new clusters are created or replicas are initialized
+  dcs: # global dynamic configuration stored into dcs (k8s)
     ttl: 30
     loop_wait: 10
     retry_timeout: 10
-    maximum_lag_on_failover: 1048576
+    maximum_lag_on_failover: 1048576 # (1mb)
+    primary_start_timeout: 300 # time (in seconds) allowed to recovery before failover to standby
+    failsafe_mode: true # when dcs is down, let there be a primary
     postgresql:
       use_pg_rewind: true
       use_slots: true
@@ -28,12 +24,21 @@ bootstrap:
         max_wal_size: 1GB
         max_worker_processes: 8
         wal_log_hints: "on"
-        shared_preload_libraries: 'pg_stat_statements,auto_explain,pg_cron'
-        pg_cron.database_name: 'postgres'
+        shared_preload_libraries: "pg_stat_statements,auto_explain,pg_cron"
+        pg_cron.database_name: "postgres"
   initdb:
     - encoding: UTF8
     - data-checksums
-    - locale: en_US.UTF-8
+    - locale: UTF-8
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: ${HOSTNAME}:8008
+
+pgbackrest:
+  command: /usr/bin/pgbackrest
+  retention_full_type: count
+  retention_full: 2
 
 postgresql:
   listen: 0.0.0.0:5432
@@ -57,3 +62,4 @@ tags:
   noloadbalance: false
   clonefrom: false
   nosync: false
+

@@ -1,0 +1,203 @@
+# patroni.yml - Sample Configuration for Patroni on Kubernetes with pgBackRest
+
+# --- Global Scope ---
+# Defines the cluster identifier and Kubernetes namespace.
+scope: ${PATRONI_SCOPE} # Unique name for your PostgreSQL cluster (e.g., 'my-postgres-cluster')
+namespace: ${PATRONI_KUBERNETES_NAMESPACE} # Kubernetes namespace where Patroni/Postgres pods run (e.g., 'default')
+name: ${PATRONI_KUBERNETES_POD_NAME} # Unique name for this specific Patroni node (use Downward API: metadata.name)
+
+# --- Bootstrap Configuration ---
+# Defines how new clusters are created or replicas are initialized.
+bootstrap:
+  # Method for initializing a brand new cluster (only runs if DCS is empty for this scope).
+  initdb:
+    - encoding: UTF8 # Set default encoding
+    - data-checksums # Enable data checksums (recommended)
+    # Add other initdb options as needed
+
+  # Configuration for using pgBackRest to bootstrap replicas or reinitialize nodes.
+  pgbackrest:
+    # Base command for restoring from backup. Patroni adds necessary flags.
+    # Ensure '/usr/bin/pgbackrest' is the correct path in your container.
+    command: "/usr/bin/pgbackrest --stanza=${PGBACKREST_STANZA} --delta restore --log-level-console=info"
+    keep_existing_recovery_conf: False # Allow Patroni to manage recovery settings.
+    # --- pgBackRest Repo Configuration (Mirror your pgbackrest.conf [global] section) ---
+    # These should ideally come from environment variables mounted from Secrets/ConfigMaps.
+    repo1-path: ${PGBACKREST_REPO1_PATH} # S3 Repo path (e.g., '/') - Must match pgbackrest.conf
+    repo1-type: s3 # Repo type - Must match pgbackrest.conf
+    repo1-s3-bucket: ${BACKUP_BUCKET} # S3 Bucket Name
+    repo1-s3-endpoint: ${S3_ENDPOINT} # S3 Endpoint URL
+    repo1-s3-region: ${S3_REGION} # S3 Region
+    repo1-s3-key: ${S3_KEY} # S3 Access Key ID (use Secrets)
+    repo1-s3-key-secret: ${S3_KEY_SECRET} # S3 Secret Access Key (use Secrets)
+    repo1-storage-verify-tls: ${S3_TLS:-true} # Verify S3 TLS certificate (default: true)
+    repo1-s3-uri-style: ${S3_URI_STYLE:-path} # S3 URI Style (default: path)
+    repo1-cipher-type: aes-256-cbc # Encryption type - Must match pgbackrest.conf
+    # repo1-cipher-pass: Use environment variable PATRONI_PGBACKREST_REPO1_CIPHER_PASS (Patroni automatically picks it up)
+
+  # DCS configuration within bootstrap (Patroni stores bootstrap status here)
+  dcs:
+    ttl: 30 # Time-to-live for DCS locks/keys (seconds)
+    loop_wait: 10 # Time to wait between DCS checks (seconds)
+    retry_timeout: 10 # Timeout for DCS operation retries (seconds)
+    maximum_lag_on_failover: 1048576 # Max WAL lag in bytes replica can have to be considered for promotion (1MB)
+    # Optional: Master start timeout
+    # master_start_timeout: 300
+
+# --- Kubernetes DCS Configuration ---
+# Uses the Kubernetes API for leader election, cluster state, and member discovery.
+kubernetes:
+  # Use Endpoints or ConfigMaps for leader election/member storage. Endpoints is generally preferred.
+  use_endpoints: true
+  # Or use ConfigMaps:
+  # use_config_maps: true
+  # Labels used to find cluster members and services. Must match your K8s object labels.
+  labels:
+    cluster-name: ${PATRONI_SCOPE} # Label key=cluster-name, value=your-cluster-scope
+  scope_label: cluster-name # Label key used to identify the cluster scope.
+  role_label: cluster-role # Label key Patroni uses to indicate leader/replica role on Pods/Endpoints.
+  namespace: ${PATRONI_KUBERNETES_NAMESPACE} # Namespace to operate within.
+  pod_ip: ${PATRONI_KUBERNETES_POD_IP} # Pod's IP address (use Downward API: status.podIP)
+  # Ports exposed by the PostgreSQL and Patroni services/pods.
+  ports:
+    - name: postgresql # Name matching the Service port definition
+      port: ${PATRONI_POSTGRESQL_PORT:-5432} # PostgreSQL port
+    - name: patroni # Name matching the Service port definition
+      port: ${PATRONI_RESTAPI_PORT:-8008} # Patroni REST API port
+
+# --- REST API Configuration ---
+# Patroni's own API for cluster management and health checks.
+restapi:
+  # Listen on all interfaces within the pod on the specified port.
+  listen: 0.0.0.0:${PATRONI_RESTAPI_PORT:-8008}
+  # The address and port that other nodes should use to connect to this node's API.
+  connect_address: ${PATRONI_KUBERNETES_POD_IP}:${PATRONI_RESTAPI_PORT:-8008}
+
+  # Optional: Enable authentication for the REST API (use Secrets for credentials).
+  # authentication:
+  #   username: ${PATRONI_API_USER}
+  #   password: ${PATRONI_API_PASSWORD}
+
+  # Optional: Enable TLS for the REST API.
+  # certfile: /path/to/patroni/tls/patroni.crt # Path to the certificate file
+  # keyfile: /path/to/patroni/tls/patroni.key   # Path to the private key file
+  # cafile: /path/to/patroni/tls/ca.crt      # Optional: Path to the CA certificate file for client auth
+
+# --- PostgreSQL Configuration ---
+postgresql:
+  # Network settings Patroni will manage in postgresql.conf / postgresql.auto.conf.
+  # Patroni will set listen_addresses = 'pod_ip'.
+  listen: 0.0.0.0:${PATRONI_POSTGRESQL_PORT:-5432} # Initial listen address (Patroni overrides)
+  # The address and port that clients and replicas should use to connect to this PostgreSQL instance.
+  connect_address: ${PATRONI_KUBERNETES_POD_IP}:${PATRONI_POSTGRESQL_PORT:-5432}
+
+  # Directories - ensure these match your container setup and volume mounts.
+  data_dir: ${PGDATA:-/var/lib/postgresql/data} # PostgreSQL data directory (must match pgbackrest pg1-path)
+  config_dir: ${PGDATA:-/var/lib/postgresql/data} # Location of postgresql.conf, pg_hba.conf
+  # Optional: Specify if pg_hba.conf or pg_ident.conf are elsewhere
+  # pg_hba: /path/to/custom/pg_hba.conf
+  bin_dir: ${PGBIN:-/usr/lib/postgresql/16/bin} # Path to PostgreSQL binaries (psql, pg_ctl, etc.) - Adjust version!
+  # Patroni uses a pgpass file for internal connections.
+  pgpass: /tmp/pgpass_patroni.${PATRONI_KUBERNETES_POD_NAME} # Temporary file for passwords
+
+  # Authentication: Patroni needs credentials to manage PostgreSQL. Use Secrets!
+  authentication:
+    replication:
+      username: ${PATRONI_REPLICATION_USER} # PostgreSQL user with REPLICATION privilege
+      password: ${PATRONI_REPLICATION_PASSWORD}
+      # Optional: Add SSL settings if using SSL for replication
+      # sslmode: prefer
+      # sslkey: /path/to/replication/client.key
+      # sslcert: /path/to/replication/client.crt
+      # sslrootcert: /path/to/ca.crt
+    superuser:
+      username: ${PATRONI_SUPERUSER_USER:-postgres} # PostgreSQL superuser (often 'postgres')
+      password: ${PATRONI_SUPERUSER_PASSWORD}
+      # Optional: Add SSL settings if using SSL for superuser connections
+      # sslmode: prefer
+      # sslkey: /path/to/superuser/client.key
+      # sslcert: /path/to/superuser/client.crt
+      # sslrootcert: /path/to/ca.crt
+
+  # Parameters Patroni will manage in postgresql.auto.conf.
+  # These override settings in postgresql.conf.
+  # **IMPORTANT**: Remove/comment out these specific parameters from your main postgresql.conf file:
+  # listen_addresses, port, hot_standby, primary_conninfo, primary_slot_name,
+  # restore_command, archive_command, recovery_target_timeline.
+  parameters:
+    # --- Essential Patroni Managed Settings ---
+    # wal_level: replica # Patroni ensures this is set.
+    # hot_standby: on    # Patroni sets this on replicas.
+
+    # --- Settings from your postgresql.conf (Patroni can manage them here) ---
+    max_connections: 100
+    max_wal_senders: 20 # Should be >= number of potential replicas + backup tools
+    max_replication_slots: 20 # Should be >= number of potential replicas
+    wal_keep_size: 1024 # In MB. Alternative to replication slots for retaining WAL.
+    wal_log_hints: on # Recommended for pgBackRest and other tools.
+
+    # --- Archiving Configuration (Managed by Patroni) ---
+    archive_mode: on # Must be 'on' for pgBackRest PITR.
+    # Simplified archive command: Patroni ensures only the leader executes this.
+    archive_command: "/usr/bin/pgbackrest --stanza=${PGBACKREST_STANZA} archive-push %p"
+    archive_timeout: 60s # Force WAL segment switch after 60s of inactivity (adjust as needed).
+
+    # --- Other tunable parameters (Optional) ---
+    # shared_buffers: 128MB
+    # maintenance_work_mem: 64MB
+    # work_mem: 4MB
+    # Add other parameters you want Patroni to control.
+
+  # Recovery Configuration (Patroni manages recovery.conf / postgresql.auto.conf)
+  recovery_conf:
+    # Command used by replicas during recovery to fetch WAL segments.
+    restore_command: '/usr/bin/pgbackrest --stanza=${PGBACKREST_STANZA} archive-get %f "%p"'
+    # Optional: Add other recovery parameters if needed, but Patroni manages most.
+    # recovery_target_timeline: 'latest' # Patroni sets this automatically.
+
+  # Optional: Define custom actions on role change, restart, etc.
+  # callbacks:
+  #   on_start: /scripts/patroni/on_start.sh
+  #   on_stop: /scripts/patroni/on_stop.sh
+  #   on_reload: /scripts/patroni/on_reload.sh
+  #   on_restart: /scripts/patroni/on_restart.sh
+  #   on_role_change: /scripts/patroni/on_role_change.sh
+
+# --- Watchdog Configuration (Optional but Recommended) ---
+# Helps prevent split-brain scenarios if DCS becomes unavailable. Requires a watchdog device.
+# watchdog:
+#   mode: automatic # Or 'required'. 'automatic' uses if available, 'required' fails if not.
+#   device: /dev/watchdog # Path to the watchdog device inside the container.
+#   safety_margin: 5 # Seconds before timeout watchdog is triggered.
+
+# --- Logging Configuration ---
+log:
+  level: INFO # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  traceback_level: ERROR # Log tracebacks for ERROR or CRITICAL messages.
+  format: "%(asctime)s %(levelname)s: [%(name)s] %(message)s" # Log message format
+  dateformat: "%Y-%m-%d %H:%M:%S %z" # Timestamp format
+
+  # Optional: Configure logging to a file.
+  # dir: /var/log/patroni       # Directory for log files.
+  # file_size: 25000000         # Max log file size in bytes (25MB).
+  # file_num: 4                 # Number of rotating log files to keep.
+  # filename: patroni.log       # Name of the log file.
+
+# --- Timeouts ---
+# Various timeouts for Patroni operations.
+timeouts:
+  master_start_timeout: 300 # Max time (seconds) to wait for master to start after bootstrap/failover.
+  master_stop_timeout: 60 # Max time (seconds) to wait for graceful master shutdown.
+  # Add other timeouts as needed (e.g., promotion_timeout).
+
+# --- Loop Wait Time ---
+# How often Patroni checks cluster state in DCS (seconds).
+loop_wait: 10
+
+# --- Time To Live (TTL) ---
+# How long (seconds) leader key and session information lives in DCS without updates.
+ttl: 30
+
+# --- Retry Timeout ---
+# How long (seconds) Patroni retries failed DCS operations.
+retry_timeout: 10
