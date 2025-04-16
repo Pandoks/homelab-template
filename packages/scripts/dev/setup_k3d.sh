@@ -24,6 +24,8 @@ done
 kubectl rollout status deployment/cert-manager -n cert-manager --timeout=300s
 kubectl rollout status deployment/cert-manager-webhook -n cert-manager --timeout=300s
 kubectl rollout status deployment/cert-manager-cainjector -n cert-manager --timeout=300s
+
+kubectl apply -f $PROJECT_ROOT/k3s/base/namespace.yaml
 kubectl apply -f $PROJECT_ROOT/k3s/base/cert-manager.yaml
 
 kubectl kustomize $PROJECT_ROOT/k3s/dev --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
