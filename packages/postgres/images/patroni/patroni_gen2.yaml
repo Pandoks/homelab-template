@@ -1,0 +1,150 @@
+# Patroni configuration - this is the main configuration file for Patroni cluster management
+
+# Basic cluster identification settings
+scope: ${PATRONI_SCOPE} # Name for PostgreSQL cluster, used to group/identify nodes
+namespace: ${PATRONI_KUBERNETES_NAMESPACE} # Kubernetes namespace where the Patroni pods are running
+name: ${PATRONI_NAME} # Name of this specific Patroni instance, typically pod name
+
+# REST API configuration for Patroni communication
+restapi:
+  listen: 0.0.0.0:8008 # Address and port where Patroni's REST API will listen
+  connect_address: ${HOSTNAME}:8008 # Address and port other Patroni instances use to reach this one
+
+# Kubernetes configuration for Patroni
+kubernetes:
+  labels: # Labels to find pods of the same cluster
+    app: postgres-patroni # Match with the label applied to Patroni pods
+  use_endpoints: true # Use Kubernetes endpoints instead of config maps
+  bypass_api_service: true # Directly access Kubernetes API without intermediate service
+
+# Bootstrap settings - controls how new clusters are initiated
+bootstrap:
+  # Dynamic configuration storage (DCS) parameters
+  dcs:
+    ttl: 30 # Time to live for leader key in seconds
+    loop_wait: 10 # Time between DCS checks in seconds
+    retry_timeout: 10 # Timeout for DCS operations in seconds
+    maximum_lag_on_failover: 1048576 # Max allowed WAL lag (1MB) before failover is blocked
+    primary_start_timeout: 300 # Time allowed for recovery before failover to standby
+    failsafe_mode: true # When DCS is down, allow primary to stay primary
+
+    # PostgreSQL parameters configured through Patroni
+    postgresql:
+      use_pg_rewind: true # Allow pg_rewind to sync a former primary back
+      use_slots: true # Use replication slots for more reliable replication
+      parameters: # Global parameters for all nodes
+        wal_level: replica # WAL level required for replication
+        hot_standby: "on" # Allow read-only queries on standbys
+        max_connections: 100 # Match your existing configuration
+        max_wal_size: 1GB # Match your existing configuration
+        max_worker_processes: 20 # Match your existing configuration (20)
+        wal_log_hints: "on" # Required for pg_rewind
+        shared_preload_libraries: "pg_cron,vector" # Match your existing configuration
+
+  # Initial database setup parameters
+  initdb:
+    - encoding: UTF8 # Default encoding for databases
+    - data-checksums # Enable data checksums
+    - locale: UTF-8 # Database locale
+
+# PgBackRest configuration for backups
+pgbackrest:
+  command: /usr/bin/pgbackrest # Path to pgbackrest executable
+  # Match your existing backup configuration
+  retention_full_type: count # Retention policy based on count
+  retention_full: 2 # Keep this many full backups
+  # Stanza configuration - we'll use the one from your current setup
+  stanza:
+    main: # Main stanza name
+      pg1-path: /var/lib/postgresql/data # Path to PostgreSQL data directory
+      retention_full_type: count # Retention policy by count
+      retention_full: 2 # Keep this many full backups
+      repo1-type: s3 # Use S3 for backups
+      repo1-s3-bucket: ${BACKUP_BUCKET} # S3 bucket name
+      repo1-s3-key: ${S3_KEY} # S3 access key
+      repo1-s3-key-secret: ${S3_KEY_SECRET} # S3 secret key
+      repo1-s3-region: ${S3_REGION} # S3 region
+      repo1-s3-endpoint: ${S3_ENDPOINT} # S3 endpoint
+      repo1-storage-verify-tls: ${S3_TLS} # TLS verification
+      repo1-s3-uri-style: ${S3_URI_STYLE} # S3 URI style
+      repo1-cipher-pass: ${MAIN_ENCRYPTION_KEY} # Encryption key for backups
+      repo1-cipher-type: aes-256-cbc # Encryption type
+      repo1-block: "y" # Use block-level incremental backup
+      repo1-bundle: "y" # Bundle small files
+      compress-type: zst # Compression type
+      delta: "y" # Use delta restoration
+      archive-async: "y" # Asynchronous archiving
+
+# PostgreSQL configuration
+postgresql:
+  listen: 0.0.0.0:5432 # PostgreSQL listen address
+  connect_address: ${HOSTNAME}:5432 # How other nodes connect to this PostgreSQL
+  data_dir: /var/lib/postgresql/data # Path to PostgreSQL data directory
+  bin_dir: /usr/lib/postgresql/17/bin # Path to PostgreSQL binaries
+  pgpass: /tmp/pgpass # Path to store credentials for replication
+
+  # Authentication settings
+  authentication:
+    replication:
+      username: replicator # Username for replication
+      password: ${PGREPPASS} # Password for replication user
+    superuser:
+      username: postgres # Superuser username
+      password: ${POSTGRES_PASSWORD} # Superuser password
+
+  # PostgreSQL parameters that match your current configuration
+  parameters:
+    # File locations
+    hba_file: "/etc/postgresql/pg_hba.conf" # Path to pg_hba.conf
+
+    # Network settings
+    listen_addresses: "*" # Listen on all addresses
+
+    # Resource usage
+    max_worker_processes: 20 # Match your existing setting
+
+    # WAL settings
+    wal_level: replica # WAL level for replication
+    wal_log_hints: "on" # Need for pg_rewind
+    max_wal_size: 1GB # Max WAL size before checkpoint
+
+    # Archive settings
+    archive_mode: "on" # Enable WAL archiving
+    archive_command: 'test "$POSTGRES_TYPE" = "backup" && pgbackrest --stanza=main archive-push %p || /bin/true' # Match your existing command
+    restore_command: "pgbackrest --stanza=main archive-get %f %p" # Match your existing command
+
+    # Replication settings
+    max_wal_senders: 20 # Match your existing setting
+    max_replication_slots: 20 # Match your existing setting
+    wal_keep_size: 1024 # Match your existing setting (1024)
+    hot_standby: "on" # Allow queries during recovery
+    wal_sender_timeout: 60s # Match your existing setting
+
+    # Main options
+    shared_preload_libraries: "pg_cron,vector" # Match your existing configuration
+
+    # Extension settings
+    "cron.database_name": "${POSTGRES_DB}" # Match your existing setting
+    "cron.timezone": "GMT" # Match your existing setting
+    "cron.use_background_workers": "on" # Match your existing setting
+
+  # Host-based authentication rules
+  pg_hba:
+    # Authentication rules from your current setup
+    - local   all             all                                     trust
+    - host    all             all             127.0.0.1/32            trust
+    - host    all             all             ::1/128                 trust
+    - local   replication     all                                     trust
+    - host    replication     all             127.0.0.1/32            trust
+    - host    replication     all             ::1/128                 trust
+    - host    replication     replicator      samenet                 md5
+    - host    ${POSTGRES_DB}  pgcat           samenet                 md5
+    - host    replication     replicator      0.0.0.0/0               md5
+    - host    all             all             0.0.0.0/0               md5
+
+# Tags for special handling
+tags:
+  nofailover: false # Allow failover for this node
+  noloadbalance: false # Include this node in load balancing
+  clonefrom: false # Not a dedicated source for new replicas
+  nosync: false # Synchronize this node
