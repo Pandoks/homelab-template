@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: main
 resources:
   - certs.yaml
+  - patroni.yaml
   - master.yaml
   - slave.yaml
   - pgbackrest.yaml

@@ -149,6 +149,16 @@ services:
         condition: service_healthy
 
   # essentially an empty container that makes sure the previous services are initialized
+
+  patroni:
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}patroni:${PATRONI_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: ./postgres/images/patroni/Dockerfile
+    env_file: ../../../.env
+    profiles: ["build-for-prod"]
+    environment:
+
   ready:
     image: alpine:latest
     depends_on:

@@ -1,64 +1,148 @@
-# https://patroni.readthedocs.io/en/latest/yaml_configuration.html#yaml-configuration
-# some of the defaults are verbosely set here just so that you don't have to reference docs every time
-scope: ${PATRONI_SCOPE} # Name for pg cluster
-namespace: ${PATRONI_KUBERNETES_NAMESPACE}
-name: ${PATRONI_KUBERNETES_POD_NAME}
+### Patroni Configuration File
+# This YAML file configures a Patroni-managed PostgreSQL cluster in Kubernetes
+# matching the existing Docker Compose cluster behavior, including pgBackRest backups.
 
-# postgresql defaults to async replication
-bootstrap: # how new clusters are created or replicas are initialized
-  dcs: # global dynamic configuration stored into dcs (k8s)
-    ttl: 30
-    loop_wait: 10
-    retry_timeout: 10
-    maximum_lag_on_failover: 1048576 # (1mb)
-    primary_start_timeout: 300 # time (in seconds) allowed to recovery before failover to standby
-    failsafe_mode: true # when dcs is down, let there be a primary
-    postgresql:
-      use_pg_rewind: true
-      use_slots: true
-      parameters:
-        wal_level: replica
-        hot_standby: "on"
-        shared_buffers: 256MB
-        max_connections: 100
-        max_wal_size: 1GB
-        max_worker_processes: 8
-        wal_log_hints: "on"
-        shared_preload_libraries: "pg_stat_statements,auto_explain,pg_cron"
-        pg_cron.database_name: "postgres"
+scope: ${POSTGRES_DB} # Unique name for the Patroni cluster (using database name)
+namespace: ${PATRONI_KUBERNETES_NAMESPACE} # Kubernetes namespace where Patroni pods run
+name: ${PATRONI_KUBERNETES_POD_NAME} # Unique Pod name for this Patroni node (Downward API)
+
+# --- Bootstrap Configuration ---
+bootstrap:
   initdb:
-    - encoding: UTF8
-    - data-checksums
-    - locale: UTF-8
+    - encoding: UTF8 # Set UTF8 as the default database encoding
+    - data-checksums # Enable data checksums to detect corruption
+    - locale: UTF-8 # Set locale for character classification and collation
 
+  pgbackrest:
+    command: "/usr/bin/pgbackrest --stanza=${POSTGRES_DB} --delta restore --log-level-console=info" # Base command to restore backups
+    keep_existing_recovery_conf: false # Allow Patroni to fully manage recovery settings
+    repo1-path: "/" # Repository path inside the container (root for S3)
+    repo1-type: s3 # Use S3 for the pgBackRest repository
+    repo1-s3-bucket: ${BACKUP_BUCKET} # S3 bucket name for backups
+    repo1-s3-key: ${S3_KEY} # S3 access key ID
+    repo1-s3-key-secret: ${S3_KEY_SECRET} # S3 secret access key
+    repo1-s3-region: ${S3_REGION} # S3 region name
+    repo1-s3-endpoint: ${S3_ENDPOINT} # S3 endpoint URL (e.g., LocalStack)
+    repo1-storage-verify-tls: ${S3_TLS} # Verify TLS certificate for S3 (y/n)
+    repo1-s3-uri-style: ${S3_URI_STYLE} # S3 URI style ('path' or 'virtual_host')
+    repo1-cipher-type: aes-256-cbc # Encryption type, must match pgbackrest.conf
+
+  dcs:
+    ttl: 30 # Time-to-live for the leader key in Kubernetes DCS (seconds)
+    loop_wait: 10 # Interval between DCS checks (seconds)
+    retry_timeout: 10 # Timeout for DCS operations (seconds)
+    maximum_lag_on_failover: 1048576 # Max WAL lag (bytes) allowed for failover
+    primary_start_timeout: 300 # Time to wait for primary to start (seconds)
+    failsafe_mode: true # Allow writes if DCS becomes temporarily unavailable
+
+    postgresql:
+      use_pg_rewind: true # Enable pg_rewind for quick rejoin of former primary
+      use_slots: true # Automatically create replication slots
+
+      parameters:
+        wal_level: replica # Ensure WAL sufficient for streaming replication
+        hot_standby: "on" # Allow read-only queries on standby replicas
+        shared_buffers: 128MB # Memory buffer for shared data pages
+        max_connections: 100 # Maximum number of concurrent connections
+        max_wal_size: 1GB # Maximum WAL segment size before recycling
+        max_worker_processes: 20 # Number of background worker processes
+        wal_log_hints: "on" # Log hint bits required by pg_rewind
+        shared_preload_libraries: "pg_cron,vector" # Preload extensions for cron and vector
+        cron.database_name: "${POSTGRES_DB}" # Database where pg_cron jobs run
+        cron.timezone: "GMT" # Timezone for pg_cron scheduling
+        cron.use_background_workers: "on" # Run pg_cron jobs as background workers
+
+# --- Kubernetes DCS Configuration ---
+kubernetes:
+  use_endpoints: true # Use Kubernetes Endpoints resource for DCS and leader election
+  labels:
+    cluster-name: ${POSTGRES_DB} # Label key/value to identify the cluster scope
+  scope_label: cluster-name # Label key used by Patroni to filter cluster members
+  role_label: cluster-role # Label key Patroni uses to mark leader/replica on pods
+  namespace: ${PATRONI_KUBERNETES_NAMESPACE} # Kubernetes namespace for DCS operations
+  pod_ip: ${PATRONI_KUBERNETES_POD_IP} # Downward API to fetch pod IP address
+  ports:
+    - name: postgresql # Service port name for PostgreSQL connections
+      port: ${PATRONI_POSTGRESQL_PORT:-5432} # Port on which PostgreSQL will listen
+    - name: patroni # Service port name for Patroni REST API
+      port: ${PATRONI_RESTAPI_PORT:-8008} # Port on which Patroni REST API will listen
+
+# --- Patroni REST API Configuration ---
 restapi:
-  listen: 0.0.0.0:8008
-  connect_address: ${HOSTNAME}:8008
+  listen: 0.0.0.0:${PATRONI_RESTAPI_PORT:-8008} # Listen on all interfaces for HTTP management API
+  connect_address: ${PATRONI_KUBERNETES_POD_IP}:${PATRONI_RESTAPI_PORT:-8008} # Address advertised to cluster peers
 
+# --- pgBackRest Integration ---
 pgbackrest:
-  command: /usr/bin/pgbackrest
-  retention_full_type: count
-  retention_full: 2
+  command: "/usr/bin/pgbackrest --stanza=${POSTGRES_DB} --log-level-console=info" # Base pgBackRest command for backups
+  retention_full_type: count # Retain backups by count
+  retention_full: 2 # Keep the last 2 full backups
 
+# --- PostgreSQL Configuration (Managed by Patroni) ---
 postgresql:
-  listen: 0.0.0.0:5432
-  connect_address: ${HOSTNAME}:5432
-  data_dir: /var/lib/postgresql/data
-  bin_dir: /usr/lib/postgresql/17/bin
-  pgpass: /tmp/pgpass
-  parameters:
-    archive_mode: "on"
-    archive_command: "pgbackrest --stanza=main archive-push %p"
-    max_replication_slots: 10
-    max_wal_senders: 10
-    hot_standby: "on"
-    wal_keep_size: 512MB
-  pg_hba:
-    - host replication replicator 0.0.0.0/0 md5
-    - host all all 0.0.0.0/0 md5
+  listen: 0.0.0.0:${PATRONI_POSTGRESQL_PORT:-5432} # Listen on all interfaces for client and replication traffic
+  connect_address: ${PATRONI_KUBERNETES_POD_IP}:${PATRONI_POSTGRESQL_PORT:-5432} # Advertised address for clients and peers
 
+  data_dir: /var/lib/postgresql/data # PostgreSQL data directory in the container
+  bin_dir: /usr/lib/postgresql/17/bin # Directory containing PostgreSQL binaries
+  pgpass: /tmp/pgpass # pgpass file path for Patroni to connect to PostgreSQL
+
+  authentication:
+    replication:
+      username: replicator # User created for streaming replication
+      password: ${PGREPPASS} # Password for the replication user
+    superuser:
+      username: ${POSTGRES_USER} # Superuser name from POSTGRES_USER env var
+      password: ${POSTGRES_PASSWORD} # Superuser password from POSTGRES_PASSWORD env var
+
+  parameters:
+    wal_level: replica # Generate WAL for replication
+    hot_standby: "on" # Allow queries on standby replicas
+    shared_buffers: 128MB # Shared memory buffer size
+    max_connections: 100 # Maximum number of client connections
+    max_wal_size: 1GB # Maximum WAL size before recycling
+    max_worker_processes: 20 # Number of background worker processes
+    wal_log_hints: "on" # Log hint bits for pg_rewind support
+    shared_preload_libraries: "pg_cron,vector" # Preload pg_cron and vector extensions
+    cron.database_name: "${POSTGRES_DB}" # Database for pg_cron scheduling
+    cron.timezone: "GMT" # Timezone for pg_cron jobs
+    cron.use_background_workers: "on" # Run pg_cron jobs as background workers
+    archive_mode: on # Enable WAL archiving for point-in-time recovery
+    archive_command: "/usr/bin/pgbackrest --stanza=${POSTGRES_DB} archive-push %p" # Push WAL to pgBackRest
+    max_replication_slots: 20 # Number of replication slots to maintain
+    max_wal_senders: 20 # Number of WAL sender processes
+    wal_keep_size: 1024MB # Keep this amount of WAL files (megabytes)
+
+  recovery_conf:
+    restore_command: '/usr/bin/pgbackrest --stanza=${POSTGRES_DB} archive-get %f "%p"' # Fetch WAL from pgBackRest during recovery
+
+  pg_hba:
+    - local   all             all                                     trust # Allow local socket connections
+    - host    all             all             127.0.0.1/32            trust # Allow local IPv4 connections
+    - host    all             all             ::1/128                 trust # Allow local IPv6 connections
+    - local   replication     all                                     trust # Allow local replication connections
+    - host    replication     all             127.0.0.1/32            trust # Allow local IPv4 replication
+    - host    replication     all             ::1/128                 trust # Allow local IPv6 replication
+    - host    replication     replicator      0.0.0.0/0               md5 # Allow replication from any host with replicator user
+    - host    ${POSTGRES_DB}   pgcat           samenet                 md5 # Allow pgcat pooler to connect to application DB
+
+# --- Behavior Tags: control node role and behavior during failover ---
 tags:
-  nofailover: false
-  noloadbalance: false
-  clonefrom: false
-  nosync: false
+  nofailover: false # Allow this node to be promoted if needed
+  noloadbalance: false # Allow clients to be load-balanced to this node
+  clonefrom: false # Allow this node to serve as a clone source
+  nosync: false # Allow this node to participate in sync replication
+
+# --- Logging Configuration for Patroni ---
+log:
+  level: INFO # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  format: "%(asctime)s %(levelname)s: [%(name)s] %(message)s" # Log message format pattern
+  dateformat: "%Y-%m-%d %H:%M:%S %z" # Timestamp format in logs
+
+# --- Timeouts and Loop Intervals ---
+timeouts:
+  master_start_timeout: 300 # Max seconds to wait for master start after failover
+  master_stop_timeout: 60 # Max seconds to wait for master to stop during demotion
+
+loop_wait: 10 # Interval between cluster state checks (seconds)
+ttl: 30 # Leader key TTL in Kubernetes DCS (seconds)
