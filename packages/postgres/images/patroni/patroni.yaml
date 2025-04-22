@@ -26,11 +26,23 @@ bootstrap: # how new clusters are created or replicas are initialized
         max_wal_size: 1GB
         hot_standby: on
         archive_mode: on
-        archive_command:
+        archive_command: "pgbackrest --stanza=${POSTGRES_DB} archive-push %p"
+        # placeholders: %p = path of file to archive
+        #               %f = file name only
+        # e.g. 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
       recovery_conf:
         recovery_target_timeline: latest
-        restore_command:
+        restore_command: "pgbackrest --stanza=${POSTGRES_DB} archive-get %f %p"
       pg_hba:
+        - "local all all trust"
+        - "host all all 127.0.0.1/32 trust"
+        - "host all all ::1/128 trust"
+        - "local replication all trust"
+        - "host replication all 127.0.0.1/32 trust"
+        - "host replication all ::1/128 trust"
+        - "host replication replicator samenet md5"
+        - "host ${POSTGRES_DB} pgcat samenet md5"
+
   method: initdb
   initdb:
     - encoding: UTF8
@@ -48,6 +60,7 @@ postgresql: # postgresql settings here don't need to restart the entire cluster
     cron.database_name: ${POSTGRES_DB}
     cron.timezone: GMT
     cron.use_background_workers: on
+
 restapi:
   listen: 0.0.0.0:8008
   connect_address: ${HOSTNAME}:8008
