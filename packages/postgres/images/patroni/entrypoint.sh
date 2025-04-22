@@ -1,12 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
+ls /etc
 # Substitute environment variables in patroni.yaml
-if [ -f /etc/patroni/patroni.yaml ]; then
-  envsubst </etc/patroni/patroni.yaml >/tmp/patroni.yaml
-  mv /tmp/conf_templates/patron.yaml /etc/patroni/patroni.yaml
+if [ -f /tmp/conf_templates/patroni.yaml ]; then
+  envsubst </tmp/conf_templates/patroni.yaml >/etc/patroni.yaml
 fi
 
 # Start Patroni
-exec python3 -m patroni /etc/patroni/patroni.yaml
-
+exec python3 -m patroni /etc/patroni.yaml

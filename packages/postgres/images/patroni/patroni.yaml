@@ -1,8 +1,8 @@
 # https://patroni.readthedocs.io/en/latest/yaml_configuration.html#yaml-configuration
 # some of the defaults are verbosely set here just so that you don't have to reference docs every time
-scope: ${PATRONI_SCOPE} # Name for pg cluster
-namespace: ${PATRONI_KUBERNETES_NAMESPACE}
-name: ${PATRONI_KUBERNETES_POD_NAME}
+scope: ${POSTGRES_DB} # Name for pg cluster
+namespace: ${NAMESPACE}
+name: ${POD_NAME}
 
 # postgresql defaults to async replication
 bootstrap: # how new clusters are created or replicas are initialized
@@ -52,9 +52,22 @@ bootstrap: # how new clusters are created or replicas are initialized
 postgresql: # postgresql settings here don't need to restart the entire cluster
   listen: 0.0.0.0:5432
   connect_address: ${HOSTNAME}:5432
-  data_dir: /var/lib/postgresql/data
-  bin_dir: /usr/lib/postgresql/17/bin
-  pgpass: /tmp/pgpass
+  authentication:
+    superuser:
+      username: ${PGUSER}
+      password: ${PGPASSWORD}
+    replication:
+      username: replicator
+      password: ${PGREPPASS}
+  create_replica_methods:
+    - pgbackrest
+    - basebackup
+  pgbackrest:
+    command: "pgbackrest --stanza=${POSTGRES_DB} restore --type=none"
+    keep_data: true
+    no_params: true
+  basebackup:
+    checkpoint: fast
   parameters:
     shared_preload_libraries: "pg_cron,vector"
     cron.database_name: ${POSTGRES_DB}
@@ -63,14 +76,19 @@ postgresql: # postgresql settings here don't need to restart the entire cluster
 
 restapi:
   listen: 0.0.0.0:8008
-  connect_address: ${HOSTNAME}:8008
+  connect_address: ${POD_NAME}:8008
+  authentication:
+    username: patroni
+    password: ${PATRONI_PASSWORD}
 
 kubernetes:
   namespace: ${NAMESPACE}
   labels:
+    app: patroni
+    cluster: ${POSTGRES_DB}
 
 log:
-  dir:
+  dir: etc/patroni/logs
 
 tags:
   nofailover: false
