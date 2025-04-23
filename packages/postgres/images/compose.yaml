@@ -157,7 +157,6 @@ services:
       dockerfile: ./postgres/images/patroni/Dockerfile
     env_file: ../../../.env
     profiles: ["build-for-prod"]
-    environment:
 
   ready:
     image: alpine:latest

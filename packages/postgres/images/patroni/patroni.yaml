@@ -51,7 +51,8 @@ bootstrap: # how new clusters are created or replicas are initialized
 
 postgresql: # postgresql settings here don't need to restart the entire cluster
   listen: 0.0.0.0:5432
-  connect_address: ${HOSTNAME}:5432
+  connect_address: ${POD_IP}:5432
+  data_dir: /var/lib/postgres/17/data
   authentication:
     superuser:
       username: ${PGUSER}

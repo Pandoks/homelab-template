@@ -4,8 +4,6 @@ namespace: main
 resources:
   - certs.yaml
   - patroni.yaml
-  - master.yaml
-  - slave.yaml
   - pgbackrest.yaml
   - pgcat.yaml
 configMapGenerator:
@@ -15,17 +13,20 @@ configMapGenerator:
   - name: pgbackrest-main-config
     files:
       - ../../../packages/postgres/images/backup/pgbackrest.conf
-  - name: masterdb-main-config
+  - name: patroni-main-config
     files:
-      - ../../../packages/postgres/images/master/master.sh
-      - ../../../packages/postgres/main/setup/0000_init.sql
-      - ../../../packages/postgres/main/setup/0001_roles.sql
-      - ../../../packages/postgres/main/setup/0002_extensions.sql
-      - ../../../packages/postgres/main/setup/0003_cron.sql
-  - name: postgres-main-config
-    files:
-      - ../../../packages/postgres/images/pgbackrest.conf
-      - ../../../packages/postgres/images/postgresql.conf
-      - ../../../packages/postgres/images/pg_hba.conf
+      - ../../../packages/postgres/images/patroni/patroni.yaml
+  # - name: masterdb-main-config
+  #   files:
+  #     - ../../../packages/postgres/images/master/master.sh
+  #     - ../../../packages/postgres/main/setup/0000_init.sql
+  #     - ../../../packages/postgres/main/setup/0001_roles.sql
+  #     - ../../../packages/postgres/main/setup/0002_extensions.sql
+  #     - ../../../packages/postgres/main/setup/0003_cron.sql
+  # - name: postgres-main-config
+  #   files:
+  #     - ../../../packages/postgres/images/pgbackrest.conf
+  #     - ../../../packages/postgres/images/postgresql.conf
+  #     - ../../../packages/postgres/images/pg_hba.conf
 generatorOptions:
   disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload
