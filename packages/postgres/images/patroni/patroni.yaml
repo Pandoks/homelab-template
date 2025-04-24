@@ -88,9 +88,6 @@ kubernetes:
     app: patroni
     cluster: ${POSTGRES_DB}
 
-log:
-  dir: etc/patroni/logs
-
 tags:
   nofailover: false
   noloadbalance: false
