@@ -34,6 +34,8 @@ spec:
         cluster-name: *cluster-name
     spec:
       serviceAccountName: patroni-main
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: *app
           image: local-registry:12345/patroni:latest
@@ -83,11 +85,15 @@ spec:
             - name: pgbackrest-server-tls
               mountPath: /etc/pgbackrest/server.key
               subPath: tls.key
+            - name: patroni-main-tls
+              mountPath: /etc/pgbackrest/client.crt
+              subPath: tls.crt
+            - name: patroni-main-tls
+              mountPath: /etc/pgbackrest/client.key
+              subPath: tls.key
             - name: patroni-main-config
               mountPath: /tmp/conf_templates/patroni.yaml
               subPath: patroni.yaml
-            - name: patroni-data
-              mountPath: /var/lib/postgresql
             - name: patroni-init
               mountPath: /docker-entrypoint-initdb.d/master.sh
               subPath: master.sh
@@ -115,6 +121,10 @@ spec:
         - name: pgbackrest-conf
           configMap:
             name: pgbackrest-patroni-config
+        - name: patroni-main-tls
+          secret:
+            secretName: patroni-main-tls
+            defaultMode: 0600
         - name: patroni-main-config
           configMap:
             name: patroni-main-config
