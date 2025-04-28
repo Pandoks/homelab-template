@@ -22,9 +22,9 @@ spec:
             - name: POSTGRES_DB
               value: main
             - name: MASTER_HOST_1
-              value: masterdb-1
+              value: patroni-main
             - name: SLAVE_HOST_1
-              value: slavedb-1
+              value: patroni-main-replica
           volumeMounts:
             - name: pgcat-conf
               mountPath: /tmp/conf_templates/pgcat.toml

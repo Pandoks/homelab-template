@@ -43,16 +43,10 @@ bootstrap: # how new clusters are created or replicas are initialized
         - "host replication replicator samenet md5"
         - "host ${POSTGRES_DB} pgcat samenet md5"
 
-  method: initdb
-  initdb:
-    - encoding: UTF8
-    - data-checksums
-    - locale: UTF8
-
 postgresql: # postgresql settings here don't need to restart the entire cluster
   listen: 0.0.0.0:5432
   connect_address: ${POD_IP}:5432
-  data_dir: /var/lib/postgres/17/data
+  data_dir: /var/lib/postgresql/data
   authentication:
     superuser:
       username: ${PGUSER}
@@ -77,16 +71,18 @@ postgresql: # postgresql settings here don't need to restart the entire cluster
 
 restapi:
   listen: 0.0.0.0:8008
-  connect_address: ${POD_NAME}:8008
+  connect_address: ${POD_IP}:8008
   authentication:
     username: patroni
     password: ${PATRONI_PASSWORD}
 
 kubernetes:
   namespace: ${NAMESPACE}
+  use_endpoints: true
+  pod_ip: ${POD_IP}
   labels:
-    app: patroni
-    cluster: ${POSTGRES_DB}
+    app: patroni-${POSTGRES_DB}
+    cluster-name: ${POSTGRES_DB}
 
 tags:
   nofailover: false

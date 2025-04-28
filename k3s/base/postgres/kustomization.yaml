@@ -3,26 +3,29 @@ kind: Kustomization
 namespace: main
 resources:
   - certs.yaml
-  - patroni.yaml
+  - main-patroni.yaml
   - pgbackrest.yaml
   - pgcat.yaml
 configMapGenerator:
   - name: pgcat-main-config
     files:
       - ../../../packages/postgres/images/pgcat/pgcat.toml
-  - name: pgbackrest-main-config
+  - name: pgbackrest-server-config
     files:
       - ../../../packages/postgres/images/backup/pgbackrest.conf
   - name: patroni-main-config
     files:
       - ../../../packages/postgres/images/patroni/patroni.yaml
-  # - name: masterdb-main-config
-  #   files:
-  #     - ../../../packages/postgres/images/master/master.sh
-  #     - ../../../packages/postgres/main/setup/0000_init.sql
-  #     - ../../../packages/postgres/main/setup/0001_roles.sql
-  #     - ../../../packages/postgres/main/setup/0002_extensions.sql
-  #     - ../../../packages/postgres/main/setup/0003_cron.sql
+  - name: pgbackrest-patroni-config
+    files:
+      - ../../../packages/postgres/images/pgbackrest.conf
+  - name: patroni-init
+    files:
+      - ../../../packages/postgres/images/master/master.sh
+      - ../../../packages/postgres/main/setup/0000_init.sql
+      - ../../../packages/postgres/main/setup/0001_roles.sql
+      - ../../../packages/postgres/main/setup/0002_extensions.sql
+      - ../../../packages/postgres/main/setup/0003_cron.sql
   # - name: postgres-main-config
   #   files:
   #     - ../../../packages/postgres/images/pgbackrest.conf

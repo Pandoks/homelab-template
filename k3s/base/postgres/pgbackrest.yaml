@@ -52,4 +52,4 @@ spec:
             defaultMode: 0600
         - name: pgbackrest-conf
           configMap:
-            name: pgbackrest-main-config
+            name: pgbackrest-server-config
