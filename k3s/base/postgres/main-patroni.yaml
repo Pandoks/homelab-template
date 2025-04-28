@@ -34,8 +34,6 @@ spec:
         cluster-name: *cluster-name
     spec:
       serviceAccountName: patroni-main
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: *app
           image: local-registry:12345/patroni:latest
@@ -89,7 +87,7 @@ spec:
               mountPath: /tmp/conf_templates/patroni.yaml
               subPath: patroni.yaml
             - name: patroni-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
             - name: patroni-init
               mountPath: /docker-entrypoint-initdb.d/master.sh
               subPath: master.sh
