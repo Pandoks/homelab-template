@@ -10,6 +10,7 @@ spec:
     - protocol: TCP
       port: 4566
       targetPort: 4566
+
 ---
 apiVersion: apps/v1
 kind: Deployment
