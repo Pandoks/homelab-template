@@ -35,7 +35,7 @@ spec:
     spec:
       serviceAccountName: patroni-main
       securityContext:
-        fsGroup: 1000
+        fsGroup: 999
       containers:
         - name: *app
           image: local-registry:12345/patroni:latest
@@ -69,6 +69,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: MAIN_ENCRYPTION_KEY
+              value: openssl-rand-hex-32
           envFrom:
             - secretRef:
                 name: env
@@ -94,21 +96,23 @@ spec:
             - name: patroni-main-config
               mountPath: /tmp/conf_templates/patroni.yaml
               subPath: patroni.yaml
-            - name: patroni-init
-              mountPath: /docker-entrypoint-initdb.d/master.sh
-              subPath: master.sh
-            - name: patroni-init
-              mountPath: /docker-entrypoint-initdb.d/0000_init.sql
-              subPath: 0000_init.sql
-            - name: patroni-init
-              mountPath: /docker-entrypoint-initdb.d/0001_roles.sql
-              subPath: 0001_roles.sql
-            - name: patroni-init
-              mountPath: /docker-entrypoint-initdb.d/0002_extensions.sql
-              subPath: 0002_extensions.sql
-            - name: patroni-init
-              mountPath: /docker-entrypoint-initdb.d/0003_cron.sql
-              subPath: 0003_cron.sql
+            # - name: patroni-init
+            #   mountPath: /docker-entrypoint-initdb.d/master.sh
+            #   subPath: master.sh
+            # - name: patroni-init
+            #   mountPath: /docker-entrypoint-initdb.d/0000_init.sql
+            #   subPath: 0000_init.sql
+            # - name: patroni-init
+            #   mountPath: /docker-entrypoint-initdb.d/0001_roles.sql
+            #   subPath: 0001_roles.sql
+            # - name: patroni-init
+            #   mountPath: /docker-entrypoint-initdb.d/0002_extensions.sql
+            #   subPath: 0002_extensions.sql
+            # - name: patroni-init
+            #   mountPath: /docker-entrypoint-initdb.d/0003_cron.sql
+            #   subPath: 0003_cron.sql
+            - name: patroni-data
+              mountPath: /var/lib/postgresql
       volumes:
         - name: pgbackrest-ca
           secret:

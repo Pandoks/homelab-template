@@ -27,6 +27,8 @@ spec:
               value: masterdb-1
             - name: SLAVE_HOST1_1
               value: slavedb-1
+            - name: MAIN_ENCRYPTION_KEY
+              value: openssl-rand-hex-32
           volumeMounts:
             - name: pgbackrest-ca-cert
               mountPath: /etc/pgbackrest/ca.crt

@@ -26,10 +26,5 @@ configMapGenerator:
       - ../../../packages/postgres/main/setup/0001_roles.sql
       - ../../../packages/postgres/main/setup/0002_extensions.sql
       - ../../../packages/postgres/main/setup/0003_cron.sql
-  # - name: postgres-main-config
-  #   files:
-  #     - ../../../packages/postgres/images/pgbackrest.conf
-  #     - ../../../packages/postgres/images/postgresql.conf
-  #     - ../../../packages/postgres/images/pg_hba.conf
 generatorOptions:
   disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload
