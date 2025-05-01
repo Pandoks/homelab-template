@@ -29,6 +29,21 @@ spec:
 
 ---
 apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: patroni-main
+  namespace: main
+spec:
+  template:
+    spec:
+      containers:
+        - name: patroni-main
+          envFrom:
+            - secretRef:
+                name: env
+
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgcat-pooler
@@ -41,18 +56,3 @@ spec:
           envFrom:
             - secretRef:
                 name: env
-
----
-# apiVersion: apps/v1
-# kind: StatefulSet
-# metadata:
-#   name: masterdb-main-1
-#   namespace: main
-# spec:
-#   template:
-#     spec:
-#       containers:
-#         - name: masterdb-main-1
-#           envFrom:
-#             - secretRef:
-#                 name: env

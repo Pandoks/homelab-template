@@ -71,9 +71,6 @@ spec:
                   fieldPath: status.podIP
             - name: MAIN_ENCRYPTION_KEY
               value: openssl-rand-hex-32
-          envFrom:
-            - secretRef:
-                name: env
           volumeMounts:
             - name: pgbackrest-conf
               mountPath: /tmp/conf_templates/pgbackrest.conf
