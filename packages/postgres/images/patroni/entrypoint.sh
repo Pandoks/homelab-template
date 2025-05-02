@@ -16,4 +16,4 @@ monitor_pgbackrest() {
 }
 monitor_pgbackrest &
 
-exec patroni /etc/patroni/patroni.yaml
+exec $@

@@ -1,17 +1,3 @@
-# headless service used so patroni stores config in k8s store instead of configmap.
-# this prevents k8s from automatically deleting patroni's config endpoint if blank
-apiVersion: v1
-kind: Service
-metadata:
-  name: patroni-main-config
-  namespace: main
-  labels:
-    app: patroni-main
-    cluster-name: main
-spec:
-  clusterIP: None
-
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -144,32 +130,29 @@ spec:
             storage: 1Gi
 
 ---
-# endpoint that patroni will take over and attach the primary to
+# provides a stable ip for the primary
 apiVersion: v1
-kind: Endpoints
+kind: Service
 metadata:
   name: patroni-main-primary
   namespace: main
   labels:
-    app: patroni-main
-    cluster-name: main
-subsets: []
-
----
-# provides a stable ip for the primary endpoint above for when it changes
-apiVersion: v1
-kind: Service
-metadata:
-  name: &app patroni-main-primary
-  namespace: main
-  labels:
-    app: patroni-main
-    cluster-name: main
+    app: &app patroni-main
+    cluster-name: &cluster-name main
+    role: &role primary
 spec:
   type: ClusterIP
+  selector:
+    app: *app
+    cluster-name: *cluster-name
+    role: *role
   ports:
-    - port: 5432
+    - name: postgres
+      port: 5432
       targetPort: 5432
+    - name: pgbackrest
+      port: 8432
+      targetPort: 8432
 
 ---
 # provides a stable ip for all replicas
@@ -189,8 +172,12 @@ spec:
     cluster-name: *cluster-name
     role: *role
   ports:
-    - port: 5432
+    - name: postgres
+      port: 5432
       targetPort: 5432
+    - name: pgbackrest
+      port: 8432
+      targetPort: 8432
 
 ---
 # ---- below are permissions that patroni needs to get access to k8s API ----
@@ -243,6 +230,12 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

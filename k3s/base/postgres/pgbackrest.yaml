@@ -39,9 +39,9 @@ spec:
             - name: POSTGRES_DB_1
               value: main
             - name: MASTER_HOST_1
-              value: masterdb-1
-            - name: SLAVE_HOST1_1
-              value: slavedb-1
+              value: patroni-main-primary.main.svc.cluster.local
+            - name: SLAVE_HOST_1
+              value: patroni-main-replica.main.svc.cluster.local
             - name: MAIN_ENCRYPTION_KEY
               value: openssl-rand-hex-32
           volumeMounts:

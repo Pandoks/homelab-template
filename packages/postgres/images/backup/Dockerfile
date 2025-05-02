@@ -1,12 +1,14 @@
-FROM alpine:3
-RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
-RUN apk update && apk upgrade --no-cache
-RUN apk add pgbackrest gettext-envsubst --no-cache
+FROM debian:bookworm-slim
 
-RUN addgroup pgbackrest
-RUN cat /etc/group
-RUN adduser -D -h /var/lib/pgbackrest -s /bin/sh -G pgbackrest pgbackrest
-RUN chown pgbackrest:pgbackrest /var/log/pgbackrest /etc/pgbackrest/pgbackrest.conf
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  pgbackrest=2.45-1 \
+  gettext-base \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN addgroup --system pgbackrest
+RUN adduser --system --ingroup pgbackrest --home /var/lib/pgbackrest --shell /bin/bash pgbackrest
+RUN mkdir -p /var/log/pgbackrest /etc/pgbackrest
+RUN chown pgbackrest:pgbackrest /var/log/pgbackrest /etc/pgbackrest
 
 COPY ./postgres/images/backup/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
