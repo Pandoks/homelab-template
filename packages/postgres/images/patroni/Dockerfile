@@ -1,7 +1,10 @@
 FROM postgres:17
 
+# NOTE: remove this after the next bookworm release of debian. includes the needed pgbackrest version to support postgres 17
+RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" >> /etc/apt/sources.list.d/trixie.list
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  pgbackrest=2.45-1 \
+  pgbackrest=2.54.2-1 \
   postgresql-17-cron \
   postgresql-17-postgis-3 \
   postgresql-17-pgvector \
