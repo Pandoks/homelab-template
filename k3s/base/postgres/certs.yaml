@@ -8,7 +8,8 @@ spec:
   secretName: pgbackrest-backup-tls
   dnsNames:
     - pgbackrest-backup.main.svc.cluster.local
-    - pgbackrest-backup
+    - patroni-main-primary.main.svc.cluster.local
+    - patroni-main-replica.main.svc.cluster.local
   usages:
     - server auth
     - client auth
@@ -27,6 +28,8 @@ spec:
   dnsNames:
     - patroni-main-primary.main.svc.cluster.local
     - "*.patroni-main-primary.main.svc.cluster.local"
+    - patroni-main-replica.main.svc.cluster.local
+    - "*.patroni-main-replica.main.svc.cluster.local"
   usages:
     - server auth
     - client auth
