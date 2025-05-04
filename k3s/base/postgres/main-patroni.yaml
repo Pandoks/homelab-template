@@ -79,21 +79,6 @@ spec:
             - name: patroni-main-config
               mountPath: /tmp/conf_templates/patroni.yaml
               subPath: patroni.yaml
-            # - name: patroni-init
-            #   mountPath: /docker-entrypoint-initdb.d/master.sh
-            #   subPath: master.sh
-            # - name: patroni-init
-            #   mountPath: /docker-entrypoint-initdb.d/0000_init.sql
-            #   subPath: 0000_init.sql
-            # - name: patroni-init
-            #   mountPath: /docker-entrypoint-initdb.d/0001_roles.sql
-            #   subPath: 0001_roles.sql
-            # - name: patroni-init
-            #   mountPath: /docker-entrypoint-initdb.d/0002_extensions.sql
-            #   subPath: 0002_extensions.sql
-            # - name: patroni-init
-            #   mountPath: /docker-entrypoint-initdb.d/0003_cron.sql
-            #   subPath: 0003_cron.sql
             - name: patroni-data
               mountPath: /var/lib/postgresql
       volumes:
@@ -115,9 +100,6 @@ spec:
         - name: patroni-main-config
           configMap:
             name: patroni-main-config
-        - name: patroni-init
-          configMap:
-            name: patroni-init
   volumeClaimTemplates:
     - metadata:
         name: patroni-data

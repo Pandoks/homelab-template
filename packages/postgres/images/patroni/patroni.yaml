@@ -55,10 +55,11 @@ postgresql: # postgresql settings here don't need to restart the entire cluster
       username: replicator
       password: ${PGREPPASS}
   create_replica_methods:
-    # - pgbackrest
+    - pgbackrest
     - basebackup
   pgbackrest:
-    command: "pgbackrest --stanza=${POSTGRES_DB} restore --type=none"
+    command: "pgbackrest --stanza=${POSTGRES_DB} restore"
+    no_leader: 1
     keep_data: true
     no_params: true
   basebackup:
