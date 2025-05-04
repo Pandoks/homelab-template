@@ -18,7 +18,7 @@ configMapGenerator:
       - ../../../packages/postgres/images/patroni/patroni.yaml
   - name: pgbackrest-patroni-config
     files:
-      - ../../../packages/postgres/images/pgbackrest.conf
+      - ../../../packages/postgres/images/patroni/pgbackrest.conf
   - name: patroni-init
     files:
       - ../../../packages/postgres/images/master/master.sh
