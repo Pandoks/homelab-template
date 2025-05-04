@@ -23,6 +23,9 @@ spec:
     spec:
       containers:
         - name: pg-backup
+          env:
+            - name: S3_ENDPOINT
+              value: s3.main.svc.cluster.local:4566
           envFrom:
             - secretRef:
                 name: env
@@ -38,6 +41,11 @@ spec:
     spec:
       containers:
         - name: patroni-main
+          env:
+            - name: S3_ENDPOINT
+              value: s3.main.svc.cluster.local:4566
+            - name: BACKUP_HOST
+              value: pgbackrest-backup-service.main.svc.cluster.local
           envFrom:
             - secretRef:
                 name: env
