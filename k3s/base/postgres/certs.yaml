@@ -4,10 +4,10 @@ metadata:
   name: pgbackrest-backup
   namespace: main
 spec:
-  commonName: pgbackrest-backup.main.svc.cluster.local
+  commonName: pgbackrest-backup-service.main.svc.cluster.local
   secretName: pgbackrest-backup-tls
   dnsNames:
-    - pgbackrest-backup.main.svc.cluster.local
+    - pgbackrest-backup-service.main.svc.cluster.local
     - patroni-main-primary.main.svc.cluster.local
     - patroni-main-replica.main.svc.cluster.local
   usages:
@@ -27,9 +27,7 @@ spec:
   secretName: patroni-main-tls
   dnsNames:
     - patroni-main-primary.main.svc.cluster.local
-    - "*.patroni-main-primary.main.svc.cluster.local"
     - patroni-main-replica.main.svc.cluster.local
-    - "*.patroni-main-replica.main.svc.cluster.local"
   usages:
     - server auth
     - client auth
