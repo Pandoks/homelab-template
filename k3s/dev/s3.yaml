@@ -12,8 +12,19 @@ spec:
       targetPort: 4566
 
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3-init-script
+  namespace: main
+data:
+  s3.sh: |
+    #!/bin/sh
+    awslocal s3 mb s3://$(echo $BACKUP_BUCKET)
+
+---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: s3
   namespace: main
@@ -41,3 +52,24 @@ spec:
               value: test
             - name: AWS_SECRET_ACCESS_KEY
               value: testsecret
+          volumeMounts:
+            - name: init-script
+              mountPath: /etc/localstack/init/ready.d/s3.sh
+              subPath: s3.sh
+            - name: s3-data
+              mountPath: /var/lib/localstack
+      volumes:
+        - name: init-script
+          configMap:
+            name: s3-init-script
+            defaultMode: 0744
+  volumeClaimTemplates:
+    - metadata:
+        name: s3-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
