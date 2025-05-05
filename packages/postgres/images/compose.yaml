@@ -56,75 +56,6 @@ services:
       s3:
         condition: service_healthy
 
-  masterdb:
-    image: ${REGISTRY_URL:+${REGISTRY_URL}/}masterdb:${MASTERDB_TAG:-latest}
-    build:
-      context: ../../
-      dockerfile: ./postgres/images/master/Dockerfile
-    env_file: ../../../.env
-    profiles: ["build-for-prod"]
-    environment:
-      - POSTGRES_DB=main
-      - PGDATABASE=main
-      - POSTGRES_TYPE=backup
-      - MASTER_HOST=images-masterdb-1
-      - MAIN_ENCRYPTION_KEY=openssl-rand-hex-32
-    volumes:
-      - ../main/setup/0000_init.sql:/docker-entrypoint-initdb.d/0000_init.sql
-      - ../main/setup/0001_roles.sql:/docker-entrypoint-initdb.d/0001_roles.sql
-      - ../main/setup/0002_extensions.sql:/docker-entrypoint-initdb.d/0002_extensions.sql
-      - ../main/setup/0003_cron.sql:/docker-entrypoint-initdb.d/0003_cron.sql
-      - ./master/master.sh:/docker-entrypoint-initdb.d/master.sh
-      - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
-      - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
-      - ./pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
-      - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
-      - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
-      - ../../../.certs/dev/tls/images-masterdb-1.key:/etc/pgbackrest/client.key
-      - ../../../.certs/dev/tls/images-masterdb-1.crt:/etc/pgbackrest/client.crt
-    networks:
-      - database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -af pgbackrest > /dev/null 2>&1"]
-      interval: 1s
-      retries: 10
-    depends_on:
-      backup:
-        condition: service_healthy
-
-  slavedb:
-    image: ${REGISTRY_URL:+${REGISTRY_URL}/}slavedb:${SLAVEDB_TAG:-latest}
-    build:
-      context: ../../
-      dockerfile: ./postgres/images/slave/Dockerfile
-    env_file: ../../../.env
-    profiles: ["build-for-prod"]
-    environment:
-      - POSTGRES_DB=main
-      - PGDATABASE=main
-      - POSTGRES_TYPE=backup
-      - MASTER_HOST=images-masterdb-1
-      - MAIN_ENCRYPTION_KEY=openssl-rand-hex-32
-    volumes:
-      - ./postgresql.conf:/tmp/conf_templates/postgresql.conf
-      - ./pg_hba.conf:/tmp/conf_templates/pg_hba.conf
-      - ./pgbackrest.conf:/tmp/conf_templates/pgbackrest.conf
-      - ../../../.certs/dev/ca/ca.crt:/etc/pgbackrest/ca.crt
-      - ../../../.certs/dev/tls/images-backup-1.crt:/etc/pgbackrest/server.crt
-      - ../../../.certs/dev/tls/images-backup-1.key:/etc/pgbackrest/server.key
-      - ../../../.certs/dev/tls/images-slavedb-1.key:/etc/pgbackrest/client.key
-      - ../../../.certs/dev/tls/images-slavedb-1.crt:/etc/pgbackrest/client.crt
-    networks:
-      - database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "admin", "-d", "main"]
-      interval: 1s
-      retries: 10
-    depends_on:
-      masterdb:
-        condition: service_healthy
-
   pgcat:
     image: ${REGISTRY_URL:+${REGISTRY_URL}/}pgcat:${PGCAT_TAG:-latest}
     build:
@@ -142,11 +73,6 @@ services:
       - ./pgcat/pgcat.toml:/tmp/conf_templates/pgcat.toml
     networks:
       - database-network
-    depends_on:
-      masterdb:
-        condition: service_healthy
-      slavedb:
-        condition: service_healthy
 
   # essentially an empty container that makes sure the previous services are initialized
 
