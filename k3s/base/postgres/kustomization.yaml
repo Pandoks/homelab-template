@@ -19,12 +19,5 @@ configMapGenerator:
   - name: pgbackrest-patroni-config
     files:
       - ../../../packages/postgres/images/patroni/pgbackrest.conf
-  - name: patroni-init
-    files:
-      - ../../../packages/postgres/images/master/master.sh
-      - ../../../packages/postgres/main/setup/0000_init.sql
-      - ../../../packages/postgres/main/setup/0001_roles.sql
-      - ../../../packages/postgres/main/setup/0002_extensions.sql
-      - ../../../packages/postgres/main/setup/0003_cron.sql
 generatorOptions:
   disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload
