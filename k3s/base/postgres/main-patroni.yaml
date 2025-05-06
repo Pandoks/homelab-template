@@ -22,6 +22,7 @@ spec:
       serviceAccountName: patroni-main
       securityContext:
         fsGroup: 999
+      # if you are trying to restore an existing backup to patroni, make sure to delete the PVC bound to it
       containers:
         - name: *app
           image: local-registry:12345/patroni:latest
