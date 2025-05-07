@@ -13,11 +13,10 @@ configMapGenerator:
   - name: pgbackrest-server-config
     files:
       - ../../../packages/postgres/images/backup/pgbackrest.conf
-  - name: patroni-main-config
+      - ../../../packages/postgres/images/backup/cron
+  - name: patroni-config
     files:
       - ../../../packages/postgres/images/patroni/patroni.yaml
-  - name: pgbackrest-patroni-config
-    files:
       - ../../../packages/postgres/images/patroni/pgbackrest.conf
 generatorOptions:
   disableNameSuffixHash: false # changes the suffix hash of names so services automatically reload

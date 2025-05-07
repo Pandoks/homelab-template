@@ -58,6 +58,10 @@ spec:
               mountPath: /tmp/conf_templates/pgbackrest.conf
               subPath: pgbackrest.conf
               readOnly: true
+            - name: pgbackrest-conf
+              mountPath: /etc/cron.d/backup-schedule
+              subPath: cron
+              readOnly: true
       volumes:
         - name: pgbackrest-ca-cert
           secret:

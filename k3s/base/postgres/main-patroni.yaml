@@ -59,9 +59,12 @@ spec:
             - name: MAIN_ENCRYPTION_KEY
               value: openssl-rand-hex-32
           volumeMounts:
-            - name: pgbackrest-conf
+            - name: patroni-config
               mountPath: /tmp/conf_templates/pgbackrest.conf
               subPath: pgbackrest.conf
+            - name: patroni-config
+              mountPath: /tmp/conf_templates/patroni.yaml
+              subPath: patroni.yaml
             - name: pgbackrest-ca
               mountPath: /etc/pgbackrest/ca.crt
               subPath: tls.crt
@@ -77,9 +80,6 @@ spec:
             - name: patroni-main-tls
               mountPath: /etc/pgbackrest/client.key
               subPath: tls.key
-            - name: patroni-main-config
-              mountPath: /tmp/conf_templates/patroni.yaml
-              subPath: patroni.yaml
             - name: patroni-data
               mountPath: /var/lib/postgresql
       volumes:
@@ -91,16 +91,13 @@ spec:
           secret:
             secretName: pgbackrest-backup-tls
             defaultMode: 0600
-        - name: pgbackrest-conf
-          configMap:
-            name: pgbackrest-patroni-config
         - name: patroni-main-tls
           secret:
             secretName: patroni-main-tls
             defaultMode: 0600
-        - name: patroni-main-config
+        - name: patroni-config
           configMap:
-            name: patroni-main-config
+            name: patroni-config
   volumeClaimTemplates:
     - metadata:
         name: patroni-data
