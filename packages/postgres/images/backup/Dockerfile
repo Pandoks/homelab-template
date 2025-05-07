@@ -11,15 +11,8 @@ RUN apt-get update && apt-get install -t bookworm -y --no-install-recommends \
   pgbackrest \
   && rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system pgbackrest
-RUN adduser --system --ingroup pgbackrest --home /var/lib/pgbackrest --shell /bin/bash pgbackrest
-RUN mkdir -p /var/log/pgbackrest /etc/pgbackrest
-RUN chown pgbackrest:pgbackrest /var/log/pgbackrest /etc/pgbackrest /dev/stdout /dev/stderr
-
 COPY ./postgres/images/backup/supervisord.conf /etc/supervisor/supervisord.conf
 COPY ./postgres/images/backup/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
-USER pgbackrest
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]

@@ -30,8 +30,6 @@ spec:
       labels:
         app: pg-backup
     spec:
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: pg-backup
           image: local-registry:12345/backup:latest
