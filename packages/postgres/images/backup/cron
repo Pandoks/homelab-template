@@ -1,5 +1,5 @@
 # do daily/weekly/monthly maintenance
-# min	hour	day	month	weekday	command
+# min	hour	day	month	weekday	user command
 0 1 * * 0 root pgbackrest --stanza=main --type=full backup
 0 2 * * 2,5 root pgbackrest --stanza=main --type=diff backup
 0 2 * * 1-6 root pgbackrest --stanza=main --type=incr backup
