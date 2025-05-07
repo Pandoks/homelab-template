@@ -1,6 +1,6 @@
+# NOTE: append `>> /proc/1/fd/1 2>&1` after the command to allow for stdout/stderr streaming
 # do daily/weekly/monthly maintenance
 # min	hour	day	month	weekday	user command
-0 1 * * 0 root pgbackrest --stanza=main --type=full backup
-0 2 * * 2,5 root pgbackrest --stanza=main --type=diff backup
-0 2 * * 1-6 root pgbackrest --stanza=main --type=incr backup
-* * * * * root pgbackrest --stanza=main --type=full backup
+0 1 * * 0 root pgbackrest --stanza=main --type=full backup >> /proc/1/fd/1 2>&1
+0 2 * * 2,5 root pgbackrest --stanza=main --type=diff backup >> /proc/1/fd/1 2>&1
+0 2 * * 1-6 root pgbackrest --stanza=main --type=incr backup >> /proc/1/fd/1 2>&1
