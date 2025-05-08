@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../base
   - s3.yaml
+  - expose.yaml
 secretGenerator:
   - name: env
     namespace: main

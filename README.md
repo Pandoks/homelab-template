@@ -9,9 +9,9 @@ k3d cluster create local-cluster \
     --api-port 6443 \
     --k3s-arg "--disable=traefik@server:*" \
     --k3s-arg "--disable=servicelb@server:*" \
-    -p "6432:6432@loadbalancer" \
-    -p "3000:3000@loadbalancer" \
-    -p "6379:6379@loadbalancer" \
+    -p "6432:30001@loadbalancer" \
+    -p "3000:30002@loadbalancer" \
+    -p "6379:30003@loadbalancer" \
 ```
 
 For some of the docker compose files, you'll need to be logged in. Make sure that you are logged
