@@ -7,10 +7,8 @@
     "maindb:gen": "drizzle-kit generate --config ./main/drizzle/drizzle.config.ts --name init && rm -rf ./main/setup/meta",
     "maindb:push": "drizzle-kit push --config ./main/drizzle/drizzle.config.ts",
     "maindb:studio": "drizzle-kit studio --config ./main/drizzle/drizzle.config.ts",
-    "k3d:tag": "REGISTRY_URL=localhost:12345 docker compose --profile build-for-prod -f ./images/compose.yaml build",
-    "k3d:push": "pnpm run k3d:tag && REGISTRY_URL=localhost:12345 docker compose --profile build-for-prod -f ./images/compose.yaml push",
-    "reset": "rm -rf ../../.docker-volumes/postgres/ && docker compose -f ./images/compose.yaml --profile '*' down",
-    "start": "pnpm run reset && docker compose -f ./images/compose.yaml --profile '*' up"
+    "k3d:tag": "REGISTRY_URL=localhost:12345 docker compose -f ./images/build-compose.yaml build",
+    "k3d:push": "pnpm run k3d:tag && REGISTRY_URL=localhost:12345 docker compose -f ./images/build-compose.yaml push"
   },
   "exports": {
     "./main/*": "./main/drizzle/schema/*.ts"

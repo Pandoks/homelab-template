@@ -1,0 +1,18 @@
+services:
+  backup:
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}backup:${BACKUP_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: ./postgres/images/backup/Dockerfile
+
+  pgcat:
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}pgcat:${PGCAT_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: ./postgres/images/pgcat/Dockerfile
+
+  patroni:
+    image: ${REGISTRY_URL:+${REGISTRY_URL}/}patroni:${PATRONI_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: ./postgres/images/patroni/Dockerfile
