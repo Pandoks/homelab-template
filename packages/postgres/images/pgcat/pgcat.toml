@@ -102,5 +102,5 @@ statement_timeout = 0
 database = "${POSTGRES_DB}"
 servers = [
   ["${MASTER_HOST_1}", 5432, "Primary"],
-  ["${SLAVE_HOST1_1}", 5432, "Replica"]
+  ["${SLAVE_HOST_1}", 5432, "Replica"]
 ]

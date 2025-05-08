@@ -18,7 +18,7 @@ bootstrap: # how new clusters are created or replicas are initialized
         max_connections: 100
         max_locks_per_transaction: 64
         max_worker_processes: 20
-        wal_level: replica # minimal, replica, or logical
+        wal_level: logical # minimal, replica, or logical (logical is needed for zero sync)
         max_wal_senders: 20
         max_replication_slots: 20
         wal_keep_size: 1024MB
