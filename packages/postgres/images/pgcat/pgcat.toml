@@ -6,6 +6,9 @@ host = "0.0.0.0"
 # Port to run on, same as PgBouncer used in this example.
 port = 6432
 
+# Interval in milliseconds at which Pgcat config is checked and if changed, reloaded.
+autoreload = 60000
+
 # Whether to enable prometheus exporter or not.
 enable_prometheus_exporter = false
 
