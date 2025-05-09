@@ -1,85 +1,25 @@
-# Database Images
+# Connecting to the Databases
 
-These images are used to setup a highly available and failure tolerant postgres database system.
-
-> [!NOTE]
->
-> This database setup requires the root `.env` file to be filled.
-
-## Local Running
-
-In order to run the docker compose file, you need to first setup TLS certificates by running:
-
-```
-setup_tls.dev.sh
-```
-
-After running the script, you can now run `docker compose up`.
-
-## Connecting to the Databases
-
-You can connect to the databses via the connection pooler `pgcat`. Currently this is setup
-to accept connections on `localhost:6432` with the username `pgcat`.
+You can connect to the databses via the connection pooler `pgcat`.
 
 Because of certain configurations and implementation details of `pgcat` we need to connect to it via
 a connection string with `gssencmode=disable`:
 
 ```
-psql 'postgresql://pgcat:password@127.0.0.1:6432/main?gssencmode=disable'
+psql 'postgresql://pgcat:<password>@<host>:6432/<database>?gssencmode=disable'
 ```
 
-### Checking Master & Slave Behavior
+# Initializing Patroni
 
-The compose file doesn't expose the ports of the underlying databases to `localhost`. You can change
-this if you want in the `compose.yaml` file. Instead, I recommend directly accessing the docker container
-and running `psql` to connect to the underlying database. You can then observe if queries are behaving
-in relation with `pgcat`. Ie. Replication is working and the pooler is writing to the master and reading
-from the slave.
-
-## Pgbackrest Backups
+# Pgbackrest Backups
 
 > [!NOTE]
+> When your patroni cluster is first setup, you will need to create a stanza for the backups. To do this,
+> manually go to the pgbackrest deployment and run:
 >
-> We need to install pgbackrest inside of the postgres container because postgres needs to call `pgbackrest`
-> for archiving and restoration.
-
-For database backups, we are going to be using [pgbackrest](https://pgbackrest.org). This is the architecture:
-
-```mermaid
-flowchart LR
-    subgraph cloud[" "]
-        s3[("S3")]
-        subgraph backup[backup container]
-            pgbackrest[pgbackrest]
-            style pgbackrest fill:#000,stroke:#333,stroke-width:2px
-        end
-        subgraph slave[slave container]
-            slavepostgres[(postgres)]
-            slavebackup[pgbackrest]
-            style slavepostgres fill:#4479A1,stroke:#333,stroke-width:2px
-            style slavebackup fill:#000,stroke:#333,stroke-width:2px
-        end
-        subgraph master[master container]
-            masterpostgres[(postgres)]
-            masterbackup[pgbackrest]
-            style masterpostgres fill:#4479A1,stroke:#333,stroke-width:2px
-            style masterbackup fill:#000,stroke:#333,stroke-width:2px
-        end
-
-        style master fill:#4479A1,stroke:#333,stroke-width:2px
-        style slave fill:#,stroke:#333,stroke-width:2px
-        style backup fill:#CC6600,stroke:#333,stroke-width:2px
-        style s3 fill:#006400,stroke:#333,stroke-width:2px
-
-        masterpostgres -- "WAL replication" --- slavepostgres
-        masterbackup -- "WAL archive" --> s3
-        pgbackrest -- "upload" --> s3
-        pgbackrest <-. "main backup" .-> slavebackup
-        pgbackrest -. "supplement main backup" .-> masterbackup
-    end
-
-    style cloud fill:transparent
-```
+> ```
+> pgbackrest --stanza=<stanza> create-stanza
+> ```
 
 ### Backup Types
 
