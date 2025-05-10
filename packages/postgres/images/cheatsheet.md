@@ -1,3 +1,6 @@
+> [!NOTE]
+> This guide is only for the database setup in kubernetes and does not apply for local or dev environments.
+
 # Connecting to the Databases
 
 You can connect to the databses via the connection pooler `pgcat`.
@@ -11,11 +14,67 @@ psql 'postgresql://pgcat:<password>@<host>:6432/<database>?gssencmode=disable'
 
 # Initializing Patroni
 
+Once all Patroni nodes are up, you will need to manually setup extensions, databases, and roles.
+
+## Extensions
+
+All Patorni nodes are installed with the same extensions:
+
+- pg_cron
+- postGIS
+- pgvector
+
+To activiate the extensions, you will need to run the following SQL commands in the database of your choice as the admin user:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pgvector;
+```
+
+## Databases
+
+You will need to create the database that you want for the patroni cluster. It should be the same name
+as the prefix or suffix of the StatefulSets, Services, etc. To create the database, run the following
+SQL command as the admin user:
+
+```sql
+CREATE DATABASE <database_name>;
+```
+
+## Roles
+
+You will have to create the `pgcat` role for the database. This is for the connection pooler. You don't
+want to give the `pgcat` role too much permissions since it should only be used for your client applications
+and not for the database administration. To create the role, run the following SQL command as the admin user
+in the database you want to create the role for `<database_name>`:
+
+```sql
+CREATE ROLE pgcat WITH LOGIN PASSWORD '<password>';
+
+-- Database connection and temporary table privileges
+GRANT CONNECT, TEMPORARY ON DATABASE <database_name> TO pgcat;
+
+-- Schema usage (allows access to objects, but not creation/deletion)
+GRANT USAGE ON SCHEMA public TO pgcat;
+
+-- All privileges on existing tables, sequences, and functions
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pgcat;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO pgcat;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO pgcat;
+
+-- All privileges on future tables, sequences, and functions (run as the object owner)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO pgcat;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO pgcat;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO pgcat;
+```
+
 # Pgbackrest Backups
 
 > [!NOTE]
-> When your patroni cluster is first setup, you will need to create a stanza for the backups. To do this,
-> manually go to the pgbackrest deployment and run:
+> When your patroni cluster is first setup (databases, roles, etc), you will need to create a stanza
+> for the backups. To do this, manually go to the pgbackrest deployment after the patroni cluster is
+> up and run:
 >
 > ```
 > pgbackrest --stanza=<stanza> create-stanza
