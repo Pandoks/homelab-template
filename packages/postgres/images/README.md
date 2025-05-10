@@ -35,8 +35,14 @@ CREATE EXTENSION IF NOT EXISTS pgvector;
 ## Databases
 
 You will need to create the database that you want for the patroni cluster. It should be the same name
-as the prefix or suffix of the StatefulSets, Services, etc. To create the database, run the following
-SQL command as the admin user:
+as the prefix or suffix of the StatefulSets, Services, etc. You'll initially need to connect to the
+database as the admin user to create the database:
+
+```
+psql -U admin -d postgres
+```
+
+To create the database, run the following SQL command as the admin user:
 
 ```sql
 CREATE DATABASE <database_name>;
@@ -47,7 +53,7 @@ CREATE DATABASE <database_name>;
 You will have to create the `pgcat` role for the database. This is for the connection pooler. You don't
 want to give the `pgcat` role too much permissions since it should only be used for your client applications
 and not for the database administration. To create the role, run the following SQL command as the admin user
-in the database you want to create the role for `<database_name>`:
+**in the database you want to create the role for `<database_name>`**:
 
 ```sql
 CREATE ROLE pgcat WITH LOGIN PASSWORD '<password>';

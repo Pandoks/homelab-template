@@ -3,13 +3,10 @@
   "version": "0.0.0",
   "packageManager": "pnpm@10.5.2",
   "scripts": {
-    "init": "./packages/scripts/dev/setup_env.sh",
     "setup": "pnpm run reset && docker compose -f ./setup-compose.yaml -p setup up -d",
     "reset": "docker compose -p setup down && docker compose -p homelab down",
-    "start": "pnpm run setup && docker compose -p homelab up",
-    "build": "./packages/scripts/build_all.sh",
-    "k3d:push": "pnpm -r run k3d:push",
-    "k3d:start": "echo implementation-needed",
+    "build": "docker compose -f ./build-compose.yaml build",
+    "k3d:push": "pnpm run build && pnpm -r run k3d:push",
     "dev": "sst dev"
   },
   "devDependencies": {
