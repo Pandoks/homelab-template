@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -t bookworm -y --no-install-recommends \
   pgbackrest \
   && rm -rf /var/lib/apt/lists/*
 
-COPY ./postgres/images/backup/supervisord.conf /etc/supervisor/supervisord.conf
-COPY ./postgres/images/backup/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]

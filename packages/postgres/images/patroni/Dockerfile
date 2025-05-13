@@ -19,8 +19,8 @@ RUN mkdir -p /etc/pgbackrest /etc/patroni \
   && chown -R postgres:postgres /etc/pgbackrest \
   && chown -R postgres:postgres /etc/patroni 
 
-COPY ./postgres/images/patroni/supervisord.conf /etc/supervisor/supervisord.conf
-COPY ./postgres/images/patroni/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER postgres

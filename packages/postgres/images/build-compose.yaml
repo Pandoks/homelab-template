@@ -2,17 +2,14 @@ services:
   backup:
     image: ${REGISTRY_URL:+${REGISTRY_URL}/}backup:${BACKUP_TAG:-latest}
     build:
-      context: ../../
-      dockerfile: ./postgres/images/backup/Dockerfile
+      context: ./backup
 
   pgcat:
     image: ${REGISTRY_URL:+${REGISTRY_URL}/}pgcat:${PGCAT_TAG:-latest}
     build:
-      context: ../../
-      dockerfile: ./postgres/images/pgcat/Dockerfile
+      context: ./pgcat
 
   patroni:
     image: ${REGISTRY_URL:+${REGISTRY_URL}/}patroni:${PATRONI_TAG:-latest}
     build:
-      context: ../../
-      dockerfile: ./postgres/images/patroni/Dockerfile
+      context: ./patroni
