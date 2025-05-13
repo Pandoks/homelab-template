@@ -139,6 +139,15 @@ backups is 4 so that I will keep a full month's worth of backups.
 > We don't have `repo-retention-incr` because `pgbackrest` automatically takes care of them when either
 > diff or full backups are deleted.
 
+# Connecting to the Database
+
+As mentioned above, you'll have to connect to pgcat to connect to the cluster's database cluster on the
+host machine. You can do this by running the following command:
+
+```
+psql -U pgcat -d <database_name> -h localhost -p 6432
+```
+
 ## Database Cron Jobs
 
 `pg_cron` is already installed in the images so that you can run database cron jobs. Currently, for
