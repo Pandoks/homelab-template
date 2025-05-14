@@ -60,9 +60,9 @@ importers:
         specifier: ^0.30.4
         version: 0.30.4
 
-  packages/redis: {}
-
   packages/scripts: {}
+
+  packages/valkey: {}
 
   packages/web:
     dependencies:
