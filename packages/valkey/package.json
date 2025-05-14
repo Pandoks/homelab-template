@@ -1,0 +1,10 @@
+{
+  "name": "@homelab-template/valkey",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "k3d:tag": "docker build -f ./Dockerfile -t localhost:12345/valkey:latest .",
+    "k3d:push": "pnpm run k3d:tag && docker push localhost:12345/valkey:latest"
+  }
+}
