@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: &app valkey-main
+  namespace: main
+spec:
+  selector:
+    app: *app
+  ports:
+    - name: client
+      port: 6379
+      targetPort: 6379
+    - name: cluster
+      port: 16379
+      targetPort: 16379
+  clusterIP: None
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: &app valkey-main
+  namespace: &namespace main
+spec:
+  podManagementPolicy: Parallel
+  serviceName: *app
+  replicas: 6 # WARNING: should be an odd number of primaries. calculate total replicas as 2*(odd # primaries)
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+    spec:
+      containers:
+        - name: valkey
+          image: local-registry:12345/valkey:latest
+          securityContext:
+            runAsGroup: 999
+          ports:
+            - containerPort: 6379
+              name: client
+            - containerPort: 16379
+              name: cluster
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: REPLICAS
+              value: "6" # WARNING: needs to be the same as the replicas spcification
+            - name: NAMESPACE
+              value: *namespace
+          volumeMounts:
+            - name: valkey-config
+              mountPath: /tmp/conf_templates/valkey.conf
+              subPath: valkey.conf
+            - name: valkey-data
+              mountPath: /data
+      volumes:
+        - name: valkey-config
+          configMap:
+            name: valkey-config
+  volumeClaimTemplates:
+    - metadata:
+        name: valkey-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
